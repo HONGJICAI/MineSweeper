@@ -188,7 +188,8 @@ export default function Home() {
     r: number,
     c: number
   ) {
-    if (!board || gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
+    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
+    if (gameStatus === GameStatus.Init && e.button === 2) return;
     if (e.button === 0) mouseDownRef.current.left = true;
     if (e.button === 2) mouseDownRef.current.right = true;
     // Store which cell the mouse was pressed on
@@ -231,7 +232,8 @@ export default function Home() {
       }
       // Handle right click (flag cell)
       else if (mouseDownRef.current.right && e.button === 2) {
-        handleFlagCell(r, c);
+        if (gameStatus === GameStatus.Gaming)
+          handleFlagCell(r, c);
       }
       setMouseCell(null); // Reset mouse cell after action
     }
@@ -254,7 +256,7 @@ export default function Home() {
 
   // Move flagging logic to a separate function
   function handleFlagCell(r: number, c: number) {
-    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win || !board) return;
+    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
     const cell = board[r][c];
     if (cell.isRevealed) return;
 
@@ -315,26 +317,26 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen justify-center gap-6 p-4">
-      <h1 className="text-3xl font-bold mb-2">Minesweeper</h1>
+    <div className="flex flex-col items-center min-h-screen justify-center gap-6 p-4 bg-white dark:bg-gray-900">
+      <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">Minesweeper</h1>
       <div className="flex gap-4 items-center mb-2">
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
           onClick={handleReset}
         >
           Reset
         </button>
-        <span className="text-gray-800 font-semibold">
+        <span className="text-gray-800 dark:text-gray-200 font-semibold">
           Mines left: {MINES - (board ? flagCount : 0)}
         </span>
-        <span className="text-gray-800 font-semibold">
+        <span className="text-gray-800 dark:text-gray-200 font-semibold">
           Time: {timer}s
         </span>
         {gameStatus === GameStatus.GameOver && (
-          <span className="text-red-600 font-semibold">Game Over!</span>
+          <span className="text-red-600 dark:text-red-400 font-semibold">Game Over!</span>
         )}
         {gameStatus === GameStatus.Win && (
-          <span className="text-green-600 font-semibold">You Win!</span>
+          <span className="text-green-600 dark:text-green-400 font-semibold">You Win!</span>
         )}
       </div>
       {useMemo(() => (
@@ -382,7 +384,7 @@ export default function Home() {
           )}
         </div>
       ), [board, mouseCell, gameStatus])}
-      <p className="text-gray-500 mt-4 text-sm">
+      <p className="text-gray-500 dark:text-gray-400 mt-4 text-sm">
         Left click to reveal. Right click to flag.
       </p>
     </div>

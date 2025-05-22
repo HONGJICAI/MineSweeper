@@ -12,7 +12,6 @@ type CellProps = {
     r: number;
     c: number;
     isPressed?: boolean;
-    onClick?: (r: number, c: number) => void;
     onContextMenu?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onMouseDown?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onMouseUp?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
@@ -24,7 +23,6 @@ export default function Cell({
     r,
     c,
     isPressed = false,
-    onClick,
     onContextMenu,
     onMouseDown,
     onMouseUp,
@@ -33,20 +31,19 @@ export default function Cell({
     return (
         <button
             key={`${r}-${c}`}
-            onClick={() => onClick?.(r, c)}
             onContextMenu={(e) => onContextMenu?.(e, r, c)}
             onMouseDown={(e) => onMouseDown?.(e, r, c)}
             onMouseUp={(e) => onMouseUp?.(e, r, c)}
             onMouseLeave={(e) => onMouseLeave?.(e, r, c)}
-            className={`w-8 h-8 flex items-center justify-center border border-gray-400 text-lg font-mono select-none
+            className={`w-8 h-8 flex items-center justify-center border border-gray-400 dark:border-gray-600 text-lg font-mono select-none
         ${cell.isRevealed
-                    ? "bg-gray-100"
-                    : isPressed
-                        ? "bg-gray-200"
-                        : "bg-gray-400 hover:bg-gray-300"
-                }
-        ${cell.isFlagged ? "bg-yellow-300" : ""}
-        ${cell.isRevealed && cell.isMine ? "bg-red-400" : ""}
+                ? "bg-gray-100 dark:bg-gray-800 dark:text-gray-200"
+                : isPressed
+                    ? "bg-gray-200 dark:bg-gray-700"
+                    : "bg-gray-400 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
+            }
+        ${cell.isFlagged ? "bg-yellow-300 dark:bg-yellow-700" : ""}
+        ${cell.isRevealed && cell.isMine ? "bg-red-400 dark:bg-red-700" : ""}
       `}
             aria-label={
                 cell.isFlagged
