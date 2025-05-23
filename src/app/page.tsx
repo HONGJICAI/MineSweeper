@@ -1,168 +1,22 @@
 "use client";
 import { useState, useEffect, useRef, useMemo } from "react";
 import Cell, { CellType } from "./Cell";
+import {
+  GameStatus,
+  ROWS,
+  COLS,
+  MINES,
+  generateBoard,
+  revealCellInPlace,
+  checkWin,
+  countFlaggedAround,
+  revealAroundInPlace,
+  revealAllMinesInPlace,
+  createEmptyBoard
+} from "./utils/minesweeperLogic";
 
-// Add the enum definition
-enum GameStatus {
-  Init = 0,
-  Gaming = 1,
-  GameOver = 2,
-  Win = 3
-}
-
-const ROWS = 9;
-const COLS = 9;
-const MINES = 10;
-
-function generateBoard(safeR: number, safeC: number): CellType[][] {
-  // Create empty board
-  const board: CellType[][] = Array.from({ length: ROWS }, () =>
-    Array.from({ length: COLS }, () => ({
-      isMine: false,
-      isRevealed: false,
-      isFlagged: false,
-      adjacentMines: 0,
-    }))
-  );
-
-  // Place mines
-  let minesPlaced = 0;
-  while (minesPlaced < MINES) {
-    const r = Math.floor(Math.random() * ROWS);
-    const c = Math.floor(Math.random() * COLS);
-    // Don't place a mine on the first clicked cell
-    if ((r === safeR && c === safeC) || board[r][c].isMine) continue;
-    board[r][c].isMine = true;
-    minesPlaced++;
-  }
-
-  // Calculate adjacent mines
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      if (board[r][c].isMine) continue;
-      let count = 0;
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          if (
-            r + dr >= 0 &&
-            r + dr < ROWS &&
-            c + dc >= 0 &&
-            c + dc < COLS &&
-            board[r + dr][c + dc].isMine
-          ) {
-            count++;
-          }
-        }
-      }
-      board[r][c].adjacentMines = count;
-    }
-  }
-
-  return board;
-}
-
-function revealCellInPlace(board: CellType[][], r: number, c: number): boolean {
-  if (
-    r < 0 ||
-    r >= ROWS ||
-    c < 0 ||
-    c >= COLS ||
-    board[r][c].isRevealed ||
-    board[r][c].isFlagged
-  )
-    return false;
-
-  const stack = [[r, c]];
-
-  while (stack.length) {
-    const [row, col] = stack.pop()!;
-    const cell = board[row][col];
-    if (cell.isRevealed || cell.isFlagged) continue;
-    cell.isRevealed = true;
-    if (cell.adjacentMines === 0 && !cell.isMine) {
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          const nr = row + dr;
-          const nc = col + dc;
-          if (
-            nr >= 0 &&
-            nr < ROWS &&
-            nc >= 0 &&
-            nc < COLS &&
-            !(dr === 0 && dc === 0)
-          ) {
-            if (!board[nr][nc].isRevealed && !board[nr][nc].isMine) {
-              stack.push([nr, nc]);
-            }
-          }
-        }
-      }
-    }
-  }
-  return true;
-}
-
-function checkWin(board: CellType[][]): boolean {
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const cell = board[r][c];
-      if (!cell.isMine && !cell.isRevealed) return false;
-    }
-  }
-  return true;
-}
-// Helper: count flagged cells around (r, c)
-function countFlaggedAround(board: CellType[][], r: number, c: number): number {
-  let count = 0;
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      if (dr === 0 && dc === 0) continue;
-      const nr = r + dr, nc = c + dc;
-      if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-        if (board[nr][nc].isFlagged) count++;
-      }
-    }
-  }
-  return count;
-}
-
-// Helper: reveal all unflagged cells around (r, c)
-function revealAroundInPlace(board: CellType[][], r: number, c: number): GameStatus {
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      if (dr === 0 && dc === 0) continue;
-      const nr = r + dr, nc = c + dc;
-      if (
-        nr >= 0 && nr < ROWS &&
-        nc >= 0 && nc < COLS &&
-        !board[nr][nc].isFlagged &&
-        !board[nr][nc].isRevealed
-      ) {
-        if (board[nr][nc].isMine) {
-          return GameStatus.GameOver;
-        }
-        revealCellInPlace(board, nr, nc);
-      }
-    }
-  }
-  return GameStatus.Gaming;
-}
-function revealAllMines(board: CellType[][]) {
-  const newBoard = board.map((row) =>
-    row.map((cell) => (cell.isMine ? { ...cell, isRevealed: true } : cell))
-  );
-  return newBoard;
-}
 export default function Home() {
-  const emptyBoard = useMemo<CellType[][]>(() =>
-    Array.from({ length: ROWS }, () =>
-      Array.from({ length: COLS }, () => ({
-        isMine: false,
-        isRevealed: false,
-        isFlagged: false,
-        adjacentMines: 0,
-      }))
-    ), []);
+  const emptyBoard = useMemo<CellType[][]>(() => createEmptyBoard(), []);
   const [board, setBoard] = useState<CellType[][]>(emptyBoard);
   const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.Init);
   const [timer, setTimer] = useState(0);
@@ -170,6 +24,9 @@ export default function Home() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const mouseDownRef = useRef<{ left: boolean; right: boolean }>({ left: false, right: false });
   const [mouseCell, setMouseCell] = useState<{ r: number; c: number } | null>(null);
+  const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMobileRef = useRef(false);
+
   // Timer effect
   useEffect(() => {
     if (gameStatus === GameStatus.Gaming) {
@@ -182,7 +39,6 @@ export default function Home() {
     };
   }, [gameStatus]);
 
-  // Mouse event handlers for chording
   function handleMouseDown(
     e: React.MouseEvent<HTMLButtonElement>,
     r: number,
@@ -202,29 +58,15 @@ export default function Home() {
     c: number
   ) {
     if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
-
+    if (isMobileRef.current) {
+      return;
+    }
     // Only execute actions if mouse is released on the same cell it was pressed
     if (mouseCell && mouseCell.r === r && mouseCell.c === c) {
       // Handle chording (both buttons pressed on revealed cell)
       if (mouseDownRef.current.left &&
-        mouseDownRef.current.right &&
-        board[r][c].isRevealed &&
-        board[r][c].adjacentMines > 0) {
-        const flagged = countFlaggedAround(board, r, c);
-        if (flagged === board[r][c].adjacentMines) {
-          const gameOver = revealAroundInPlace(board, r, c) === GameStatus.GameOver;
-          if (gameOver) {
-            const newBoard = revealAllMines(board);
-            setBoard(newBoard);
-            setGameStatus(GameStatus.GameOver);
-            return;
-          }
-          const newBoard = board.map(row =>
-            row.map(cell => ({ ...cell }))
-          );
-          setBoard(newBoard);
-          if (checkWin(newBoard)) setGameStatus(GameStatus.Win);
-        }
+        mouseDownRef.current.right) {
+        handleChordCell(r, c);
       }
       // Handle left click (reveal cell)
       else if (mouseDownRef.current.left && e.button === 0) {
@@ -244,19 +86,36 @@ export default function Home() {
   }
 
   // Handle mouse leave event
-  function handleMouseLeave(
-  ) {
+  function handleMouseLeave() {
     if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
-    if (!mouseCell) return;
-
+    if (!mouseCell || isMobileRef.current) return;
     setMouseCell(null);
     mouseDownRef.current.left = false;
     mouseDownRef.current.right = false;
   }
 
-  // Move flagging logic to a separate function
-  function handleFlagCell(r: number, c: number) {
+  function handleChordCell(r: number, c: number) {
     if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
+    if (board[r][c].isRevealed && board[r][c].adjacentMines > 0) {
+      const flagged = countFlaggedAround(board, r, c);
+      if (flagged === board[r][c].adjacentMines) {
+        const gameOver = revealAroundInPlace(board, r, c) === GameStatus.GameOver;
+        if (gameOver) {
+          revealAllMinesInPlace(board);
+          setBoard([...board]);
+          setGameStatus(GameStatus.GameOver);
+          return;
+        }
+        const newBoard = [...board];
+        setBoard(newBoard);
+        if (checkWin(newBoard)) setGameStatus(GameStatus.Win);
+      }
+    }
+  }
+
+  function handleFlagCell(r: number, c: number) {
+    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win
+      || gameStatus === GameStatus.Init) return;
     const cell = board[r][c];
     if (cell.isRevealed) return;
 
@@ -266,15 +125,13 @@ export default function Home() {
       setFlagCount((count) => count + 1);
     }
 
-    const newBoard = board.map((row) => row.map((cell) => ({ ...cell })));
+    const newBoard = [...board];
     newBoard[r][c].isFlagged = !newBoard[r][c].isFlagged;
     setBoard(newBoard);
   }
 
   // Keep this to prevent context menu
-  function handleRightClick(
-    e: React.MouseEvent<HTMLButtonElement>,
-  ) {
+  function handleRightClick(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault(); // Only prevent default context menu
   }
 
@@ -302,9 +159,7 @@ export default function Home() {
       return;
     }
     revealCellInPlace(board, r, c);
-    const newBoard = board.map((row) =>
-      row.map((cell) => ({ ...cell }))
-    );
+    const newBoard = [...board];
     setBoard(newBoard);
     if (checkWin(newBoard)) setGameStatus(GameStatus.Win);
   }
@@ -314,6 +169,61 @@ export default function Home() {
     setGameStatus(GameStatus.Init);
     setTimer(0);
     setFlagCount(0);
+  }
+
+  // Handle touch events for mobile
+  function handleTouchStart(
+    e: React.TouchEvent<HTMLButtonElement>,
+    r: number,
+    c: number
+  ) {
+    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
+
+    // Prevent default to avoid double triggers
+    e.preventDefault();
+    isMobileRef.current = true;
+
+    // Store the cell being touched
+    setMouseCell({ r, c });
+    mouseDownRef.current.left = true;
+
+    // Set a timeout for long press (flag)
+    longPressTimeoutRef.current = setTimeout(() => {
+      if (!board[r][c].isRevealed) {
+        // execute immediately if long press
+        handleFlagCell(r, c);
+      }
+    }, 500); // 500ms for long press
+  }
+
+  function handleTouchEnd(
+    e: React.TouchEvent<HTMLButtonElement>,
+    r: number,
+    c: number
+  ) {
+    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
+
+    // Clear the long press timeout
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+    // If touch ends on the same cell and it wasn't a long press, handle as a click
+    if (mouseCell && mouseCell.r === r && mouseCell.c === c) {
+      if (board[r][c].isRevealed) {
+        handleChordCell(r, c);
+      } else {
+        handleCellClick(r, c);
+      }
+    }
+
+    // Reset states
+    setMouseCell(null);
+    mouseDownRef.current.left = false;
+    mouseDownRef.current.right = false;
+  }
+
+  function handleTouchMove() {
   }
 
   return (
@@ -347,7 +257,7 @@ export default function Home() {
             gridTemplateColumns: `repeat(${COLS}, 2rem)`,
             gap: "2px",
           }}
-          onContextMenu={(e) => e.preventDefault()} // Prevent default context menu
+          onContextMenu={(e) => e.preventDefault()}
         >
           {board.map((row, r) =>
             row.map((cell, c) => {
@@ -378,6 +288,10 @@ export default function Home() {
                   onMouseDown={handleMouseDown}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseLeave}
+                  onTouchStart={(e) => handleTouchStart(e, r, c)}
+                  onTouchEnd={(e) => handleTouchEnd(e, r, c)}
+                  onTouchMove={handleTouchMove}
+                  onTouchCancel={handleTouchMove}
                 />
               );
             })
@@ -386,6 +300,8 @@ export default function Home() {
       ), [board, mouseCell, gameStatus])}
       <p className="text-gray-500 dark:text-gray-400 mt-4 text-sm">
         Left click to reveal. Right click to flag.
+        <br />
+        On mobile: Tap to reveal, long-press to flag.
       </p>
     </div>
   );

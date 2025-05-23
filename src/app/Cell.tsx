@@ -7,7 +7,7 @@ export type CellType = {
     adjacentMines: number;
 };
 
-type CellProps = {
+interface CellProps {
     cell: CellType;
     r: number;
     c: number;
@@ -16,7 +16,11 @@ type CellProps = {
     onMouseDown?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onMouseUp?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onMouseLeave?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
-};
+    onTouchStart?: (e: React.TouchEvent<HTMLButtonElement>, r: number, c: number) => void;
+    onTouchEnd?: (e: React.TouchEvent<HTMLButtonElement>, r: number, c: number) => void;
+    onTouchMove?: (e: React.TouchEvent<HTMLButtonElement>) => void;
+    onTouchCancel?: (e: React.TouchEvent<HTMLButtonElement>) => void;
+}
 
 export default function Cell({
     cell,
@@ -27,6 +31,10 @@ export default function Cell({
     onMouseDown,
     onMouseUp,
     onMouseLeave,
+    onTouchStart,
+    onTouchEnd,
+    onTouchMove,
+    onTouchCancel,
 }: CellProps) {
     return (
         <button
@@ -35,6 +43,10 @@ export default function Cell({
             onMouseDown={(e) => onMouseDown?.(e, r, c)}
             onMouseUp={(e) => onMouseUp?.(e, r, c)}
             onMouseLeave={(e) => onMouseLeave?.(e, r, c)}
+            onTouchStart={(e) => onTouchStart?.(e, r, c)}
+            onTouchEnd={(e) => onTouchEnd?.(e, r, c)}
+            onTouchMove={onTouchMove}
+            onTouchCancel={onTouchCancel}
             className={`w-8 h-8 flex items-center justify-center border border-gray-400 dark:border-gray-600 text-lg font-mono select-none
         ${cell.isRevealed
                 ? "bg-gray-100 dark:bg-gray-800 dark:text-gray-200"
