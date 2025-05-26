@@ -1,13 +1,5 @@
 import { CellType } from "../Cell";
 
-// Game status enum
-export enum GameStatus {
-    Init = 0,
-    Gaming = 1,
-    GameOver = 2,
-    Win = 3
-}
-
 export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
     function generateBoard(safeR: number, safeC: number): CellType[][] {
         // Create empty board
@@ -56,7 +48,7 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
         return board;
     }
 
-    function revealCellInPlace(board: CellType[][], r: number, c: number): boolean {
+    function revealCellInPlace(board: CellType[][], r: number, c: number): number {
         if (
             r < 0 ||
             r >= ROWS ||
@@ -65,12 +57,14 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
             board[r][c].isRevealed ||
             board[r][c].isFlagged
         )
-            return false;
+            return 0;
 
         const stack = [[r, c]];
+        let revealedCount = 0;
 
         while (stack.length) {
             const [row, col] = stack.pop()!;
+            revealedCount++;
             const cell = board[row][col];
             if (cell.isRevealed || cell.isFlagged) continue;
             cell.isRevealed = true;
@@ -94,7 +88,7 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
                 }
             }
         }
-        return true;
+        return revealedCount;
     }
 
     function checkWin(board: CellType[][]): boolean {
@@ -123,7 +117,8 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
     }
 
     // Helper: reveal all unflagged cells around (r, c)
-    function revealAroundInPlace(board: CellType[][], r: number, c: number): GameStatus {
+    function revealAroundInPlace(board: CellType[][], r: number, c: number): number {
+        let revealedCount = 0;
         for (let dr = -1; dr <= 1; dr++) {
             for (let dc = -1; dc <= 1; dc++) {
                 if (dr === 0 && dc === 0) continue;
@@ -135,13 +130,13 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
                     !board[nr][nc].isRevealed
                 ) {
                     if (board[nr][nc].isMine) {
-                        return GameStatus.GameOver;
+                        return -1;
                     }
-                    revealCellInPlace(board, nr, nc);
+                    revealedCount += revealCellInPlace(board, nr, nc);
                 }
             }
         }
-        return GameStatus.Gaming;
+        return revealedCount;
     }
 
     function revealAllMinesInPlace(board: CellType[][]) {

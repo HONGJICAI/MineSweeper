@@ -12,6 +12,7 @@ interface CellProps {
     r: number;
     c: number;
     isPressed?: boolean;
+    isHighlighted?: boolean;
     onContextMenu?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onMouseDown?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onMouseUp?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
@@ -27,6 +28,7 @@ export default function Cell({
     r,
     c,
     isPressed = false,
+    isHighlighted,
     onContextMenu,
     onMouseDown,
     onMouseUp,
@@ -47,6 +49,9 @@ export default function Cell({
             onTouchEnd={(e) => onTouchEnd?.(e, r, c)}
             onTouchMove={onTouchMove}
             onTouchCancel={onTouchCancel}
+            style={{
+                backgroundColor: isHighlighted ? "#ffe066" : undefined,
+            }}
             className={`w-8 h-8 flex items-center justify-center border border-gray-400 dark:border-gray-600 text-lg font-mono select-none
         ${cell.isRevealed
                 ? "bg-gray-100 dark:bg-gray-800 dark:text-gray-200"
@@ -54,7 +59,6 @@ export default function Cell({
                     ? "bg-gray-200 dark:bg-gray-700"
                     : "bg-gray-400 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
             }
-        ${cell.isFlagged ? "bg-yellow-300 dark:bg-yellow-700" : ""}
         ${cell.isRevealed && cell.isMine ? "bg-red-400 dark:bg-red-700" : ""}
       `}
             aria-label={
