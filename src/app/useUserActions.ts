@@ -1,11 +1,5 @@
 import { useState, useCallback } from "react";
-
-type ActionType = "reveal" | "flag" | "chord";
-type UserAction = {
-  type: ActionType;
-  position: { r: number; c: number };
-  score: number;
-};
+import { UserAction } from "./Game.types";
 
 export function useUserActions() {
   const [userActions, setUserActions] = useState<UserAction[]>([]);

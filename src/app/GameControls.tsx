@@ -18,8 +18,8 @@ interface GameControlsProps {
 export default function GameControls({
   difficulty,
   setDifficulty,
-  mobileAction,
-  setMobileAction,
+//   mobileAction,
+//   setMobileAction,
   timer,
   handleReset,
   faceEmoji,
@@ -44,14 +44,14 @@ export default function GameControls({
         </Button>
       </div>
       {/* Mobile action toggle */}
-      <div className="mb-2 flex gap-2 justify-center">
+      {/* <div className="mb-2 flex gap-2 justify-center">
         <Button onClick={() => setMobileAction("reveal")} active={mobileAction === "reveal"}>
           ⛏️
         </Button>
         <Button onClick={() => setMobileAction("flag")} active={mobileAction === "flag"}>
           🚩
         </Button>
-      </div>
+      </div> */}
       <div className="flex gap-16 items-center mb-2">
         <span className="text-gray-800 dark:text-gray-200 font-semibold">
           ⏰ {timer}s

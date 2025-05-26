@@ -6,3 +6,10 @@ export enum GameStatus {
     GameOver = 2,
     Win = 3
 }
+
+export type ActionType = "reveal" | "flag" | "chord";
+export type UserAction = {
+  type: ActionType;
+  position: { r: number; c: number };
+  score: number;
+};

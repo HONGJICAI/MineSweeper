@@ -12,23 +12,23 @@ type BoardProps = {
   hoveredCell: { r: number; c: number } | null;
   rows: number;
   cols: number;
-  handleMouseDown: (
+  handleMouseDown?: (
     e: React.MouseEvent<HTMLButtonElement>,
     r: number,
     c: number
   ) => void;
-  handleMouseUp: (
+  handleMouseUp?: (
     e: React.MouseEvent<HTMLButtonElement>,
     r: number,
     c: number
   ) => void;
-  handleMouseLeave: () => void;
-  handleTouchStart: (
+  handleMouseLeave?: () => void;
+  handleTouchStart?: (
     e: React.TouchEvent<HTMLButtonElement>,
     r: number,
     c: number
   ) => void;
-  handleTouchEnd: (
+  handleTouchEnd?: (
     e: React.TouchEvent<HTMLButtonElement>,
     r: number,
     c: number
@@ -93,8 +93,8 @@ export default function Board({
               onMouseDown={handleMouseDown}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseLeave}
-              onTouchStart={(e) => handleTouchStart(e, r, c)}
-              onTouchEnd={(e) => handleTouchEnd(e, r, c)}
+              onTouchStart={(e) => handleTouchStart?.(e, r, c)}
+              onTouchEnd={(e) => handleTouchEnd?.(e, r, c)}
             />
           );
         })

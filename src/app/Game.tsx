@@ -17,6 +17,7 @@ import { usePlayHistory } from "./usePlayHistory";
 import HistoryList from "./HistoryList";
 import GameControls from "./GameControls";
 import Board from "./Board";
+import { useDesktopMouse } from "./useDesktopMouse";
 
 // Add a type for difficulty
 type Difficulty = "easy" | "medium" | "hard";
@@ -45,9 +46,6 @@ export default function Game(props: {
   const { leaderboards, addEntry } = useLeaderboard();
   const { playHistory, addPlayHistoryEntry } = usePlayHistory();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const mouseDownRef = useRef<{ left: boolean; right: boolean }>({ left: false, right: false });
-  const [mouseCell, setMouseCell] = useState<{ r: number; c: number } | null>(null);
-  const isMobileRef = useRef(false);
   const faceEmoji = useMemo(() => {
     switch (gameStatus) {
       case GameStatus.GameOver:
@@ -80,7 +78,6 @@ export default function Game(props: {
       };
       addEntry(difficulty, entry);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameStatus]);
 
   // Track play history on game end (win or loss)
@@ -93,64 +90,6 @@ export default function Game(props: {
       });
     }
   }, [gameStatus, timer, difficulty, addPlayHistoryEntry]);
-
-  function handleMouseDown(
-    e: React.MouseEvent<HTMLButtonElement>,
-    r: number,
-    c: number
-  ) {
-    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
-    if (gameStatus === GameStatus.Init && e.button === 2) return;
-    if (e.button === 0) mouseDownRef.current.left = true;
-    if (e.button === 2) mouseDownRef.current.right = true;
-    // Store which cell the mouse was pressed on
-    setMouseCell({ r, c });
-  }
-
-  function handleMouseUp(
-    e: React.MouseEvent<HTMLButtonElement>,
-    r: number,
-    c: number
-  ) {
-    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
-    if (isMobileRef.current) {
-      return;
-    }
-    // Only execute actions if mouse is released on the same cell it was pressed
-    if (mouseCell && mouseCell.r === r && mouseCell.c === c) {
-      // Handle chording (both buttons pressed on revealed cell)
-      if (mouseDownRef.current.left &&
-        mouseDownRef.current.right) {
-        const score = handleChordCell(r, c);
-        addUserAction({ type: "chord", position: { r, c }, score: score });
-      }
-      // Handle left click (reveal cell)
-      else if (mouseDownRef.current.left && e.button === 0) {
-        const score = handleCellClick(r, c);
-        addUserAction({ type: "reveal", position: { r, c }, score: score });
-      }
-      // Handle right click (flag cell)
-      else if (mouseDownRef.current.right && e.button === 2) {
-        // if (gameStatus === GameStatus.Gaming)
-        const score = handleFlagCell(r, c);
-        addUserAction({ type: "flag", position: { r, c }, score: score });
-      }
-      setMouseCell(null); // Reset mouse cell after action
-    }
-
-    // Reset mouse state
-    if (e.button === 0) mouseDownRef.current.left = false;
-    if (e.button === 2) mouseDownRef.current.right = false;
-  }
-
-  // Handle mouse leave event
-  function handleMouseLeave() {
-    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
-    if (!mouseCell || isMobileRef.current) return;
-    setMouseCell(null);
-    mouseDownRef.current.left = false;
-    mouseDownRef.current.right = false;
-  }
 
   function handleChordCell(r: number, c: number) {
     if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return 0;
@@ -236,49 +175,22 @@ export default function Game(props: {
     handleReset();
   }, [difficulty, handleReset]);
 
-  // Handle touch events for mobile
-  function handleTouchStart(
-    e: React.TouchEvent<HTMLButtonElement>,
-    r: number,
-    c: number
-  ) {
-    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
-
-    // Prevent default to avoid double triggers
-    e.preventDefault();
-    isMobileRef.current = true;
-
-    // Store the cell being touched
-    setMouseCell({ r, c });
-    mouseDownRef.current.left = true;
-  }
-
-  function handleTouchEnd(
-    e: React.TouchEvent<HTMLButtonElement>,
-    r: number,
-    c: number
-  ) {
-    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
-
-    if (mouseCell && mouseCell.r === r && mouseCell.c === c) {
-      if (mobileAction === "flag") {
-        handleFlagCell(r, c);
-      } else {
-        if (board[r][c].isRevealed) {
-          handleChordCell(r, c);
-        } else {
-          handleCellClick(r, c);
-        }
-      }
-    }
-
-    // Reset states
-    setMouseCell(null);
-    mouseDownRef.current.left = false;
-    mouseDownRef.current.right = false;
-  }
+  const {
+    mouseDownRef,
+    mouseCell,
+    handleMouseDown,
+    handleMouseUp,
+    handleMouseLeave,
+  } = useDesktopMouse({
+    gameStatus,
+    handleFlagCell,
+    handleChordCell,
+    handleCellClick,
+    addUserAction
+  });
 
   const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
+
 
   return (
     <div className="flex min-h-screen justify-center items-start gap-8 p-4 bg-white dark:bg-gray-900 overflow-x-hidden">
@@ -307,8 +219,6 @@ export default function Game(props: {
           handleMouseDown={handleMouseDown}
           handleMouseUp={handleMouseUp}
           handleMouseLeave={handleMouseLeave}
-          handleTouchStart={handleTouchStart}
-          handleTouchEnd={handleTouchEnd}
         />
       </div>
       {/* Right side: Leaderboard */}

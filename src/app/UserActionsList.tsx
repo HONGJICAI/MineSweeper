@@ -1,11 +1,5 @@
 import React from "react";
-
-type ActionType = "reveal" | "flag" | "chord";
-type UserAction = {
-  type: ActionType;
-  position: { r: number; c: number };
-  score: number;
-};
+import { ActionType, UserAction } from "./Game.types";
 
 const actionEmoji: Record<ActionType, string> = {
   reveal: "⛏️",
