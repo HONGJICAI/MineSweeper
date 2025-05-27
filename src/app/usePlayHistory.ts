@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
+import { useLocalStorage } from "./useStorage";
 
 type Difficulty = "easy" | "medium" | "hard";
 type PlayHistoryEntry = {
@@ -11,17 +12,21 @@ type PlayHistory = PlayHistoryEntry & {
 };
 
 export function usePlayHistory() {
-    const [playHistory, setPlayHistory] = useState<PlayHistory[]>([]);
+    const [playHistory, setPlayHistory] = useLocalStorage<PlayHistory[]>(
+        "playHistory",
+        []
+    );
 
     const addPlayHistoryEntry = useCallback((entry: PlayHistoryEntry) => {
+        if (playHistory === null) return;
         const date = new Date().toLocaleDateString("en-US", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
         });
         const newEntry = { ...entry, date };
-        setPlayHistory((history) => [newEntry, ...history]);
-    }, []);
+        setPlayHistory([newEntry, ...playHistory]);
+    }, [playHistory, setPlayHistory]);
 
     return { playHistory, addPlayHistoryEntry };
 }

@@ -80,15 +80,21 @@ export default function Game(props: {
     }
   }, [gameStatus]);
 
+  const prevGameStatus = useRef<GameStatus>(gameStatus);
+
   // Track play history on game end (win or loss)
   useEffect(() => {
-    if (gameStatus === GameStatus.Win || gameStatus === GameStatus.GameOver) {
+    if (
+      (gameStatus === GameStatus.Win || gameStatus === GameStatus.GameOver) &&
+      prevGameStatus.current !== gameStatus
+    ) {
       addPlayHistoryEntry({
         result: gameStatus === GameStatus.Win ? "Win" : "Loss",
         time: timer,
         difficulty,
       });
     }
+    prevGameStatus.current = gameStatus;
   }, [gameStatus, timer, difficulty, addPlayHistoryEntry]);
 
   function handleChordCell(r: number, c: number) {
@@ -234,7 +240,7 @@ export default function Game(props: {
         <StatisticsModal
           show={showStats}
           onClose={() => setShowStats(false)}
-          playHistory={playHistory}
+          playHistory={playHistory ?? []}
         />
       )}
       {/* Show stats button */}

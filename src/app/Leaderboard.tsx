@@ -7,7 +7,7 @@ export default function Leaderboard({
   leaderboards,
   difficulty,
 }: {
-  leaderboards: Record<Difficulty, LeaderboardEntry[]>;
+  leaderboards: Record<Difficulty, LeaderboardEntry[]> | null;
   difficulty: Difficulty;
 }) {
   return (
@@ -16,10 +16,13 @@ export default function Leaderboard({
         Leaderboard ({difficulty.charAt(0).toUpperCase() + difficulty.slice(1)})
       </h2>
       <ol className="list-decimal list-inside bg-gray-100 dark:bg-gray-800 rounded p-3">
-        {leaderboards[difficulty].length === 0 && (
-          <li className="text-gray-500 dark:text-gray-400">No records yet.</li>
+        {leaderboards === null && (
+          <li className="text-gray-500 dark:text-gray-400">Loading...</li>
         )}
-        {leaderboards[difficulty].map((entry, idx) => (
+        {leaderboards?.[difficulty]?.length === 0 && (
+          <li className="text-gray-500 dark:text-gray-400">No entries yet.</li>
+        )}
+        {leaderboards?.[difficulty]?.map((entry, idx) => (
           <li key={idx} className="flex justify-between">
             <span>{entry.time}s</span>
             <span className="text-xs text-gray-400 ml-2">{entry.date}</span>
