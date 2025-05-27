@@ -6,21 +6,16 @@ import {
   hardMineSweeper,
   mediumMineSweeper
 } from "./utils/minesweeperLogic";
-import { GameStatus } from "./Game.types";
+import { Difficulty, GameStatus } from "./Game.types";
 import React from "react";
 import StatisticsModal from "./StatisticsModal";
-import UserActionsList from "./UserActionsList";
 import { useUserActions } from "./useUserActions";
-import Leaderboard from "./Leaderboard";
 import { useLeaderboard } from "./useLeaderboard";
 import { usePlayHistory } from "./usePlayHistory";
-import HistoryList from "./HistoryList";
 import GameControls from "./GameControls";
 import Board from "./Board";
 import { useDesktopMouse } from "./useDesktopMouse";
-
-// Add a type for difficulty
-type Difficulty = "easy" | "medium" | "hard";
+import GameSidebar from "./GameSidebar";
 
 export default function Game(props: {
   difficulty: Difficulty;
@@ -227,14 +222,14 @@ export default function Game(props: {
           handleMouseLeave={handleMouseLeave}
         />
       </div>
-      {/* Right side: Leaderboard */}
-      <div className="flex flex-col items-start flex-shrink-0 w-full max-w-xs">
-        <Leaderboard leaderboards={leaderboards} difficulty={difficulty} />
-        {/* User Actions List */}
-        <UserActionsList userActions={userActions} setHoveredCell={setHoveredCell} />
-        {/* Play History List */}
-        <HistoryList playHistory={playHistory} />
-      </div>
+      {/* Right side: Sidebar */}
+      <GameSidebar
+        leaderboards={leaderboards}
+        difficulty={difficulty}
+        userActions={userActions}
+        setHoveredCell={setHoveredCell}
+        playHistory={playHistory}
+      />
       {/* Statistics Modal */}
       {showStats && (
         <StatisticsModal

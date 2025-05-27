@@ -1,32 +1,41 @@
 import React from "react";
+import { TitledDiv } from "./components/TitledDiv";
 
 type PlayHistoryEntry = {
-  result: "Win" | "Loss";
-  time: number;
-  date?: string;
-  difficulty: string;
+    result: "Win" | "Loss";
+    time: number;
+    date?: string;
+    difficulty: string;
 };
 
 export default function HistoryList({ playHistory }: { playHistory: PlayHistoryEntry[] | null }) {
-  return (
-    <div className="mt-4 w-full">
-      <h2 className="text-lg font-semibold mb-2">History</h2>
-      <ul className="space-y-1">
-        {playHistory === null && (
-          <li className="text-gray-500">Loading...</li>
-        )}
-        {playHistory?.length === 0 && <li className="text-gray-500">No games played yet.</li>}
-        {playHistory?.map((entry, idx) => (
-          <li key={idx} className="flex justify-between text-sm">
-            <span>
-              {entry.result} ({entry.difficulty})
-            </span>
-            <span>
-              {entry.time}s {entry.date && <span className="text-gray-400">({entry.date})</span>}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+    return (
+        <TitledDiv title="History" className="w-full min-w-[220px]">
+            <ul className="space-y-1 max-h-[15ch] overflow-y-auto rounded">
+                {playHistory === null && (
+                    <li className="text-gray-500">Loading...</li>
+                )}
+                {playHistory?.length === 0 && <li className="text-gray-500">No games played yet.</li>}
+                {playHistory?.map((entry, idx) => (
+                    <li
+                        key={idx}
+                        className="grid grid-cols-[max-content_max-content_1fr] gap-2 text-sm items-center"
+                    >
+                        <span
+                            className={`font-semibold min-w-[4ch] ${entry.result === "Win" ? "text-green-600" : "text-red-600"}`}
+                            title={entry.result}
+                        >
+                            {entry.result}
+                        </span>
+                        <span className="text-center max-w-[8ch]" title={entry.difficulty}>
+                            ({entry.difficulty})
+                        </span>
+                        <span className="text-right break-words">
+                            {entry.time}s {entry.date && <span className="text-gray-400">({entry.date})</span>}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+        </TitledDiv>
+    );
 }

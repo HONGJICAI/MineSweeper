@@ -1,14 +1,13 @@
 import { useCallback } from "react";
 import { useLocalStorage } from "./useStorage";
-
-type Difficulty = "easy" | "medium" | "hard";
+import { Difficulty } from "./Game.types";
 
 export type LeaderboardEntry = {
     time: number;
     date: string;
 };
 
-type Leaderboards = {
+export type Leaderboards = {
     easy: LeaderboardEntry[];
     medium: LeaderboardEntry[];
     hard: LeaderboardEntry[];

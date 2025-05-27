@@ -1,14 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "./components/Button";
-
-type Difficulty = "easy" | "medium" | "hard";
-
-type PlayHistoryEntry = {
-    result: "Win" | "Loss";
-    time: number;
-    date: string;
-    difficulty: Difficulty;
-};
+import { PlayHistory } from "./usePlayHistory";
+import { Difficulty } from "./Game.types";
 
 export default function StatisticsModal({
     show,
@@ -17,7 +10,7 @@ export default function StatisticsModal({
 }: {
     show: boolean;
     onClose: () => void;
-    playHistory: PlayHistoryEntry[];
+    playHistory: PlayHistory[];
 }) {
     const [showHistory, setShowHistory] = useState<{ [key in Difficulty]?: boolean }>({
         easy: true,

@@ -1,13 +1,13 @@
 import { useCallback } from "react";
 import { useLocalStorage } from "./useStorage";
+import { Difficulty } from "./Game.types";
 
-type Difficulty = "easy" | "medium" | "hard";
-type PlayHistoryEntry = {
+export type PlayHistoryEntry = {
     result: "Win" | "Loss";
     time: number;
     difficulty: Difficulty;
 };
-type PlayHistory = PlayHistoryEntry & {
+export type PlayHistory = PlayHistoryEntry & {
     date: string;
 };
 

@@ -1,5 +1,3 @@
-
-// Game status enum
 export enum GameStatus {
     Init = 0,
     Gaming = 1,
@@ -7,6 +5,7 @@ export enum GameStatus {
     Win = 3
 }
 
+export type Difficulty = "easy" | "medium" | "hard";
 export type ActionType = "reveal" | "flag" | "chord";
 export type UserAction = {
   type: ActionType;
