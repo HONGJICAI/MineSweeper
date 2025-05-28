@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Button } from "./components/Button";
-
-type Difficulty = "easy" | "medium" | "hard";
+import { Difficulty } from "./Game.types";
 
 interface GameControlsProps {
   difficulty: Difficulty;
@@ -26,20 +25,25 @@ export default function GameControls({
   mines,
   setShowStats,
 }: GameControlsProps) {
+  const handleEasy = useCallback(() => setDifficulty("easy"), [setDifficulty]);
+  const handleMedium = useCallback(() => setDifficulty("medium"), [setDifficulty]);
+  const handleHard = useCallback(() => setDifficulty("hard"), [setDifficulty]);
+  const handleShowStats = useCallback(() => setShowStats(true), [setShowStats]);
+
   return (
     <>
       {/* Difficulty selection */}
       <div className="flex gap-2 mb-2">
-        <Button onClick={() => setDifficulty("easy")} active={difficulty === "easy"}>
+        <Button onClick={handleEasy} active={difficulty === "easy"}>
           Easy
         </Button>
-        <Button onClick={() => setDifficulty("medium")} active={difficulty === "medium"}>
+        <Button onClick={handleMedium} active={difficulty === "medium"}>
           Medium
         </Button>
-        <Button onClick={() => setDifficulty("hard")} active={difficulty === "hard"}>
+        <Button onClick={handleHard} active={difficulty === "hard"}>
           Hard
         </Button>
-        <Button onClick={() => setShowStats(true)}>
+        <Button onClick={handleShowStats}>
           📊
         </Button>
       </div>

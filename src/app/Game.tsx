@@ -6,7 +6,7 @@ import {
   hardMineSweeper,
   mediumMineSweeper
 } from "./utils/minesweeperLogic";
-import { Difficulty, GameStatus } from "./Game.types";
+import { Difficulty, GameStatus, UserAction } from "./Game.types";
 import React from "react";
 import StatisticsModal from "./StatisticsModal";
 import { useUserActions } from "./useUserActions";
@@ -14,8 +14,8 @@ import { useLeaderboard } from "./useLeaderboard";
 import { usePlayHistory } from "./usePlayHistory";
 import GameControls from "./GameControls";
 import Board from "./Board";
-import { useDesktopMouse } from "./useDesktopMouse";
 import GameSidebar from "./GameSidebar";
+import { useMineSweeperLogic } from "./useMineSweeperLogic";
 
 export default function Game(props: {
   difficulty: Difficulty;
@@ -30,12 +30,10 @@ export default function Game(props: {
     return hardMineSweeper();
   }, [difficulty]);
 
-  const { mines, rows, cols, generateBoard, revealCellInPlace, checkWin, countFlaggedAround, revealAroundInPlace, revealAllMinesInPlace, createEmptyBoard } = sweeper;
-  const emptyBoard = useMemo<CellType[][]>(() => createEmptyBoard(), [createEmptyBoard]);
-  const [board, setBoard] = useState<CellType[][]>(emptyBoard);
+  const { mines, rows, cols, createEmptyBoard, resetBoardInPlace } = sweeper;
+  const [board, setBoard] = useState<CellType[][]>(createEmptyBoard());
   const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.Init);
   const [timer, setTimer] = useState(0);
-  const [flagCount, setFlagCount] = useState(0);
   const [showStats, setShowStats] = useState(false);
   const { userActions, addUserAction, resetUserActions } = useUserActions();
   const { leaderboards, addEntry } = useLeaderboard();
@@ -64,134 +62,97 @@ export default function Game(props: {
     };
   }, [gameStatus]);
 
-  // Update leaderboard on win
-  useEffect(() => {
-    if (gameStatus === GameStatus.Win) {
+  const onBeginGame = useCallback((board: CellType[][], r: number, c: number) => {
+    if (gameStatus === GameStatus.Init) {
+      sweeper.generateBoardInPlace(board, r, c);
+      setGameStatus(GameStatus.Gaming);
+    }
+  }, [gameStatus, sweeper]);
+
+  const onWinOrLose = useCallback((status: GameStatus) => {
+    setGameStatus(status);
+    if (status === GameStatus.Win) {
+      // Add entry to leaderboard
       const entry = {
         time: timer,
         date: new Date().toLocaleString(),
       };
       addEntry(difficulty, entry);
     }
-  }, [gameStatus]);
+    // Stop the timer
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    // Add history
+    addPlayHistoryEntry({
+      result: status === GameStatus.Win ? "Win" : "Loss",
+      time: timer,
+      difficulty,
+    });
+  }, [difficulty, timer, addEntry, addPlayHistoryEntry]);
 
-  const prevGameStatus = useRef<GameStatus>(gameStatus);
+  const { flagCount, handleCellClick, handleFlagCell, handleChordCell } = useMineSweeperLogic({
+    board,
+    setBoard,
+    gameStatus,
+    onBeginGame,
+    onWinOrLose,
+    sweeper,
+  });
 
-  // Track play history on game end (win or loss)
-  useEffect(() => {
-    if (
-      (gameStatus === GameStatus.Win || gameStatus === GameStatus.GameOver) &&
-      prevGameStatus.current !== gameStatus
-    ) {
-      addPlayHistoryEntry({
-        result: gameStatus === GameStatus.Win ? "Win" : "Loss",
-        time: timer,
-        difficulty,
+  const onCellAction = useCallback(
+    (action: UserAction) => {
+      let func: ((r: number, c: number) => number) | undefined = undefined;
+      switch (action.type) {
+        case "reveal":
+          func = handleCellClick;
+          break;
+        case "flag":
+          func = handleFlagCell;
+          break;
+        case "chord":
+          func = handleChordCell;
+          break;
+        default:
+          console.error("Unknown action type:", action.type);
+          return 0;
+      }
+      const score = func(action.position.r, action.position.c);
+      addUserAction({
+        type: action.type,
+        position: action.position,
+        score,
+      });
+      return 0;
+    }, [handleCellClick, handleFlagCell, handleChordCell, addUserAction]);
+
+  const handleReset = useCallback((clear = true) => {
+    if (clear) {
+      setBoard((prevBoard) => {
+        resetBoardInPlace(prevBoard);
+        return [...prevBoard];
       });
     }
-    prevGameStatus.current = gameStatus;
-  }, [gameStatus, timer, difficulty, addPlayHistoryEntry]);
-
-  function handleChordCell(r: number, c: number) {
-    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return 0;
-    if (board[r][c].isRevealed && board[r][c].adjacentMines > 0) {
-      const flagged = countFlaggedAround(board, r, c);
-      if (flagged === board[r][c].adjacentMines) {
-        const revealedCount = revealAroundInPlace(board, r, c);
-        const gameOver = revealedCount === -1;;
-        if (gameOver) {
-          revealAllMinesInPlace(board);
-          setBoard([...board]);
-          setGameStatus(GameStatus.GameOver);
-          return -1;
-        }
-        const newBoard = [...board];
-        setBoard(newBoard);
-        if (checkWin(newBoard)) setGameStatus(GameStatus.Win);
-        return revealedCount;
-      }
-    }
-    return 0;
-  }
-
-  function handleFlagCell(r: number, c: number) {
-    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win
-      || gameStatus === GameStatus.Init) return 0;
-    const cell = board[r][c];
-    if (cell.isRevealed) return 0;
-
-    if (cell.isFlagged) {
-      setFlagCount((count) => count - 1);
-    } else {
-      setFlagCount((count) => count + 1);
-    }
-
-    const newBoard = [...board];
-    newBoard[r][c].isFlagged = !newBoard[r][c].isFlagged;
-    setBoard(newBoard);
-    return 1;
-  }
-
-  function handleCellClick(r: number, c: number) {
-    if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return 0;
-    if (board === emptyBoard) {
-      // First click: generate board with safe cell
-      const newBoard = generateBoard(r, c);
-      revealCellInPlace(newBoard, r, c);
-      setBoard(newBoard);
-      setGameStatus(GameStatus.Gaming);
-      if (checkWin(newBoard)) setGameStatus(GameStatus.Win);
-      return 1;
-    }
-    const cell = board[r][c];
-    if (cell.isFlagged || cell.isRevealed) return 0;
-    if (cell.isMine) {
-      revealAllMinesInPlace(board);
-      const newBoard = [...board];
-      setBoard(newBoard);
-      setGameStatus(GameStatus.GameOver);
-      return -1;
-    }
-    revealCellInPlace(board, r, c);
-    const newBoard = [...board];
-    setBoard(newBoard);
-    if (checkWin(newBoard)) setGameStatus(GameStatus.Win);
-    return 1;
-  }
-
-  const handleReset = useCallback(() => {
-    setBoard(emptyBoard);
     setGameStatus(GameStatus.Init);
     setTimer(0);
-    setFlagCount(0);
     resetUserActions();
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-  }, [emptyBoard, resetUserActions]);
+  }, [resetBoardInPlace, resetUserActions]);
 
   useEffect(() => {
-    // Reset game when difficulty changes
-    handleReset();
-  }, [difficulty, handleReset]);
-
-  const {
-    mouseDownRef,
-    mouseCell,
-    handleMouseDown,
-    handleMouseUp,
-    handleMouseLeave,
-  } = useDesktopMouse({
-    gameStatus,
-    handleFlagCell,
-    handleChordCell,
-    handleCellClick,
-    addUserAction
-  });
+    setBoard(createEmptyBoard())
+    handleReset(false);
+  }, [difficulty, handleReset, createEmptyBoard]);
 
   const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
 
+  const onCloseStats = useCallback(() => {
+    setShowStats(false);
+  }, []);
 
   return (
     <div className="flex min-h-screen justify-center items-start gap-8 p-4 bg-white dark:bg-gray-900 overflow-x-hidden">
@@ -211,15 +172,11 @@ export default function Game(props: {
         />
         <Board
           board={board}
-          mouseCell={mouseCell}
-          mouseDownRef={mouseDownRef}
           gameStatus={gameStatus}
           hoveredCell={hoveredCell}
           rows={rows}
           cols={cols}
-          handleMouseDown={handleMouseDown}
-          handleMouseUp={handleMouseUp}
-          handleMouseLeave={handleMouseLeave}
+          onCellAction={onCellAction}
         />
       </div>
       {/* Right side: Sidebar */}
@@ -234,11 +191,10 @@ export default function Game(props: {
       {showStats && (
         <StatisticsModal
           show={showStats}
-          onClose={() => setShowStats(false)}
+          onClose={onCloseStats}
           playHistory={playHistory ?? []}
         />
       )}
-      {/* Show stats button */}
     </div>
   );
 }

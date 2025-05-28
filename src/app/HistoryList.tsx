@@ -8,7 +8,7 @@ type PlayHistoryEntry = {
     difficulty: string;
 };
 
-export default function HistoryList({ playHistory }: { playHistory: PlayHistoryEntry[] | null }) {
+const HistoryList = React.memo(function HistoryList({ playHistory }: { playHistory: PlayHistoryEntry[] | null }) {
     return (
         <TitledDiv title="History" className="w-full min-w-[220px]">
             <ul className="space-y-1 max-h-[15ch] overflow-y-auto rounded">
@@ -38,4 +38,6 @@ export default function HistoryList({ playHistory }: { playHistory: PlayHistoryE
             </ul>
         </TitledDiv>
     );
-}
+});
+
+export default HistoryList;

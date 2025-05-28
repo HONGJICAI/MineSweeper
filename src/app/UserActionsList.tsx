@@ -1,5 +1,5 @@
-import React from "react";
-import { ActionType, UserAction } from "./Game.types";
+import React, { useCallback } from "react";
+import { ActionType, UserActionWithScore } from "./Game.types";
 import { TitledDiv } from "./components/TitledDiv";
 
 const actionEmoji: Record<ActionType, string> = {
@@ -12,9 +12,18 @@ export default function UserActionsList({
     userActions,
     setHoveredCell,
 }: {
-    userActions: UserAction[];
+    userActions: UserActionWithScore[];
     setHoveredCell: (cell: { r: number; c: number } | null) => void;
 }) {
+    const handleMouseEnter = useCallback(
+        (position: { r: number; c: number }) => () => setHoveredCell(position),
+        [setHoveredCell]
+    );
+    const handleMouseLeave = useCallback(
+        () => setHoveredCell(null),
+        [setHoveredCell]
+    );
+
     return (
         <TitledDiv title="Actions">
             <ul
@@ -42,8 +51,8 @@ export default function UserActionsList({
                     return (
                         <li
                             key={idx}
-                            onMouseEnter={() => setHoveredCell(action.position)}
-                            onMouseLeave={() => setHoveredCell(null)}
+                            onMouseEnter={handleMouseEnter(action.position)}
+                            onMouseLeave={handleMouseLeave}
                             style={{ cursor: "pointer" }}
                             className={`${bgColor} rounded mb-1 px-1 hover:scale-105 transition-transform`}
                         >

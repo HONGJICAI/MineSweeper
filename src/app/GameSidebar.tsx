@@ -2,19 +2,19 @@ import React from "react";
 import Leaderboard from "./Leaderboard";
 import UserActionsList from "./UserActionsList";
 import HistoryList from "./HistoryList";
-import { UserAction } from "./Game.types";
+import { UserActionWithScore } from "./Game.types";
 import { PlayHistory } from "./usePlayHistory";
 import { Leaderboards } from "./useLeaderboard";
 
 type GameSidebarProps = {
   leaderboards: Leaderboards | null;
   difficulty: "easy" | "medium" | "hard";
-  userActions: UserAction[];
+  userActions: UserActionWithScore[];
   setHoveredCell: (cell: { r: number; c: number } | null) => void;
   playHistory: PlayHistory[] | null;
 };
 
-export default function GameSidebar({
+const GameSidebar = React.memo(function GameSidebar({
   leaderboards,
   difficulty,
   userActions,
@@ -28,4 +28,6 @@ export default function GameSidebar({
       <HistoryList playHistory={playHistory} />
     </div>
   );
-}
+});
+
+export default GameSidebar;

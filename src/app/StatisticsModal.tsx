@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "./components/Button";
 import { PlayHistory } from "./usePlayHistory";
 import { Difficulty } from "./Game.types";
 
-export default function StatisticsModal({
+const StatisticsModal = React.memo(function StatisticsModal({
     show,
     onClose,
     playHistory,
@@ -17,6 +17,19 @@ export default function StatisticsModal({
         medium: true,
         hard: true,
     });
+
+    const toggleEasy = useCallback(
+        () => setShowHistory((prev) => ({ ...prev, easy: !prev.easy })),
+        []
+    );
+    const toggleMedium = useCallback(
+        () => setShowHistory((prev) => ({ ...prev, medium: !prev.medium })),
+        []
+    );
+    const toggleHard = useCallback(
+        () => setShowHistory((prev) => ({ ...prev, hard: !prev.hard })),
+        []
+    );
 
     if (!show) return null;
 
@@ -35,13 +48,13 @@ export default function StatisticsModal({
                 <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Recent Play History</h2>
                 {/* Filter Buttons */}
                 <div className="flex gap-2 mb-4">
-                    <Button onClick={() => setShowHistory({ ...showHistory, easy: !showHistory.easy })} active={showHistory.easy}>
+                    <Button onClick={toggleEasy} active={showHistory.easy}>
                         Easy
                     </Button>
-                    <Button onClick={() => setShowHistory({ ...showHistory, medium: !showHistory.medium })} active={showHistory.medium}>
+                    <Button onClick={toggleMedium} active={showHistory.medium}>
                         Medium
                     </Button>
-                    <Button onClick={() => setShowHistory({ ...showHistory, hard: !showHistory.hard })} active={showHistory.hard}>
+                    <Button onClick={toggleHard} active={showHistory.hard}>
                         Hard
                     </Button>
                 </div>
@@ -66,4 +79,6 @@ export default function StatisticsModal({
             </div>
         </div>
     );
-}
+});
+
+export default StatisticsModal;

@@ -1,17 +1,12 @@
 import { CellType } from "../Cell";
 
+const aroundRC = [
+    [-1, -1], [-1, 0], [-1, 1],
+    [0, -1], [0, 1],
+    [1, -1], [1, 0], [1, 1],
+];
 export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
-    function generateBoard(safeR: number, safeC: number): CellType[][] {
-        // Create empty board
-        const board: CellType[][] = Array.from({ length: ROWS }, () =>
-            Array.from({ length: COLS }, () => ({
-                isMine: false,
-                isRevealed: false,
-                isFlagged: false,
-                adjacentMines: 0,
-            }))
-        );
-
+    function generateBoardInPlace(board: CellType[][], safeR: number, safeC: number) {
         // Place mines
         let minesPlaced = 0;
         while (minesPlaced < MINES) {
@@ -44,8 +39,6 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
                 board[r][c].adjacentMines = count;
             }
         }
-
-        return board;
     }
 
     function revealCellInPlace(board: CellType[][], r: number, c: number): number {
@@ -64,26 +57,20 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
 
         while (stack.length) {
             const [row, col] = stack.pop()!;
-            revealedCount++;
             const cell = board[row][col];
             if (cell.isRevealed || cell.isFlagged) continue;
             cell.isRevealed = true;
+            revealedCount++;
             if (cell.adjacentMines === 0 && !cell.isMine) {
-                for (let dr = -1; dr <= 1; dr++) {
-                    for (let dc = -1; dc <= 1; dc++) {
-                        const nr = row + dr;
-                        const nc = col + dc;
-                        if (
-                            nr >= 0 &&
-                            nr < ROWS &&
-                            nc >= 0 &&
-                            nc < COLS &&
-                            !(dr === 0 && dc === 0)
-                        ) {
-                            if (!board[nr][nc].isRevealed && !board[nr][nc].isMine) {
-                                stack.push([nr, nc]);
-                            }
-                        }
+                for (const [dr, dc] of aroundRC) {
+                    const nr = row + dr, nc = col + dc;
+                    if (
+                        nr >= 0 && nr < ROWS &&
+                        nc >= 0 && nc < COLS &&
+                        !board[nr][nc].isRevealed &&
+                        !board[nr][nc].isFlagged
+                    ) {
+                        stack.push([nr, nc]);
                     }
                 }
             }
@@ -91,26 +78,17 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
         return revealedCount;
     }
 
-    function checkWin(board: CellType[][]): boolean {
-        for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-                const cell = board[r][c];
-                if (!cell.isMine && !cell.isRevealed) return false;
-            }
-        }
-        return true;
-    }
-
     // Helper: count flagged cells around (r, c)
     function countFlaggedAround(board: CellType[][], r: number, c: number): number {
         let count = 0;
-        for (let dr = -1; dr <= 1; dr++) {
-            for (let dc = -1; dc <= 1; dc++) {
-                if (dr === 0 && dc === 0) continue;
-                const nr = r + dr, nc = c + dc;
-                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-                    if (board[nr][nc].isFlagged) count++;
-                }
+        for (const [dr, dc] of aroundRC) {
+            const nr = r + dr, nc = c + dc;
+            if (
+                nr >= 0 && nr < ROWS &&
+                nc >= 0 && nc < COLS &&
+                board[nr][nc].isFlagged
+            ) {
+                count++;
             }
         }
         return count;
@@ -119,21 +97,18 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
     // Helper: reveal all unflagged cells around (r, c)
     function revealAroundInPlace(board: CellType[][], r: number, c: number): number {
         let revealedCount = 0;
-        for (let dr = -1; dr <= 1; dr++) {
-            for (let dc = -1; dc <= 1; dc++) {
-                if (dr === 0 && dc === 0) continue;
-                const nr = r + dr, nc = c + dc;
-                if (
-                    nr >= 0 && nr < ROWS &&
-                    nc >= 0 && nc < COLS &&
-                    !board[nr][nc].isFlagged &&
-                    !board[nr][nc].isRevealed
-                ) {
-                    if (board[nr][nc].isMine) {
-                        return -1;
-                    }
-                    revealedCount += revealCellInPlace(board, nr, nc);
+        for (const [dr, dc] of aroundRC) {
+            const nr = r + dr, nc = c + dc;
+            if (
+                nr >= 0 && nr < ROWS &&
+                nc >= 0 && nc < COLS &&
+                !board[nr][nc].isFlagged &&
+                !board[nr][nc].isRevealed
+            ) {
+                if (board[nr][nc].isMine) {
+                    return -1; // Game over
                 }
+                revealedCount += revealCellInPlace(board, nr, nc);
             }
         }
         return revealedCount;
@@ -161,17 +136,30 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
         );
     }
 
+    function resetBoardInPlace(board: CellType[][]) {
+        for (let r = 0; r < board.length; r++) {
+            for (let c = 0; c < board[0].length; c++) {
+                board[r][c] = {
+                    isMine: false,
+                    isRevealed: false,
+                    isFlagged: false,
+                    adjacentMines: 0,
+                };
+            }
+        }
+    }
+
     return {
         mines: MINES,
         rows: ROWS,
         cols: COLS,
-        generateBoard,
+        generateBoardInPlace,
         revealCellInPlace,
-        checkWin,
         countFlaggedAround,
         revealAroundInPlace,
         revealAllMinesInPlace,
         createEmptyBoard,
+        resetBoardInPlace,
     }
 }
 

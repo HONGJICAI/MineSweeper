@@ -10,5 +10,8 @@ export type ActionType = "reveal" | "flag" | "chord";
 export type UserAction = {
   type: ActionType;
   position: { r: number; c: number };
+};
+
+export type UserActionWithScore = UserAction & {
   score: number;
 };

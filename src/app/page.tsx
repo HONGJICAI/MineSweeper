@@ -1,8 +1,14 @@
 "use client";
+import { useCallback } from "react";
 import Game from "./Game";
 
 export default function Home() {
-  return <span onContextMenu={e => e.preventDefault()}>
+  const onContextMenu = useCallback(
+    (e: React.MouseEvent<HTMLSpanElement>) => {
+      e.preventDefault();
+    },
+    []);
+  return <span onContextMenu={onContextMenu}>
     <Game difficulty={'easy'} />
   </span>
 }

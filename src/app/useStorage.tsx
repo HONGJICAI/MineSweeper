@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * Hook to wrap around useState that stores the value in the browser local/session storage.
@@ -25,7 +24,7 @@ function useStorage<T>(
     const [storedValue, setStoredValue] = useState<T | null>(null);
 
     // Load from storage on mount or when key/storageKind changes
-    React.useEffect(() => {
+    useEffect(() => {
         if (!storageAvailable) {
             console.warn('Storage is not available in this environment.');
             return;
@@ -52,7 +51,7 @@ function useStorage<T>(
         };
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);
-    }, [key, storageKind, storageAvailable]);
+    }, [key, storageKind, storageAvailable, storage]);
 
     const setValue = (value: T) => {
         setStoredValue(value);

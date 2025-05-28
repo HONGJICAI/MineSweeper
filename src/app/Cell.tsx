@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 
 export type CellType = {
     isMine: boolean;
@@ -13,42 +13,47 @@ interface CellProps {
     c: number;
     isPressed?: boolean;
     isHighlighted?: boolean;
-    onContextMenu?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onMouseDown?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onMouseUp?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
-    onMouseLeave?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onTouchStart?: (e: React.TouchEvent<HTMLButtonElement>, r: number, c: number) => void;
     onTouchEnd?: (e: React.TouchEvent<HTMLButtonElement>, r: number, c: number) => void;
-    onTouchMove?: (e: React.TouchEvent<HTMLButtonElement>) => void;
-    onTouchCancel?: (e: React.TouchEvent<HTMLButtonElement>) => void;
 }
 
-export default function Cell({
+const Cell = React.memo(function Cell({
     cell,
     r,
     c,
     isPressed = false,
     isHighlighted,
-    onContextMenu,
     onMouseDown,
     onMouseUp,
-    onMouseLeave,
     onTouchStart,
     onTouchEnd,
-    onTouchMove,
-    onTouchCancel,
 }: CellProps) {
+    const handleMouseDown = useCallback(
+        (e: React.MouseEvent<HTMLButtonElement>) => onMouseDown?.(e, r, c),
+        [onMouseDown, r, c]
+    );
+    const handleMouseUp = useCallback(
+        (e: React.MouseEvent<HTMLButtonElement>) => onMouseUp?.(e, r, c),
+        [onMouseUp, r, c]
+    );
+    const handleTouchStart = useCallback(
+        (e: React.TouchEvent<HTMLButtonElement>) => onTouchStart?.(e, r, c),
+        [onTouchStart, r, c]
+    );
+    const handleTouchEnd = useCallback(
+        (e: React.TouchEvent<HTMLButtonElement>) => onTouchEnd?.(e, r, c),
+        [onTouchEnd, r, c]
+    );
+
     return (
         <button
             key={`${r}-${c}`}
-            onContextMenu={(e) => onContextMenu?.(e, r, c)}
-            onMouseDown={(e) => onMouseDown?.(e, r, c)}
-            onMouseUp={(e) => onMouseUp?.(e, r, c)}
-            onMouseLeave={(e) => onMouseLeave?.(e, r, c)}
-            onTouchStart={(e) => onTouchStart?.(e, r, c)}
-            onTouchEnd={(e) => onTouchEnd?.(e, r, c)}
-            onTouchMove={onTouchMove}
-            onTouchCancel={onTouchCancel}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
             style={{
                 backgroundColor: isHighlighted ? "#ffe066" : undefined,
             }}
@@ -84,4 +89,6 @@ export default function Cell({
                     : ""}
         </button>
     );
-}
+});
+
+export default Cell;
