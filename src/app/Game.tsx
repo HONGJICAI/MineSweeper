@@ -37,7 +37,7 @@ export default function Game(props: {
   const [showStats, setShowStats] = useState(false);
   const { userActions, addUserAction, resetUserActions } = useUserActions();
   const { leaderboards, addEntry } = useLeaderboard();
-  const { playHistory, addPlayHistoryEntry } = usePlayHistory();
+  const { playHistory, addPlayHistoryEntry, clearPlayHistory } = usePlayHistory();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const faceEmoji = useMemo(() => {
     switch (gameStatus) {
@@ -152,7 +152,7 @@ export default function Game(props: {
 
   const onCloseStats = useCallback(() => {
     setShowStats(false);
-  }, []);
+  }, []);    
 
   return (
     <div className="flex min-h-screen justify-center items-start gap-8 p-4 bg-white dark:bg-gray-900 overflow-x-hidden">
@@ -193,6 +193,7 @@ export default function Game(props: {
           show={showStats}
           onClose={onCloseStats}
           playHistory={playHistory ?? []}
+          onClearHistory={clearPlayHistory}
         />
       )}
     </div>

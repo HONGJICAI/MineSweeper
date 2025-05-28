@@ -28,5 +28,9 @@ export function usePlayHistory() {
         setPlayHistory([newEntry, ...playHistory]);
     }, [playHistory, setPlayHistory]);
 
-    return { playHistory, addPlayHistoryEntry };
+    const clearPlayHistory = useCallback(() => {
+        setPlayHistory([]);
+    }, [setPlayHistory]);
+
+    return { playHistory, addPlayHistoryEntry, clearPlayHistory };
 }
