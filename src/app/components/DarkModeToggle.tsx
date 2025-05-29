@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function DarkModeToggle() {
   const [darkMode, setDarkMode] = useState(false);
@@ -16,7 +16,7 @@ export default function DarkModeToggle() {
     }
   }, []);
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = useCallback(() => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
     
@@ -27,7 +27,7 @@ export default function DarkModeToggle() {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
     }
-  };
+  }, [darkMode]);
 
   return (
     <button

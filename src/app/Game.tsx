@@ -12,8 +12,7 @@ import StatisticsModal from "./StatisticsModal";
 import { useUserActions } from "./useUserActions";
 import { useLeaderboard } from "./useLeaderboard";
 import { usePlayHistory } from "./usePlayHistory";
-import GameControls from "./GameControls";
-import Board from "./Board";
+import GameCoreArea from "./GameCoreArea";
 import GameSidebar from "./GameSidebar";
 import { useMineSweeperLogic } from "./useMineSweeperLogic";
 
@@ -152,34 +151,30 @@ export default function Game(props: {
 
   const onCloseStats = useCallback(() => {
     setShowStats(false);
-  }, []);    
+  }, []);
 
   return (
-    <div className="flex min-h-screen justify-center items-start gap-8 p-4 bg-white dark:bg-gray-900 overflow-x-hidden">
+    <div className="flex h-full w-full max-w-screen max-h-screen justify-center items-start lg:gap-8 gap-4 p-4 bg-white dark:bg-gray-900">
       {/* Left side: Title, controls, board */}
-      <div className="flex flex-col items-center flex-1 min-w-[250px] max-w-full">
-        <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">Minesweeper</h1>
-        <GameControls
-          difficulty={difficulty}
-          setDifficulty={setDifficulty}
-          mobileAction={mobileAction}
-          setMobileAction={setMobileAction}
-          timer={timer}
-          handleReset={handleReset}
-          faceEmoji={faceEmoji}
-          mines={mines - flagCount}
-          setShowStats={setShowStats}
-        />
-        <Board
-          board={board}
-          gameStatus={gameStatus}
-          hoveredCell={hoveredCell}
-          rows={rows}
-          cols={cols}
-          onCellAction={onCellAction}
-        />
-      </div>
-      {/* Right side: Sidebar */}
+      <GameCoreArea
+        difficulty={difficulty}
+        setDifficulty={setDifficulty}
+        mobileAction={mobileAction}
+        setMobileAction={setMobileAction}
+        timer={timer}
+        handleReset={handleReset}
+        faceEmoji={faceEmoji}
+        mines={mines - flagCount}
+        setShowStats={setShowStats}
+        board={board}
+        gameStatus={gameStatus}
+        hoveredCell={hoveredCell}
+        rows={rows}
+        cols={cols}
+        onCellAction={onCellAction}
+      />
+
+      {/* Right side: Sidebar - now responsive */}
       <GameSidebar
         leaderboards={leaderboards}
         difficulty={difficulty}
@@ -187,6 +182,7 @@ export default function Game(props: {
         setHoveredCell={setHoveredCell}
         playHistory={playHistory}
       />
+
       {/* Statistics Modal */}
       {showStats && (
         <StatisticsModal

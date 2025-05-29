@@ -51,7 +51,7 @@ function useStorage<T>(
         };
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);
-    }, [key, storageKind, storageAvailable, storage]);
+    }, [key, storageKind, storageAvailable, storage]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const setValue = (value: T) => {
         setStoredValue(value);

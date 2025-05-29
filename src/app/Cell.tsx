@@ -54,16 +54,14 @@ const Cell = React.memo(function Cell({
             onMouseUp={handleMouseUp}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
-            style={{
-                backgroundColor: isHighlighted ? "#ffe066" : undefined,
-            }}
-            className={`w-8 h-8 flex items-center justify-center border border-gray-400 dark:border-gray-600 text-lg font-mono select-none
+            className={`size-8 flex items-center justify-center border border-gray-400 dark:border-gray-600 text-lg font-mono select-none text-gray-900 dark:text-gray-100
         ${cell.isRevealed
                 ? "bg-gray-100 dark:bg-gray-800 dark:text-gray-200"
                 : isPressed
                     ? "bg-gray-200 dark:bg-gray-700"
                     : "bg-gray-400 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
             }
+            ${isHighlighted ? "ring-2 ring-blue-500 dark:ring-blue-300" : ""}
         ${cell.isRevealed && cell.isMine ? "bg-red-400 dark:bg-red-700" : ""}
       `}
             aria-label={
