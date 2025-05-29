@@ -13,16 +13,20 @@ const HistoryList = React.memo(function HistoryList({ playHistory }: { playHisto
         <TitledDiv title="History" className="w-full min-w-[220px]">
             <ul className="space-y-1 max-h-[15ch] overflow-y-auto rounded">
                 {playHistory === null && (
-                    <li className="text-gray-500">Loading...</li>
+                    <li className="text-gray-500 dark:text-gray-400">Loading...</li>
                 )}
-                {playHistory?.length === 0 && <li className="text-gray-500">No games played yet.</li>}
+                {playHistory?.length === 0 && <li className="text-gray-500 dark:text-gray-400">No games played yet.</li>}
                 {playHistory?.map((entry, idx) => (
                     <li
                         key={idx}
-                        className="grid grid-cols-[max-content_max-content_1fr] gap-2 text-sm items-center"
+                        className="grid grid-cols-[max-content_max-content_1fr] gap-2 text-sm items-center text-gray-900 dark:text-gray-100"
                     >
                         <span
-                            className={`font-semibold min-w-[4ch] ${entry.result === "Win" ? "text-green-600" : "text-red-600"}`}
+                            className={`font-semibold min-w-[4ch] ${
+                                entry.result === "Win" 
+                                    ? "text-green-600 dark:text-green-400" 
+                                    : "text-red-600 dark:text-red-400"
+                            }`}
                             title={entry.result}
                         >
                             {entry.result}
@@ -31,7 +35,7 @@ const HistoryList = React.memo(function HistoryList({ playHistory }: { playHisto
                             ({entry.difficulty})
                         </span>
                         <span className="text-right break-words">
-                            {entry.time}s {entry.date && <span className="text-gray-400">({entry.date})</span>}
+                            {entry.time}s {entry.date && <span className="text-gray-500 dark:text-gray-400">({entry.date})</span>}
                         </span>
                     </li>
                 ))}

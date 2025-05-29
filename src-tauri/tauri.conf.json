@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "MineSweeper",
-        "width": 800,
-        "height": 600,
+        "width": 700,
+        "height": 470,
         "resizable": true,
         "fullscreen": false
       }

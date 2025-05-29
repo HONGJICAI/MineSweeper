@@ -71,7 +71,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
 
     return (
         <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md relative">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-h-full max-w-md relative">
                 <button
                     className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
                     onClick={onClose}
@@ -98,10 +98,10 @@ const StatisticsModal = React.memo(function StatisticsModal({
                     ))}
                 </div>
 
-                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Recent Games</h3>
+                {/* <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Recent Games</h3> */}
                 
                 {/* Filter Buttons */}
-                <div className="flex gap-2 mb-4">
+                {/* <div className="flex gap-2 mb-4">
                     <Button onClick={toggleEasy} active={showHistory.easy}>
                         Easy
                     </Button>
@@ -111,9 +111,9 @@ const StatisticsModal = React.memo(function StatisticsModal({
                     <Button onClick={toggleHard} active={showHistory.hard}>
                         Hard
                     </Button>
-                </div>
+                </div> */}
                 
-                <div className="max-h-64 overflow-y-auto">
+                {/* <div className="max-h-64 overflow-y-auto">
                     {filteredHistory.length === 0 ? (
                         <p className="text-gray-500 dark:text-gray-400">No games played yet.</p>
                     ) : (
@@ -132,7 +132,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
                             ))}
                         </ul>
                     )}
-                </div>
+                </div> */}
 
                 {/* Clear History Button */}
                 {playHistory.length > 0 && onClearHistory && (
@@ -141,7 +141,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
                             onClick={handleClearHistory}
                             className="text-sm text-white bg-red-600 hover:scale-1.05 rounded-md px-3 py-1 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                         >
-                            Clear All History
+                            Clear Game History
                         </button>
                     </div>
                 )}
