@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { Button } from "./components/Button";
 import { Difficulty } from "./Game.types";
+import { setWindowSize } from "./utils/platform";
 
 interface GameControlsProps {
   difficulty: Difficulty;
@@ -25,9 +26,21 @@ export default function GameControls({
   mines,
   setShowStats,
 }: GameControlsProps) {
-  const handleEasy = useCallback(() => setDifficulty("easy"), [setDifficulty]);
-  const handleMedium = useCallback(() => setDifficulty("medium"), [setDifficulty]);
-  const handleHard = useCallback(() => setDifficulty("hard"), [setDifficulty]);
+  const handleEasy = useCallback(async () => {
+    await setWindowSize(690, 480);
+    setDifficulty("easy");
+  }, [setDifficulty]);
+  
+  const handleMedium = useCallback(async () => {
+    await setWindowSize(960, 710);
+    setDifficulty("medium");
+  }, [setDifficulty]);
+  
+  const handleHard = useCallback(async() => {
+    await setWindowSize(1400, 710);
+    setDifficulty("hard");
+  }, [setDifficulty]);
+  
   const handleShowStats = useCallback(() => setShowStats(true), [setShowStats]);
 
   return (
