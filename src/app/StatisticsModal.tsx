@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import { PlayHistory } from "./usePlayHistory";
+import { PlayHistory } from "./hooks/usePlayHistory";
 import { Difficulty } from "./Game.types";
 
 const StatisticsModal = React.memo(function StatisticsModal({

@@ -1,12 +1,27 @@
-import React, { useState } from "react";
-import { PlayHistory } from "./usePlayHistory";
+import React, { useCallback, useState } from "react";
+import { PlayHistory } from "./hooks/usePlayHistory";
+import { Difficulty, Position } from "./Game.types";
 
-const HistoryList = React.memo(function HistoryList({ playHistory }: { playHistory: PlayHistory[] | null }) {
+interface HistoryListProps {
+    playHistory: PlayHistory[] | null;
+    onReplay: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
+}
+
+const HistoryList = React.memo(function HistoryList({ playHistory, onReplay }: HistoryListProps) {
     const [expandedIndex, setExpandedIndex] = useState<number | null>(playHistory?.length ?? 0 > 0 ? 0 : null);
 
-    const handleItemClick = (index: number) => {
+    const handleItemClick = useCallback((index: number) => {
         setExpandedIndex(expandedIndex === index ? null : index);
-    };
+    }, [expandedIndex]);
+
+    const handleReplay = useCallback((entry: PlayHistory) => {
+        const firstStep = entry.actions.at(0)?.position;
+        if (!firstStep) {
+            console.warn("No first step available for replay.");
+            return;
+        }
+        onReplay(entry.seed, entry.difficulty, firstStep);
+    }, [onReplay]);
 
     return (
         <ul className="space-y-1 overflow-y-auto rounded">
@@ -20,7 +35,7 @@ const HistoryList = React.memo(function HistoryList({ playHistory }: { playHisto
                     className="border border-transparent hover:border-gray-300 dark:hover:border-gray-600 rounded transition-all"
                 >
                     <div
-                        onClick={() => handleItemClick(idx)}
+                        onClick={handleItemClick.bind(null, idx)}
                         className="grid grid-cols-[max-content_max-content_1fr] gap-2 text-sm items-center text-gray-900 dark:text-gray-100 p-2 cursor-pointer"
                     >
                         <span
@@ -48,10 +63,8 @@ const HistoryList = React.memo(function HistoryList({ playHistory }: { playHisto
                                 <button
                                     className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                                     title="Replay game"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        console.log('Replay game', idx);
-                                    }}
+                                    disabled={!entry.seed}
+                                    onClick={handleReplay.bind(null, entry)}
                                 >
                                     🔄
                                 </button>

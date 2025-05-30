@@ -1,5 +1,5 @@
 import React from "react";
-import type { LeaderboardEntry } from "./useLeaderboard";
+import type { LeaderboardEntry } from "./hooks/useLeaderboard";
 import { TitledDiv } from "./components/TitledDiv";
 import { Difficulty } from "./Game.types";
 

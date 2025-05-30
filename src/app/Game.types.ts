@@ -7,9 +7,10 @@ export enum GameStatus {
 
 export type Difficulty = "easy" | "medium" | "hard";
 export type ActionType = "reveal" | "flag" | "chord";
+export type Position = { r: number; c: number };
 export type UserAction = {
   type: ActionType;
-  position: { r: number; c: number };
+  position: Position;
 };
 
 export type UserActionWithScore = UserAction & {

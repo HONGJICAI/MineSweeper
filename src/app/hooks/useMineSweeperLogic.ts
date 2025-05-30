@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { GameStatus } from "./Game.types";
-import { CellType } from "./Cell";
+import { GameStatus } from "../Game.types";
+import { CellType } from "../Cell";
 
 export function useMineSweeperLogic({
     board,
@@ -13,7 +13,7 @@ export function useMineSweeperLogic({
     board: CellType[][];
     setBoard: (b: CellType[][]) => void;
     gameStatus: GameStatus;
-    onBeginGame: (board: CellType[][], r: number, c: number) => void;
+    onBeginGame: (board: CellType[][], r: number, c: number, seed?: string) => void;
     onWinOrLose: (s: GameStatus) => void;
     sweeper: {
         mines: number;
@@ -104,11 +104,11 @@ export function useMineSweeperLogic({
         return 1;
     }, [gameStatus, board, setBoard]);
 
-    const handleCellClick = useCallback((r: number, c: number) => {
+    const handleCellClick = useCallback((r: number, c: number, seed?: string) => {
         if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return 0;
         if (gameStatus === GameStatus.Init) {
             // First click: generate board with safe cell
-            onBeginGame(board, r, c);
+            onBeginGame(board, r, c, seed);
         }
         const cell = board[r][c];
         if (cell.isFlagged || cell.isRevealed) return 0;

@@ -50,7 +50,7 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
             console.log(`Generated seed: ${seed}`);
         }
 
-        let rng = new SeededRandom(seed);
+        const rng = new SeededRandom(seed);
         // Place mines
         let minesPlaced = 0;
         while (minesPlaced < MINES) {

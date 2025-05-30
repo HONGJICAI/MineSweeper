@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { GameStatus } from "./Game.types";
+import { GameStatus } from "../Game.types";
 
 type UseMobileTouchProps = {
   gameStatus: GameStatus;

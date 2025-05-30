@@ -2,9 +2,9 @@ import React, { useMemo, useState, useCallback } from "react";
 import Leaderboard from "./Leaderboard";
 import ActionList from "./ActionList";
 import HistoryList from "./HistoryList";
-import { UserActionWithScore } from "./Game.types";
-import { PlayHistory } from "./usePlayHistory";
-import { Leaderboards } from "./useLeaderboard";
+import { Difficulty, Position, UserActionWithScore } from "./Game.types";
+import { PlayHistory } from "./hooks/usePlayHistory";
+import { Leaderboards } from "./hooks/useLeaderboard";
 
 type GameSidebarProps = {
     leaderboards: Leaderboards | null;
@@ -12,6 +12,7 @@ type GameSidebarProps = {
     userActions: UserActionWithScore[];
     setHoveredCell: (cell: { r: number; c: number } | null) => void;
     playHistory: PlayHistory[] | null;
+    onReplay: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
 };
 
 const GameSidebar = React.memo(function GameSidebar({
@@ -20,6 +21,7 @@ const GameSidebar = React.memo(function GameSidebar({
     userActions,
     setHoveredCell,
     playHistory,
+    onReplay,
 }: GameSidebarProps) {
     const [activeTab, setActiveTab] = useState<"actions" | "history">("actions");
     const [isOpen, setIsOpen] = useState(false);
@@ -28,6 +30,11 @@ const GameSidebar = React.memo(function GameSidebar({
     const handleHistoryClick = useCallback(() => setActiveTab("history"), []);
     const handleOpenSidebar = useCallback(() => setIsOpen(true), []);
     const handleCloseSidebar = useCallback(() => setIsOpen(false), []);
+    const handleReplay = useCallback((seed: string, difficulty: Difficulty, firstStep: Position) => {
+        onReplay(seed, difficulty, firstStep);
+        setIsOpen(false); // Close sidebar after replay
+        setActiveTab("actions"); // Reset to actions tab
+    }, [onReplay]);
 
     const sidebarContent = useMemo(() =>
         <>
@@ -39,8 +46,8 @@ const GameSidebar = React.memo(function GameSidebar({
                     <button
                         onClick={handleActionsClick}
                         className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${activeTab === "actions"
-                                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                            ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                            : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                             }`}
                     >
                         Actions
@@ -48,8 +55,8 @@ const GameSidebar = React.memo(function GameSidebar({
                     <button
                         onClick={handleHistoryClick}
                         className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${activeTab === "history"
-                                ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                            ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
+                            : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                             }`}
                     >
                         History
@@ -72,12 +79,12 @@ const GameSidebar = React.memo(function GameSidebar({
                     {activeTab === "actions" ? (
                         <ActionList userActions={userActions} setHoveredCell={setHoveredCell} />
                     ) : (
-                        <HistoryList playHistory={playHistory} />
+                        <HistoryList playHistory={playHistory} onReplay={handleReplay} />
                     )}
                 </div>
             </div>
         </>
-        , [leaderboards, difficulty, userActions, playHistory, activeTab, setHoveredCell, handleActionsClick, handleHistoryClick]);
+        , [leaderboards, difficulty, userActions, playHistory, activeTab, setHoveredCell, handleActionsClick, handleHistoryClick, onReplay]);
 
     return (
         <>
@@ -98,7 +105,7 @@ const GameSidebar = React.memo(function GameSidebar({
                     animation: slideEmoji 4s infinite;
                 }
             `}</style>
-            
+
             {/* Mobile floating button - only visible on small screens */}
             <button
                 onClick={handleOpenSidebar}

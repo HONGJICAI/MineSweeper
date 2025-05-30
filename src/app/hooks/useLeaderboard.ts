@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useLocalStorage } from "./useStorage";
-import { Difficulty } from "./Game.types";
+import { Difficulty } from "../Game.types";
 
 export type LeaderboardEntry = {
     time: number;

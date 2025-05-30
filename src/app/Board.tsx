@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import Cell from "./Cell";
 import { CellType } from "./Cell";
 import { GameStatus, UserAction } from "./Game.types";
-import { useDesktopMouse } from "./useDesktopMouse";
+import { useDesktopMouse } from "./hooks/useDesktopMouse";
 
 type BoardProps = {
     board: CellType[][];

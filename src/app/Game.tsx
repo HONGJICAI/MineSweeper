@@ -6,15 +6,15 @@ import {
   hardMineSweeper,
   mediumMineSweeper
 } from "./utils/minesweeperLogic";
-import { Difficulty, GameStatus, UserAction } from "./Game.types";
+import { Difficulty, GameStatus, Position, UserAction } from "./Game.types";
 import React from "react";
 import StatisticsModal from "./StatisticsModal";
-import { useUserActions } from "./useUserActions";
-import { useLeaderboard } from "./useLeaderboard";
-import { usePlayHistory } from "./usePlayHistory";
+import { useUserActions } from "./hooks/useUserActions";
+import { useLeaderboard } from "./hooks/useLeaderboard";
+import { usePlayHistory } from "./hooks/usePlayHistory";
 import GameCoreArea from "./GameCoreArea";
 import GameSidebar from "./GameSidebar";
-import { useMineSweeperLogic } from "./useMineSweeperLogic";
+import { useMineSweeperLogic } from "./hooks/useMineSweeperLogic";
 
 export default function Game(props: {
   difficulty: Difficulty;
@@ -62,9 +62,9 @@ export default function Game(props: {
     };
   }, [gameStatus]);
 
-  const onBeginGame = useCallback((board: CellType[][], r: number, c: number) => {
+  const onBeginGame = useCallback((board: CellType[][], r: number, c: number, seed?: string) => {
     if (gameStatus === GameStatus.Init) {
-      const generatedSeed = sweeper.generateBoardInPlace(board, r, c);
+      const generatedSeed = sweeper.generateBoardInPlace(board, r, c, seed);
       setSeed(generatedSeed);
       setGameStatus(GameStatus.Gaming);
     }
@@ -91,8 +91,9 @@ export default function Game(props: {
       time: timer,
       difficulty,
       seed,
+      actions: userActions,
     });
-  }, [difficulty, timer, addEntry, addPlayHistoryEntry, seed]);
+  }, [difficulty, timer, addEntry, addPlayHistoryEntry, seed, userActions]);
 
   const { flagCount, handleCellClick, handleFlagCell, handleChordCell } = useMineSweeperLogic({
     board,
@@ -135,7 +136,7 @@ export default function Game(props: {
         resetBoardInPlace(prevBoard);
         return [...prevBoard];
       });
-      setSeed(""); // Clear seed when resetting
+      setSeed("");
     }
     setGameStatus(GameStatus.Init);
     setTimer(0);
@@ -147,16 +148,44 @@ export default function Game(props: {
     }
   }, [resetBoardInPlace, resetUserActions]);
 
-  useEffect(() => {
+  const onDifficultyChange = useCallback(() => {
     setBoard(createEmptyBoard())
     handleReset(false);
-  }, [difficulty, handleReset, createEmptyBoard]);
+  }, [handleReset, createEmptyBoard]);
+
+  useEffect(() => {
+    onDifficultyChange();
+  }, [difficulty, onDifficultyChange]);
 
   const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
 
   const onCloseStats = useCallback(() => {
     setShowStats(false);
   }, []);
+
+  const [pendingReplay, setPendingReplay] = useState<{ seed: string; firstStep: Position } | null>(null);
+
+  const onReplay = useCallback((seed: string, replayDifficulty: Difficulty, firstStep: Position) => {
+    if (replayDifficulty !== difficulty) {
+      setDifficulty(replayDifficulty);
+    } else{
+      onDifficultyChange();
+    }
+    setPendingReplay({ seed, firstStep });
+  }, [difficulty, onDifficultyChange]);
+
+  // Add this effect to handle the pending replay
+  useEffect(() => {
+    if (pendingReplay && gameStatus === GameStatus.Init && board.length === rows && board[0]?.length === cols) {
+      handleCellClick(pendingReplay.firstStep.r, pendingReplay.firstStep.c, pendingReplay.seed);
+      addUserAction({
+        type: "reveal",
+        position: pendingReplay.firstStep,
+        score: 1,
+      });
+      setPendingReplay(null);
+    }
+  }, [pendingReplay, gameStatus, board, rows, cols, handleCellClick, addUserAction]);
 
   return (
     <div className="flex h-screen w-screen max-w-screen max-h-screen justify-center items-start lg:gap-8 gap-4 p-4 bg-white dark:bg-gray-900">
@@ -187,6 +216,7 @@ export default function Game(props: {
         userActions={userActions}
         setHoveredCell={setHoveredCell}
         playHistory={playHistory}
+        onReplay={onReplay}
       />
 
       {/* Statistics Modal */}

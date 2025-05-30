@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { GameStatus, UserAction } from "./Game.types";
+import { GameStatus, UserAction } from "../Game.types";
 
 type MouseAction = {
     leftDown: boolean;
