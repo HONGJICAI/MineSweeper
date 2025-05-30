@@ -27,17 +27,17 @@ export default function GameControls({
   setShowStats,
 }: GameControlsProps) {
   const handleEasy = useCallback(async () => {
-    await setWindowSize(690, 480);
+    await setWindowSize(690, 500);
     setDifficulty("easy");
   }, [setDifficulty]);
   
   const handleMedium = useCallback(async () => {
-    await setWindowSize(960, 710);
+    await setWindowSize(960, 750);
     setDifficulty("medium");
   }, [setDifficulty]);
   
   const handleHard = useCallback(async() => {
-    await setWindowSize(1400, 710);
+    await setWindowSize(1400, 750);
     setDifficulty("hard");
   }, [setDifficulty]);
   
@@ -48,13 +48,13 @@ export default function GameControls({
       {/* Difficulty selection */}
       <div className="flex gap-2 mb-2">
         <Button onClick={handleEasy} active={difficulty === "easy"}>
-          Easy
+          🥉
         </Button>
         <Button onClick={handleMedium} active={difficulty === "medium"}>
-          Medium
+          🥈
         </Button>
         <Button onClick={handleHard} active={difficulty === "hard"}>
-          Hard
+          🥇
         </Button>
         <Button onClick={handleShowStats}>
           📊
@@ -69,16 +69,26 @@ export default function GameControls({
           🚩
         </Button>
       </div> */}
-      <div className="flex gap-16 items-center mb-2">
-        <span className="text-gray-800 dark:text-gray-200 font-semibold">
-          ⏰ {timer}s
-        </span>
+      <div className="flex gap-4 items-center mb-2">
+        <div className="flex items-center gap-2 min-w-[80px]">
+          <span className="text-gray-800 dark:text-gray-200 font-semibold">
+            ⏰
+          </span>
+          <span className="text-gray-800 dark:text-gray-200 font-semibold font-mono w-12 text-right">
+            {timer}s
+          </span>
+        </div>
         <Button onClick={handleReset} className="px-2 py-2">
           {faceEmoji}
         </Button>
-        <span className="text-gray-800 dark:text-gray-200 font-semibold">
-          💣 {mines}
-        </span>
+        <div className="flex items-center gap-2 min-w-[80px]">
+          <span className="text-gray-800 dark:text-gray-200 font-semibold">
+            💣
+          </span>
+          <span className="text-gray-800 dark:text-gray-200 font-semibold font-mono w-12">
+            {mines}
+          </span>
+        </div>
       </div>
     </>
   );

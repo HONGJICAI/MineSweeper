@@ -56,10 +56,13 @@ export default function ActionList({
                         key={idx}
                         onMouseEnter={handleMouseEnter(action.position)}
                         onMouseLeave={handleMouseLeave}
-                        className={`${colorClasses} rounded mb-1 px-2 py-1 cursor-pointer hover:scale-105 transition-transform`}
+                        className={`${colorClasses} rounded mb-1 px-2 py-1 cursor-pointer hover:scale-105 transition-transform flex items-center gap-2`}
                     >
+                        <span className="text-gray-600 dark:text-gray-400 font-mono text-xs min-w-[4ch] text-right">
+                            {userActions.length - idx}.
+                        </span>
                         <span>{actionEmoji[action.type]}</span>{" "}
-                        Row: <b>{action.position.r}</b>, Col: <b>{action.position.c}</b>
+                        <b>{action.position.r}</b>, <b>{action.position.c}</b>
                     </li>
                 );
             })}

@@ -6,6 +6,7 @@ export type PlayHistoryEntry = {
     result: "Win" | "Loss";
     time: number;
     difficulty: Difficulty;
+    seed: string;
 };
 export type PlayHistory = PlayHistoryEntry & {
     date: string;

@@ -81,13 +81,36 @@ const GameSidebar = React.memo(function GameSidebar({
 
     return (
         <>
+            <style jsx>{`
+                @keyframes slideEmoji {
+                    0%, 45% {
+                        transform: translateY(0%);
+                    }
+                    50%, 95% {
+                        transform: translateY(-100%);
+                    }
+                    100% {
+                        transform: translateY(0%);
+                    }
+                }
+                
+                .emoji-slider {
+                    animation: slideEmoji 4s infinite;
+                }
+            `}</style>
+            
             {/* Mobile floating button - only visible on small screens */}
             <button
                 onClick={handleOpenSidebar}
                 className="lg:hidden fixed top-4 right-4 z-50 p-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200 shadow-lg"
                 aria-label="Open sidebar"
             >
-                🏆
+                <div className="relative w-6 h-6 overflow-hidden">
+                    <div className="emoji-slider absolute inset-0 flex flex-col">
+                        <span className="h-6 flex items-center justify-center">🏆</span>
+                        <span className="h-6 flex items-center justify-center">📋</span>
+                    </div>
+                </div>
             </button>
 
             {/* Mobile overlay */}

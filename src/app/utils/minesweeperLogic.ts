@@ -5,13 +5,57 @@ const aroundRC = [
     [0, -1], [0, 1],
     [1, -1], [1, 0], [1, 1],
 ];
+
+// Simple seedable random number generator (Linear Congruential Generator)
+class SeededRandom {
+    private seed: number;
+
+    constructor(seed: string) {
+        // Convert string seed to number
+        this.seed = this.stringToSeed(seed);
+    }
+
+    private stringToSeed(str: string): number {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return Math.abs(hash);
+    }
+
+    // Linear Congruential Generator
+    next(): number {
+        this.seed = (this.seed * 1103515245 + 12345) & 0x7fffffff;
+        return this.seed / 0x7fffffff;
+    }
+
+    // Generate random integer between 0 (inclusive) and max (exclusive)
+    nextInt(max: number): number {
+        return Math.floor(this.next() * max);
+    }
+}
+
+function generateSeed() {
+    const randomPart = Math.random().toString(36).substring(2, 10);
+    return `${randomPart}`;
+}
+
 export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
-    function generateBoardInPlace(board: CellType[][], safeR: number, safeC: number) {
+    function generateBoardInPlace(board: CellType[][], safeR: number, safeC: number, seed = "") {
+        if (seed === "") {
+            // Generate a random seed if not provided
+            seed = generateSeed();
+            console.log(`Generated seed: ${seed}`);
+        }
+
+        let rng = new SeededRandom(seed);
         // Place mines
         let minesPlaced = 0;
         while (minesPlaced < MINES) {
-            const r = Math.floor(Math.random() * ROWS);
-            const c = Math.floor(Math.random() * COLS);
+            const r = rng.nextInt(ROWS);
+            const c = rng.nextInt(COLS);
             // Don't place a mine on the first clicked cell
             if ((r === safeR && c === safeC) || board[r][c].isMine) continue;
             board[r][c].isMine = true;
@@ -39,6 +83,8 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
                 board[r][c].adjacentMines = count;
             }
         }
+
+        return seed;
     }
 
     function revealCellInPlace(board: CellType[][], r: number, c: number): number {

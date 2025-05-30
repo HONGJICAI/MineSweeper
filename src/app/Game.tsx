@@ -37,6 +37,7 @@ export default function Game(props: {
   const { userActions, addUserAction, resetUserActions } = useUserActions();
   const { leaderboards, addEntry } = useLeaderboard();
   const { playHistory, addPlayHistoryEntry, clearPlayHistory } = usePlayHistory();
+  const [seed, setSeed] = useState<string>("");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const faceEmoji = useMemo(() => {
     switch (gameStatus) {
@@ -63,7 +64,8 @@ export default function Game(props: {
 
   const onBeginGame = useCallback((board: CellType[][], r: number, c: number) => {
     if (gameStatus === GameStatus.Init) {
-      sweeper.generateBoardInPlace(board, r, c);
+      const generatedSeed = sweeper.generateBoardInPlace(board, r, c);
+      setSeed(generatedSeed);
       setGameStatus(GameStatus.Gaming);
     }
   }, [gameStatus, sweeper]);
@@ -88,8 +90,9 @@ export default function Game(props: {
       result: status === GameStatus.Win ? "Win" : "Loss",
       time: timer,
       difficulty,
+      seed,
     });
-  }, [difficulty, timer, addEntry, addPlayHistoryEntry]);
+  }, [difficulty, timer, addEntry, addPlayHistoryEntry, seed]);
 
   const { flagCount, handleCellClick, handleFlagCell, handleChordCell } = useMineSweeperLogic({
     board,
@@ -132,9 +135,11 @@ export default function Game(props: {
         resetBoardInPlace(prevBoard);
         return [...prevBoard];
       });
+      setSeed(""); // Clear seed when resetting
     }
     setGameStatus(GameStatus.Init);
     setTimer(0);
+    setSeed("");
     resetUserActions();
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -154,7 +159,7 @@ export default function Game(props: {
   }, []);
 
   return (
-    <div className="flex h-full w-full max-w-screen max-h-screen justify-center items-start lg:gap-8 gap-4 p-4 bg-white dark:bg-gray-900">
+    <div className="flex h-screen w-screen max-w-screen max-h-screen justify-center items-start lg:gap-8 gap-4 p-4 bg-white dark:bg-gray-900">
       {/* Left side: Title, controls, board */}
       <GameCoreArea
         difficulty={difficulty}
@@ -172,6 +177,7 @@ export default function Game(props: {
         rows={rows}
         cols={cols}
         onCellAction={onCellAction}
+        seed={seed}
       />
 
       {/* Right side: Sidebar - now responsive */}

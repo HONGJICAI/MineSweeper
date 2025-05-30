@@ -4,12 +4,14 @@ export function Button({
     active = false,
     className = "",
     disabled = false,
+    title = undefined,
 }: {
     children: React.ReactNode;
     onClick?: () => void;
     active?: boolean;
     className?: string;
     disabled?: boolean;
+    title?: string;
 }) {
     const baseClass =
         "px-3 py-1 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -26,6 +28,7 @@ export function Button({
             className={`${baseClass} ${activeClass} ${disabledClass} ${className}`}
             aria-pressed={active}
             disabled={disabled}
+            title={title}
         >
             {children}
         </button>
