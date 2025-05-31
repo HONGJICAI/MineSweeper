@@ -2,17 +2,17 @@ import React, { useMemo, useState, useCallback } from "react";
 import Leaderboard from "./Leaderboard";
 import ActionList from "./ActionList";
 import PlayHistoryList from "./PlayHistoryList";
-import { Difficulty, PlayHistory, Position, UserActionWithScore } from "./Game.types";
+import { Difficulty, PlayHistory, Position, UserActionDetail } from "./Game.types";
 import { Leaderboards } from "./hooks/useLeaderboard";
 
 type GameSidebarProps = {
     leaderboards: Leaderboards | null;
     difficulty: "easy" | "medium" | "hard";
-    userActions: UserActionWithScore[];
+    userActions: UserActionDetail[];
     setHoveredCell: (cell: { r: number; c: number } | null) => void;
     playHistory: PlayHistory[] | null;
     onRetry: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
-    onReplay: (seed: string, difficulty: Difficulty, actions: UserActionWithScore[]) => void;
+    onReplay: (seed: string, difficulty: Difficulty, actions: UserActionDetail[]) => void;
 };
 
 const GameSidebar = React.memo(function GameSidebar({
@@ -36,12 +36,12 @@ const GameSidebar = React.memo(function GameSidebar({
         setIsOpen(false); // Close sidebar after replay
         setActiveTab("actions"); // Reset to actions tab
     }, [onRetry]);
-    const handleReplay = useCallback((seed: string, difficulty: Difficulty, actions: UserActionWithScore[]) => {
+    const handleReplay = useCallback((seed: string, difficulty: Difficulty, actions: UserActionDetail[]) => {
         onReplay(seed, difficulty, actions);
         setIsOpen(false); // Close sidebar after replay
         setActiveTab("actions"); // Reset to actions tab
     }
-    , [onReplay]);
+        , [onReplay]);
 
     const sidebarContent = useMemo(() =>
         <>
@@ -57,7 +57,7 @@ const GameSidebar = React.memo(function GameSidebar({
                             : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                             }`}
                     >
-                        Actions
+                        🕹️Actions
                     </button>
                     <button
                         onClick={handleHistoryClick}
@@ -66,7 +66,7 @@ const GameSidebar = React.memo(function GameSidebar({
                             : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                             }`}
                     >
-                        History
+                        📜History
                     </button>
                 </div>
 

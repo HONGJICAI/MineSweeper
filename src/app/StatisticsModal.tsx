@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Difficulty, DifficultyText, PlayHistory } from "./Game.types";
-
+const stopPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+}
 const StatisticsModal = React.memo(function StatisticsModal({
     show,
     onClose,
@@ -62,7 +64,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
         >
             <div 
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-h-full max-w-md relative"
-                onClick={(e) => e.stopPropagation()}
+                onClick={stopPropagation}
             >
                 <button
                     className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"

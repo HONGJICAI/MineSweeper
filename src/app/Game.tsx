@@ -6,7 +6,7 @@ import {
   hardMineSweeper,
   mediumMineSweeper
 } from "./utils/minesweeperLogic";
-import { Difficulty, GameStatus, PlayHistory, Position, UserAction, UserActionWithScore } from "./Game.types";
+import { Difficulty, GameStatus, PlayHistory, Position, UserAction, UserActionDetail } from "./Game.types";
 import React from "react";
 import StatisticsModal from "./StatisticsModal";
 import { useUserActions } from "./hooks/useUserActions";
@@ -17,6 +17,7 @@ import GameSidebar from "./GameSidebar";
 import { useMineSweeperLogic } from "./hooks/useMineSweeperLogic";
 import AutoGamingOverlay from "./AutoGamingOverlay";
 import { useTimer } from "./hooks/useTimer";
+import { ReplayConfig } from "./global";
 
 export default function Game(props: {
   difficulty: Difficulty;
@@ -112,6 +113,7 @@ export default function Game(props: {
         type: action.type,
         position: action.position,
         score,
+        time: new Date().getTime(),
       });
     }, [addUserAction, action2function]);
 
@@ -162,6 +164,7 @@ export default function Game(props: {
         type: "reveal",
         position: pendingRetry.firstStep,
         score: 1,
+        time: new Date().getTime(),
       });
       setPendingRetry(null);
     }
@@ -169,12 +172,18 @@ export default function Game(props: {
   //#endregion
 
   //#region Replay logic
-  const [pendingReplay, setPendingReplay] = useState<{ seed: string; actions: UserActionWithScore[], current: number } | null>(null);
+  const [pendingReplay, setPendingReplay] = useState<{ seed: string; actions: UserActionDetail[], current: number } | null>(null);
   const skipHistory = useRef<boolean>(false);
   const lastPlayedStep = useRef<number | null>(null);
+  const [autoPlaying, setAutoPlaying] = useState<boolean>(false);
+  const [showAutoPlayOverlay, setShowAutoPlayOverlay] = useState<boolean>(false);
+  const replayTitle = useMemo(() => {
+    if (!pendingReplay) return undefined;
+    return `Replaying actions ${pendingReplay.current + 1}/${pendingReplay.actions.length}`;
+  }, [pendingReplay]);
 
   useEffect(() => {
-    if (pendingReplay && (gameStatus === GameStatus.Init || gameStatus === GameStatus.Gaming) && board.length === rows && board[0]?.length === cols) {
+    if (autoPlaying && pendingReplay && (gameStatus === GameStatus.Init || gameStatus === GameStatus.Gaming) && board.length === rows && board[0]?.length === cols) {
       if (pendingReplay.current < pendingReplay.actions.length && lastPlayedStep.current !== pendingReplay.current) {
         const action = pendingReplay.actions[pendingReplay.current];
         const step = action.position;
@@ -186,11 +195,7 @@ export default function Game(props: {
           handleChordCell(step.r, step.c);
         }
         setHighlightedCell(step);
-        addUserAction({
-          type: action.type,
-          position: step,
-          score: action.score,
-        });
+        addUserAction(action);
         lastPlayedStep.current = pendingReplay.current;
         setTimeout(() => {
           setPendingReplay((prev) => {
@@ -202,25 +207,39 @@ export default function Game(props: {
             }
             return null;
           });
-        }, 500);
+        }, ReplayConfig.speed === -1 ? action.time : ReplayConfig.speed);
       }
-    } else if (pendingReplay && pendingReplay.current >= pendingReplay.actions.length) {
+    } else if (showAutoPlayOverlay && autoPlaying && pendingReplay && pendingReplay.current >= pendingReplay.actions.length) {
       // Replay finished
       setPendingReplay(null);
       setHighlightedCell(null);
       lastPlayedStep.current = null;
+      setShowAutoPlayOverlay(false);
+      setAutoPlaying(false);
     }
-  }, [pendingReplay, gameStatus, board, rows, cols, handleCellClick, handleFlagCell, handleChordCell, addUserAction]);
+  }, [autoPlaying, showAutoPlayOverlay, pendingReplay, gameStatus, board, rows, cols, handleCellClick, handleFlagCell, handleChordCell, addUserAction]);
 
-  const onReplay = useCallback((seed: string, replayDifficulty: Difficulty, actions: UserActionWithScore[]) => {
+  const onClickReplayButton = useCallback((seed: string, replayDifficulty: Difficulty, actions: UserActionDetail[]) => {
     if (replayDifficulty !== difficulty) {
       setDifficulty(replayDifficulty);
     } else {
       onDifficultyChange();
     }
+    setShowAutoPlayOverlay(true);
     setPendingReplay({ seed, actions, current: 0 });
     skipHistory.current = true;;
   }, [difficulty, onDifficultyChange]);
+  const onStartReplay = useCallback((speed: number) => {
+    ReplayConfig.speed = speed;
+    setAutoPlaying(true);
+  }, []);
+
+  const onCancelReplay = useCallback(() => {
+    setShowAutoPlayOverlay(false);
+    setAutoPlaying(false);
+    setPendingReplay(null);
+    lastPlayedStep.current = null;
+  }, []);
   //#endregion
 
   return (
@@ -254,7 +273,7 @@ export default function Game(props: {
         setHoveredCell={setHighlightedCell}
         playHistory={playHistory}
         onRetry={onRetry}
-        onReplay={onReplay}
+        onReplay={onClickReplayButton}
       />
 
       {/* Statistics Modal */}
@@ -266,11 +285,14 @@ export default function Game(props: {
           onClearHistory={clearPlayHistory}
         />
       )}
-      {!!pendingReplay &&
+      {showAutoPlayOverlay &&
         <AutoGamingOverlay
-          isAutoPlaying={true}
-          title={`Replaying actions ${pendingReplay.current + 1}/${pendingReplay.actions.length}`}
-        />}
+          isAutoPlaying={autoPlaying}
+          title={replayTitle}
+          onCancelAutoPlay={onCancelReplay}
+          onStartAutoPlay={onStartReplay}
+        />
+      }
     </div>
-  );
+  )
 }

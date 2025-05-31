@@ -23,14 +23,15 @@ export type UserAction = {
   position: Position;
 };
 
-export type UserActionWithScore = UserAction & {
+export type UserActionDetail = UserAction & {
   score: number;
+  time: number;
 };
 export type PlayHistory = {
     result: "Win" | "Loss";
     time: number;
     difficulty: Difficulty;
     seed: string;
-    actions: UserActionWithScore[];
+    actions: UserActionDetail[];
     date: string;
 };

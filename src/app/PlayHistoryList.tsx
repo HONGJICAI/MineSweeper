@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from "react";
-import { Difficulty, DifficultyText, PlayHistory, Position, UserActionWithScore } from "./Game.types";
+import { Difficulty, DifficultyText, PlayHistory, Position, UserActionDetail } from "./Game.types";
 
 interface HistoryListProps {
     playHistory: PlayHistory[] | null;
     onRetry: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
-    onReplay: (seed: string, difficulty: Difficulty, actions: UserActionWithScore[]) => void;
+    onReplay: (seed: string, difficulty: Difficulty, actions: UserActionDetail[]) => void;
 }
 
 const PlayHistoryList = React.memo(function HistoryList({ playHistory, onRetry, onReplay }: HistoryListProps) {

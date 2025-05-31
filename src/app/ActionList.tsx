@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { ActionType, UserActionWithScore } from "./Game.types";
+import { ActionType, UserActionDetail } from "./Game.types";
 
 const actionEmoji: Record<ActionType, string> = {
     reveal: "⛏️",
@@ -11,7 +11,7 @@ export default function ActionList({
     userActions,
     setHoveredCell,
 }: {
-    userActions: UserActionWithScore[];
+    userActions: UserActionDetail[];
     setHoveredCell: (cell: { r: number; c: number } | null) => void;
 }) {
     const handleMouseEnter = useCallback(

@@ -10,7 +10,7 @@ export default function Leaderboard({
     difficulty: Difficulty;
 }) {
     return (
-        <TitledDiv title={`Leaderboard ${DifficultyText[difficulty]}`} className="w-full min-w-[220px]">
+        <TitledDiv title={`${DifficultyText[difficulty]}Leaderboard`} className="w-full min-w-[220px]">
             <ol className="list-decimal list-inside rounded p-1 text-gray-500" >
                 {leaderboards === null && (
                     <li className="">Loading...</li>
