@@ -55,7 +55,7 @@ const AutoGamingOverlay: React.FC<AutoGamingOverlayProps> = ({
                       onChange={handleSpeedOptionChange}
                       className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-base">Original speed</span>
+                    <span className="text-base">Your speed</span>
                   </label>
                   <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-3 rounded-lg transition-colors">
                     <input

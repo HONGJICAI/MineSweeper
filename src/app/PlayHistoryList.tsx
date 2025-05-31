@@ -40,11 +40,24 @@ const PlayHistoryList = React.memo(function HistoryList({ playHistory, onRetry, 
     }, [handleReplay]);
 
     return (
-        <ul className="space-y-1 overflow-y-auto rounded">
+        <ul className="space-y-1 overflow-y-auto rounded h-full">
             {playHistory === null && (
-                <li className="text-gray-500 dark:text-gray-400">Loading...</li>
+                <li className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                        <div className="text-4xl mb-2">⏳</div>
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">Loading...</p>
+                    </div>
+                </li>
             )}
-            {playHistory?.length === 0 && <li className="text-gray-500 dark:text-gray-400">No games played yet.</li>}
+            {playHistory?.length === 0 && (
+                <li className="flex items-center justify-center h-full">
+                    <div className="text-center p-8">
+                        <div className="text-6xl mb-4 opacity-20">🎮</div>
+                        <p className="text-gray-600 dark:text-gray-400 font-medium mb-2">No games played yet</p>
+                        <p className="text-gray-400 dark:text-gray-500 text-sm">Start a new game to see your history here</p>
+                    </div>
+                </li>
+            )}
             {playHistory?.map((entry, idx) => (
                 <li
                     key={idx}

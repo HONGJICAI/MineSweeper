@@ -16,20 +16,20 @@ const getLocalStorageSize = (): { used: number; percentage: number; formatted: s
     } catch (e) {
         console.error('Error calculating localStorage size:', e);
     }
-    
+
     // Convert to KB/MB
     const sizeInKB = totalSize / 1024;
     const sizeInMB = sizeInKB / 1024;
     const maxSizeMB = 5; // 5MB max for most browsers
     const percentage = Math.round((sizeInMB / maxSizeMB) * 100);
-    
+
     let formatted = '';
     if (sizeInMB >= 1) {
         formatted = `${sizeInMB.toFixed(2)} MB`;
     } else {
         formatted = `${sizeInKB.toFixed(2)} KB`;
     }
-    
+
     return { used: sizeInMB, percentage, formatted };
 };
 
@@ -106,11 +106,11 @@ const StatisticsModal = React.memo(function StatisticsModal({
     if (!show) return null;
 
     return (
-        <div 
+        <div
             className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50"
             onClick={onClose}
         >
-            <div 
+            <div
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-h-full max-w-md relative"
                 onClick={stopPropagation}
             >
@@ -122,7 +122,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
                     ✖️
                 </button>
                 <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Game Statistics</h2>
-                
+
                 {/* Success Rate Statistics */}
                 <div className="mb-6 grid grid-cols-3 gap-4">
                     {(['easy', 'medium', 'hard'] as Difficulty[]).map((difficulty) => (
@@ -147,12 +147,11 @@ const StatisticsModal = React.memo(function StatisticsModal({
                         <span className="text-sm text-gray-600 dark:text-gray-400">{storageInfo.formatted} / 5 MB</span>
                     </div>
                     <div className="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-2">
-                        <div 
-                            className={`h-2 rounded-full transition-all duration-300 ${
-                                storageInfo.percentage > 80 ? 'bg-red-600' : 
-                                storageInfo.percentage > 60 ? 'bg-yellow-500' : 
-                                'bg-green-500'
-                            }`}
+                        <div
+                            className={`h-2 rounded-full transition-all duration-300 ${storageInfo.percentage > 80 ? 'bg-red-600' :
+                                    storageInfo.percentage > 60 ? 'bg-yellow-500' :
+                                        'bg-green-500'
+                                }`}
                             style={{ width: `${Math.min(storageInfo.percentage, 100)}%` }}
                         />
                     </div>
@@ -162,26 +161,24 @@ const StatisticsModal = React.memo(function StatisticsModal({
                 </div>
 
                 {/* Clear Buttons */}
-                {((playHistory.length > 0 && onClearHistory) || onClearLeaderboard) && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-2 flex-wrap">
-                        {playHistory.length > 0 && onClearHistory && (
-                            <button
-                                onClick={handleClearHistory}
-                                className="text-sm text-white bg-red-600 hover:scale-105 rounded-md px-3 py-1 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                            >
-                                Clear Game History
-                            </button>
-                        )}
-                        {onClearLeaderboard && (
-                            <button
-                                onClick={handleClearLeaderboard}
-                                className="text-sm text-white bg-orange-600 hover:scale-105 rounded-md px-3 py-1 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-                            >
-                                Clear Leaderboard
-                            </button>
-                        )}
-                    </div>
-                )}
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-2 flex-wrap">
+                    {onClearHistory && (
+                        <button
+                            onClick={handleClearHistory}
+                            className="text-sm text-white bg-red-600 hover:scale-105 rounded-md px-3 py-1 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        >
+                            Clear Game History
+                        </button>
+                    )}
+                    {onClearLeaderboard && (
+                        <button
+                            onClick={handleClearLeaderboard}
+                            className="text-sm text-white bg-orange-600 hover:scale-105 rounded-md px-3 py-1 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                        >
+                            Clear Leaderboard
+                        </button>
+                    )}
+                </div>
 
                 {/* Confirmation Dialog */}
                 {showConfirmDialog && (

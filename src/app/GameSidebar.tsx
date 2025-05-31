@@ -40,12 +40,15 @@ const GameSidebar = React.memo(function GameSidebar({
         onReplay(seed, difficulty, actions);
         setIsOpen(false);
         setActiveTab("actions");
-    }
-        , [onReplay]);
+    }, [onReplay]);
+
+    const currentHistory = useMemo(() => {
+        return playHistory?.filter(entry => entry.difficulty === difficulty) ?? null;
+    }, [playHistory, difficulty]);
 
     const sidebarContent = useMemo(() =>
         <>
-            <Leaderboard leaderboards={leaderboards} difficulty={difficulty} onReplay={onReplay} onRetry={onRetry} />
+            <Leaderboard leaderboards={leaderboards} difficulty={difficulty} onReplay={handleReplay} onRetry={handleRetry} />
 
             <div className="flex flex-col h-full overflow-hidden">
                 {/* Tab Headers */}
@@ -86,7 +89,7 @@ const GameSidebar = React.memo(function GameSidebar({
                     {activeTab === "actions" ? (
                         <ActionList userActions={userActions} setHoveredCell={setHoveredCell} />
                     ) : (
-                        <PlayHistoryList playHistory={playHistory} onRetry={handleRetry} onReplay={handleReplay} />
+                        <PlayHistoryList playHistory={currentHistory} onRetry={handleRetry} onReplay={handleReplay} />
                     )}
                 </div>
             </div>
