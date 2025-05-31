@@ -1,0 +1,137 @@
+.auto-gaming-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 四个角落的L形边框 */
+.auto-gaming-overlay::before,
+.auto-gaming-overlay::after,
+.overlay-content::before,
+.overlay-content::after {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border: 3px solid #ff0000;
+  pointer-events: none;
+}
+
+/* 左上角 */
+.auto-gaming-overlay::before {
+  top: 20px;
+  left: 20px;
+  border-right: none;
+  border-bottom: none;
+}
+
+/* 右上角 */
+.auto-gaming-overlay::after {
+  top: 20px;
+  right: 20px;
+  border-left: none;
+  border-bottom: none;
+}
+
+/* 左下角 */
+.overlay-content::before {
+  bottom: 20px;
+  left: 20px;
+  border-right: none;
+  border-top: none;
+}
+
+/* 右下角 */
+.overlay-content::after {
+  bottom: 20px;
+  right: 20px;
+  border-left: none;
+  border-top: none;
+}
+
+.replay-indicator {
+  position: absolute;
+  top: 30px;
+  left: 90px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.replay-dot {
+  width: 12px;
+  height: 12px;
+  background-color: #ff0000;
+  border-radius: 50%;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.replay-text {
+  color: #ff0000;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: monospace;
+  text-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
+  letter-spacing: 2px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.overlay-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cancel-button-container {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: all;
+}
+
+.cancel-button {
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  background-color: rgba(220, 53, 69, 0.9);
+  border: 2px solid #ff0000;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cancel-button:hover {
+  background-color: #ff0000;
+  transform: scale(1.05);
+}
+
+.cancel-button:active {
+  transform: scale(0.95);
+}

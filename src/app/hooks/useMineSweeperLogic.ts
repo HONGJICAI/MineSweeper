@@ -34,12 +34,15 @@ export function useMineSweeperLogic({
     } = sweeper;
     const [revealedCount, setRevealedCount] = useState(0);
     const [flagCount, setFlagCount] = useState(0);
+    const [revealMine, setRevealMine] = useState(false);
     const requiredRevealedCount = sweeper.rows * sweeper.cols - sweeper.mines;
 
     useEffect(() => {
-        // check win
-        if (revealedCount === requiredRevealedCount && gameStatus === GameStatus.Gaming) {
-            onWinOrLose?.(GameStatus.Win);
+        if (gameStatus === GameStatus.Gaming) {
+            if (revealedCount === requiredRevealedCount)
+                onWinOrLose?.(GameStatus.Win);
+            else if (revealMine)
+                onWinOrLose?.(GameStatus.GameOver);
         }
     }, [revealedCount, requiredRevealedCount, gameStatus, onWinOrLose]);
 
@@ -48,6 +51,7 @@ export function useMineSweeperLogic({
         if (gameStatus === GameStatus.Init) {
             setRevealedCount(0);
             setFlagCount(0);
+            setRevealMine(false);
         }
     }, [gameStatus]);
 
@@ -63,7 +67,7 @@ export function useMineSweeperLogic({
                 if (gameOver) {
                     revealAllMinesInPlace(board);
                     setBoard([...board]);
-                    onWinOrLose?.(GameStatus.GameOver);
+                    setRevealMine(true);
                     return -1;
                 }
                 const newBoard = [...board];
@@ -116,7 +120,7 @@ export function useMineSweeperLogic({
             revealAllMinesInPlace(board);
             const newBoard = [...board];
             setBoard(newBoard);
-            onWinOrLose?.(GameStatus.GameOver);
+            setRevealMine(true);
             return -1;
         }
         const revealedCount = revealCellInPlace(board, r, c);

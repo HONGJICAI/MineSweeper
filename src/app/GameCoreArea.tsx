@@ -5,6 +5,7 @@ import { CellType } from "./Cell";
 import { Difficulty, GameStatus, UserAction } from "./Game.types";
 
 interface GameCoreAreaProps {
+    title: string;
     difficulty: Difficulty;
     setDifficulty: (d: Difficulty) => void;
     mobileAction: "reveal" | "flag";
@@ -19,11 +20,12 @@ interface GameCoreAreaProps {
     hoveredCell: { r: number; c: number } | null;
     rows: number;
     cols: number;
-    onCellAction: (action: UserAction) => number;
+    onCellAction: (action: UserAction) => void;
     seed: string;
 }
 
 const GameCoreArea = React.memo(function GameCoreArea({
+    title,
     difficulty,
     setDifficulty,
     mobileAction,
@@ -62,7 +64,7 @@ const GameCoreArea = React.memo(function GameCoreArea({
             className={`flex flex-col items-center flex-1 ${minWidthClass} min-h-[480px]`}
         >
             <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">
-                Minesweeper
+                {title}
             </h1>
             <GameControls
                 difficulty={difficulty}

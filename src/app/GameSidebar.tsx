@@ -12,7 +12,8 @@ type GameSidebarProps = {
     userActions: UserActionWithScore[];
     setHoveredCell: (cell: { r: number; c: number } | null) => void;
     playHistory: PlayHistory[] | null;
-    onReplay: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
+    onRetry: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
+    onReplay: (seed: string, difficulty: Difficulty, actions: UserActionWithScore[]) => void;
 };
 
 const GameSidebar = React.memo(function GameSidebar({
@@ -21,6 +22,7 @@ const GameSidebar = React.memo(function GameSidebar({
     userActions,
     setHoveredCell,
     playHistory,
+    onRetry,
     onReplay,
 }: GameSidebarProps) {
     const [activeTab, setActiveTab] = useState<"actions" | "history">("actions");
@@ -30,11 +32,17 @@ const GameSidebar = React.memo(function GameSidebar({
     const handleHistoryClick = useCallback(() => setActiveTab("history"), []);
     const handleOpenSidebar = useCallback(() => setIsOpen(true), []);
     const handleCloseSidebar = useCallback(() => setIsOpen(false), []);
-    const handleReplay = useCallback((seed: string, difficulty: Difficulty, firstStep: Position) => {
-        onReplay(seed, difficulty, firstStep);
+    const handleRetry = useCallback((seed: string, difficulty: Difficulty, firstStep: Position) => {
+        onRetry(seed, difficulty, firstStep);
         setIsOpen(false); // Close sidebar after replay
         setActiveTab("actions"); // Reset to actions tab
-    }, [onReplay]);
+    }, [onRetry]);
+    const handleReplay = useCallback((seed: string, difficulty: Difficulty, actions: UserActionWithScore[]) => {
+        onReplay(seed, difficulty, actions);
+        setIsOpen(false); // Close sidebar after replay
+        setActiveTab("actions"); // Reset to actions tab
+    }
+    , [onReplay]);
 
     const sidebarContent = useMemo(() =>
         <>
@@ -79,12 +87,12 @@ const GameSidebar = React.memo(function GameSidebar({
                     {activeTab === "actions" ? (
                         <ActionList userActions={userActions} setHoveredCell={setHoveredCell} />
                     ) : (
-                        <HistoryList playHistory={playHistory} onReplay={handleReplay} />
+                        <HistoryList playHistory={playHistory} onRetry={handleRetry} onReplay={handleReplay} />
                     )}
                 </div>
             </div>
         </>
-        , [leaderboards, difficulty, userActions, playHistory, activeTab, setHoveredCell, handleActionsClick, handleHistoryClick, onReplay]);
+        , [leaderboards, difficulty, userActions, playHistory, activeTab, setHoveredCell, handleActionsClick, handleHistoryClick, handleRetry, handleReplay]);
 
     return (
         <>

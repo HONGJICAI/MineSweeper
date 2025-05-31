@@ -1,26 +1,31 @@
 import React, { useCallback, useState } from "react";
 import { PlayHistory } from "./hooks/usePlayHistory";
-import { Difficulty, Position } from "./Game.types";
+import { Difficulty, Position, UserActionWithScore } from "./Game.types";
 
 interface HistoryListProps {
     playHistory: PlayHistory[] | null;
-    onReplay: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
+    onRetry: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
+    onReplay: (seed: string, difficulty: Difficulty, actions: UserActionWithScore[]) => void;
 }
 
-const HistoryList = React.memo(function HistoryList({ playHistory, onReplay }: HistoryListProps) {
+const HistoryList = React.memo(function HistoryList({ playHistory, onRetry, onReplay }: HistoryListProps) {
     const [expandedIndex, setExpandedIndex] = useState<number | null>(playHistory?.length ?? 0 > 0 ? 0 : null);
 
     const handleItemClick = useCallback((index: number) => {
         setExpandedIndex(expandedIndex === index ? null : index);
     }, [expandedIndex]);
 
-    const handleReplay = useCallback((entry: PlayHistory) => {
+    const handleRetry = useCallback((entry: PlayHistory) => {
         const firstStep = entry.actions.at(0)?.position;
         if (!firstStep) {
             console.warn("No first step available for replay.");
             return;
         }
-        onReplay(entry.seed, entry.difficulty, firstStep);
+        onRetry(entry.seed, entry.difficulty, firstStep);
+    }, [onRetry]);
+
+    const handleReplay = useCallback((entry: PlayHistory) => {
+        onReplay(entry.seed, entry.difficulty, entry.actions);
     }, [onReplay]);
 
     return (
@@ -62,19 +67,15 @@ const HistoryList = React.memo(function HistoryList({ playHistory, onReplay }: H
                             <div className="flex gap-2 justify-center">
                                 <button
                                     className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                                    title="Replay game"
-                                    disabled={!entry.seed}
-                                    onClick={handleReplay.bind(null, entry)}
+                                    title="Retry game"
+                                    onClick={handleRetry.bind(null, entry)}
                                 >
                                     🔄
                                 </button>
                                 <button
                                     className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                                     title="Replay your actions"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        console.log('Watch video', idx);
-                                    }}
+                                    onClick={handleReplay.bind(null, entry)}
                                 >
                                     ▶️
                                 </button>
@@ -83,7 +84,6 @@ const HistoryList = React.memo(function HistoryList({ playHistory, onReplay }: H
                                     title="AI play"
                                     disabled
                                     onClick={(e) => {
-                                        e.stopPropagation();
                                         console.log('AI play', idx);
                                     }}
                                 >
