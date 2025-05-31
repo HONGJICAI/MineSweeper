@@ -6,7 +6,7 @@ import {
   hardMineSweeper,
   mediumMineSweeper
 } from "./utils/minesweeperLogic";
-import { Difficulty, GameStatus, Position, UserAction, UserActionWithScore } from "./Game.types";
+import { Difficulty, GameStatus, PlayHistory, Position, UserAction, UserActionWithScore } from "./Game.types";
 import React from "react";
 import StatisticsModal from "./StatisticsModal";
 import { useUserActions } from "./hooks/useUserActions";
@@ -51,8 +51,8 @@ export default function Game(props: {
     }
   }, [gameStatus]);
 
-  const onBeginGame = useCallback((board: CellType[][], r: number, c: number, seed?: string) => {
-    const generatedSeed = sweeper.generateBoardInPlace(board, r, c, seed);
+  const onBeginGame = useCallback((board: CellType[][], r: number, c: number, seed: string, replay: boolean) => {
+    const generatedSeed = sweeper.generateBoardInPlace(board, r, c, seed, replay);
     setSeed(generatedSeed);
     setGameStatus(GameStatus.Gaming);
     startTimer();
@@ -63,19 +63,22 @@ export default function Game(props: {
     if (skipHistory.current) {
       skipHistory.current = false;
     } else {
-      if (status === GameStatus.Win) {
-        addLeaderboard(difficulty, {
-          time: timerRef.current,
-          date: new Date().toLocaleString(),
-        });
-      }
-      addPlayHistoryEntry({
+      const playHistory: PlayHistory = {
         result: status === GameStatus.Win ? "Win" : "Loss",
         time: timerRef.current,
         difficulty,
         seed,
         actions: userActions,
-      });
+        date: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
+      };
+      if (status === GameStatus.Win) {
+        addLeaderboard(difficulty, playHistory);
+      }
+      addPlayHistoryEntry(playHistory);
     }
     stopTimer();
   }, [addLeaderboard, addPlayHistoryEntry, difficulty, seed, userActions, timerRef, stopTimer]);
@@ -176,7 +179,7 @@ export default function Game(props: {
         const action = pendingReplay.actions[pendingReplay.current];
         const step = action.position;
         if (action.type === "reveal") {
-          handleCellClick(step.r, step.c, pendingReplay.seed);
+          handleCellClick(step.r, step.c, pendingReplay.seed, true);
         } else if (action.type === "flag") {
           handleFlagCell(step.r, step.c);
         } else if (action.type === "chord") {

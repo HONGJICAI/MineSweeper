@@ -1,9 +1,8 @@
 import React, { useMemo, useState, useCallback } from "react";
 import Leaderboard from "./Leaderboard";
 import ActionList from "./ActionList";
-import HistoryList from "./HistoryList";
-import { Difficulty, Position, UserActionWithScore } from "./Game.types";
-import { PlayHistory } from "./hooks/usePlayHistory";
+import PlayHistoryList from "./PlayHistoryList";
+import { Difficulty, PlayHistory, Position, UserActionWithScore } from "./Game.types";
 import { Leaderboards } from "./hooks/useLeaderboard";
 
 type GameSidebarProps = {
@@ -87,7 +86,7 @@ const GameSidebar = React.memo(function GameSidebar({
                     {activeTab === "actions" ? (
                         <ActionList userActions={userActions} setHoveredCell={setHoveredCell} />
                     ) : (
-                        <HistoryList playHistory={playHistory} onRetry={handleRetry} onReplay={handleReplay} />
+                        <PlayHistoryList playHistory={playHistory} onRetry={handleRetry} onReplay={handleReplay} />
                     )}
                 </div>
             </div>

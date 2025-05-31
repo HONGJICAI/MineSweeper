@@ -1,17 +1,7 @@
 import { useCallback } from "react";
 import { useLocalStorage } from "./useStorage";
-import { Difficulty, UserActionWithScore } from "../Game.types";
+import { PlayHistory } from "../Game.types";
 
-export type PlayHistoryEntry = {
-    result: "Win" | "Loss";
-    time: number;
-    difficulty: Difficulty;
-    seed: string;
-    actions: UserActionWithScore[];
-};
-export type PlayHistory = PlayHistoryEntry & {
-    date: string;
-};
 
 export function usePlayHistory() {
     const [playHistory, setPlayHistory] = useLocalStorage<PlayHistory[]>(
@@ -19,15 +9,9 @@ export function usePlayHistory() {
         []
     );
 
-    const addPlayHistoryEntry = useCallback((entry: PlayHistoryEntry) => {
+    const addPlayHistoryEntry = useCallback((entry: PlayHistory) => {
         if (playHistory === null) return;
-        const date = new Date().toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-        });
-        const newEntry = { ...entry, date };
-        setPlayHistory([newEntry, ...playHistory]);
+        setPlayHistory([entry, ...playHistory]);
     }, [playHistory, setPlayHistory]);
 
     const clearPlayHistory = useCallback(() => {

@@ -1,13 +1,12 @@
 import React from "react";
-import type { LeaderboardEntry } from "./hooks/useLeaderboard";
 import { TitledDiv } from "./components/TitledDiv";
-import { Difficulty, DifficultyText } from "./Game.types";
+import { Difficulty, DifficultyText, PlayHistory } from "./Game.types";
 
 export default function Leaderboard({
     leaderboards,
     difficulty,
 }: {
-    leaderboards: Record<Difficulty, LeaderboardEntry[]> | null;
+    leaderboards: Record<Difficulty, PlayHistory[]> | null;
     difficulty: Difficulty;
 }) {
     return (

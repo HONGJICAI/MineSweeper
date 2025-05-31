@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { PlayHistory } from "./hooks/usePlayHistory";
-import { Difficulty, DifficultyText, Position, UserActionWithScore } from "./Game.types";
+import { Difficulty, DifficultyText, PlayHistory, Position, UserActionWithScore } from "./Game.types";
 
 interface HistoryListProps {
     playHistory: PlayHistory[] | null;
@@ -8,7 +7,7 @@ interface HistoryListProps {
     onReplay: (seed: string, difficulty: Difficulty, actions: UserActionWithScore[]) => void;
 }
 
-const HistoryList = React.memo(function HistoryList({ playHistory, onRetry, onReplay }: HistoryListProps) {
+const PlayHistoryList = React.memo(function HistoryList({ playHistory, onRetry, onReplay }: HistoryListProps) {
     const [expandedIndex, setExpandedIndex] = useState<number | null>(playHistory?.length ?? 0 > 0 ? 0 : null);
 
     const handleItemClick = useCallback((index: number) => {
@@ -107,4 +106,4 @@ const HistoryList = React.memo(function HistoryList({ playHistory, onRetry, onRe
     );
 });
 
-export default HistoryList;
+export default PlayHistoryList;

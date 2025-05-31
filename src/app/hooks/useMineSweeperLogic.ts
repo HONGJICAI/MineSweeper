@@ -13,7 +13,7 @@ export function useMineSweeperLogic({
     board: CellType[][];
     setBoard: (b: CellType[][]) => void;
     gameStatus: GameStatus;
-    onBeginGame: (board: CellType[][], r: number, c: number, seed?: string) => void;
+    onBeginGame: (board: CellType[][], r: number, c: number, seed: string, replay: boolean) => void;
     onWinOrLose: (s: GameStatus) => void;
     sweeper: {
         mines: number;
@@ -107,11 +107,11 @@ export function useMineSweeperLogic({
         return 1;
     }, [gameStatus, board, setBoard]);
 
-    const handleCellClick = useCallback((r: number, c: number, seed?: string) => {
+    const handleCellClick = useCallback((r: number, c: number, seed = "", replay = false) => {
         if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return 0;
         if (gameStatus === GameStatus.Init) {
             // First click: generate board with safe cell
-            onBeginGame(board, r, c, seed);
+            onBeginGame(board, r, c, seed, replay);
         }
         const cell = board[r][c];
         if (cell.isFlagged || cell.isRevealed) return 0;

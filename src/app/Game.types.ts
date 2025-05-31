@@ -26,3 +26,11 @@ export type UserAction = {
 export type UserActionWithScore = UserAction & {
   score: number;
 };
+export type PlayHistory = {
+    result: "Win" | "Loss";
+    time: number;
+    difficulty: Difficulty;
+    seed: string;
+    actions: UserActionWithScore[];
+    date: string;
+};

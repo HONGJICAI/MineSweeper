@@ -39,15 +39,27 @@ class SeededRandom {
 
 function generateSeed() {
     const randomPart = Math.random().toString(36).substring(2, 10);
-    return `${randomPart}`;
+    return `${randomPart}-1`;
 }
 
 export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
-    function generateBoardInPlace(board: CellType[][], safeR: number, safeC: number, seed = "") {
-        if (seed === "") {
+    function generateBoardInPlace(board: CellType[][], safeR: number, safeC: number, seedStr = "", replay = false): string {
+        if (seedStr === "") {
             // Generate a random seed if not provided
-            seed = generateSeed();
+            seedStr = generateSeed();
+        } else if (!replay) {
+            // increase iteration number in the seed
+            const parts = seedStr.split("-");
+            if (parts.length < 2 || isNaN(parseInt(parts[1]))) {
+                console.warn("Invalid seed format, generating a new seed.");
+                seedStr = generateSeed();
+            } else {
+                const iteration = parseInt(parts[1]) + 1;
+                seedStr = `${parts[0]}-${iteration}`;
+            }
+
         }
+        const seed = seedStr.split("-")[0]; // Use the first part of the seed 
 
         const rng = new SeededRandom(seed);
         // Place mines
@@ -83,7 +95,7 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
             }
         }
 
-        return seed;
+        return seedStr;
     }
 
     function revealCellInPlace(board: CellType[][], r: number, c: number): number {
