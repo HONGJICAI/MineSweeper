@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import { GameStatus } from "./Game.types";
 
 export type CellType = {
     isMine: boolean;
@@ -13,6 +14,8 @@ interface CellProps {
     c: number;
     isPressed?: boolean;
     isHighlighted?: boolean;
+    lastStepOnMine?: boolean;
+    gameStatus: GameStatus;
     onMouseDown?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onMouseUp?: (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => void;
     onTouchStart?: (e: React.TouchEvent<HTMLButtonElement>, r: number, c: number) => void;
@@ -25,6 +28,8 @@ const Cell = React.memo(function Cell({
     c,
     isPressed = false,
     isHighlighted = false,
+    lastStepOnMine = false,
+    gameStatus,
     onMouseDown,
     onMouseUp,
     onTouchStart,
@@ -46,6 +51,18 @@ const Cell = React.memo(function Cell({
         (e: React.TouchEvent<HTMLButtonElement>) => onTouchEnd?.(e, r, c),
         [onTouchEnd, r, c]
     );
+    const getText = useCallback(() => {
+        if (cell.isRevealed) {
+            if (cell.isMine) return cell.isFlagged ? "🚩" : "💣";
+            if (cell.adjacentMines > 0) return cell.adjacentMines.toString();
+            return "";
+        } else if (cell.isFlagged) {
+            if (GameStatus.GameOver === gameStatus && !cell.isMine) return "❌";
+            return "🚩";
+        }
+        return "";
+    }, [cell, gameStatus]);
+
 
     return (
         <button
@@ -56,35 +73,16 @@ const Cell = React.memo(function Cell({
             onTouchEnd={handleTouchEnd}
             className={`size-8 flex items-center justify-center border border-gray-400 dark:border-gray-600 text-lg font-mono select-none text-gray-900 dark:text-gray-100
         ${cell.isRevealed
-                ? "bg-gray-100 dark:bg-gray-800 dark:text-gray-200"
-                : isPressed
-                    ? "bg-gray-200 dark:bg-gray-700"
-                    : "bg-gray-400 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
-            }
+                    ? "bg-gray-100 dark:bg-gray-800 dark:text-gray-200"
+                    : isPressed
+                        ? "bg-gray-200 dark:bg-gray-700"
+                        : "bg-gray-400 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500"
+                }
             ${isHighlighted ? "ring-2 ring-blue-500 dark:ring-blue-300" : ""}
-        ${cell.isRevealed && cell.isMine ? "bg-red-400 dark:bg-red-700" : ""}
+        ${lastStepOnMine ? "bg-red-400 dark:bg-red-700" : ""}
       `}
-            aria-label={
-                cell.isFlagged
-                    ? "Flag"
-                    : cell.isRevealed && cell.isMine
-                        ? "Mine"
-                        : cell.isRevealed
-                            ? cell.adjacentMines
-                                ? `${cell.adjacentMines} adjacent mines`
-                                : "Empty"
-                            : "Hidden"
-            }
         >
-            {cell.isRevealed
-                ? cell.isMine
-                    ? "💣"
-                    : cell.adjacentMines > 0
-                        ? cell.adjacentMines
-                        : ""
-                : cell.isFlagged
-                    ? "🚩"
-                    : ""}
+            {getText()}
         </button>
     );
 });

@@ -152,7 +152,7 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
     }
 
     // Helper: reveal all unflagged cells around (r, c)
-    function revealAroundInPlace(board: CellType[][], r: number, c: number): number {
+    function revealAroundInPlace(board: CellType[][], r: number, c: number): [number, { r: number, c: number } | undefined] {
         let revealedCount = 0;
         for (const [dr, dc] of aroundRC) {
             const nr = r + dr, nc = c + dc;
@@ -163,12 +163,12 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
                 !board[nr][nc].isRevealed
             ) {
                 if (board[nr][nc].isMine) {
-                    return -1; // Game over
+                    return [-1, { r: nr, c: nc }];
                 }
                 revealedCount += revealCellInPlace(board, nr, nc);
             }
         }
-        return revealedCount;
+        return [revealedCount, undefined];
     }
 
     function revealAllMinesInPlace(board: CellType[][]) {

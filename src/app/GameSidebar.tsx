@@ -9,7 +9,7 @@ type GameSidebarProps = {
     leaderboards: Leaderboards | null;
     difficulty: "easy" | "medium" | "hard";
     userActions: UserActionDetail[];
-    setHoveredCell: (cell: { r: number; c: number } | null) => void;
+    setHighlightedCell: (cell?: Position ) => void;
     playHistory: PlayHistory[] | null;
     onRetry: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
     onReplay: (seed: string, difficulty: Difficulty, actions: UserActionDetail[]) => void;
@@ -19,7 +19,7 @@ const GameSidebar = React.memo(function GameSidebar({
     leaderboards,
     difficulty,
     userActions,
-    setHoveredCell,
+    setHighlightedCell,
     playHistory,
     onRetry,
     onReplay,
@@ -87,14 +87,14 @@ const GameSidebar = React.memo(function GameSidebar({
                         }
                     `}</style>
                     {activeTab === "actions" ? (
-                        <ActionList userActions={userActions} setHoveredCell={setHoveredCell} />
+                        <ActionList userActions={userActions} setHoveredCell={setHighlightedCell} />
                     ) : (
                         <PlayHistoryList playHistory={currentHistory} onRetry={handleRetry} onReplay={handleReplay} />
                     )}
                 </div>
             </div>
         </>
-        , [leaderboards, difficulty, userActions, playHistory, activeTab, setHoveredCell, handleActionsClick, handleHistoryClick, handleRetry, handleReplay]);
+        , [leaderboards, difficulty, userActions, activeTab, setHighlightedCell, handleActionsClick, handleHistoryClick, handleRetry, handleReplay, currentHistory]);
 
     return (
         <>

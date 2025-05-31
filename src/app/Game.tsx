@@ -64,6 +64,10 @@ export default function Game(props: {
     if (skipHistory.current) {
       skipHistory.current = false;
     } else {
+      for (let i = 0; i + 1 < userActions.length; i++) {
+        userActions[i].time = userActions[i + 1].time - userActions[i].time;
+      }
+      userActions[userActions.length - 1].time = 0;
       const playHistory: PlayHistory = {
         result: status === GameStatus.Win ? "Win" : "Loss",
         time: timerRef.current,
@@ -84,7 +88,7 @@ export default function Game(props: {
     stopTimer();
   }, [addLeaderboard, addPlayHistoryEntry, difficulty, seed, userActions, timerRef, stopTimer]);
 
-  const { flagCount, handleCellClick, handleFlagCell, handleChordCell } = useMineSweeperLogic({
+  const { flagCount, revealedMinePosition, handleCellClick, handleFlagCell, handleChordCell } = useMineSweeperLogic({
     board,
     setBoard,
     gameStatus,
@@ -139,14 +143,14 @@ export default function Game(props: {
     onDifficultyChange();
   }, [difficulty, onDifficultyChange]);
 
-  const [highlightedCell, setHighlightedCell] = useState<{ r: number; c: number } | null>(null);
+  const [highlightedCell, setHighlightedCell] = useState<Position>();
 
   const onCloseStats = useCallback(() => {
     setShowStats(false);
   }, []);
 
   //#region Retry logic
-  const [pendingRetry, setPendingRetry] = useState<{ seed: string; firstStep: Position } | null>(null);
+  const [pendingRetry, setPendingRetry] = useState<{ seed: string, firstStep: Position }>();
 
   const onRetry = useCallback((seed: string, replayDifficulty: Difficulty, firstStep: Position) => {
     if (replayDifficulty !== difficulty) {
@@ -166,7 +170,7 @@ export default function Game(props: {
         score: 1,
         time: new Date().getTime(),
       });
-      setPendingRetry(null);
+      setPendingRetry(undefined);
     }
   }, [pendingRetry, gameStatus, board, rows, cols, handleCellClick, addUserAction]);
   //#endregion
@@ -212,7 +216,7 @@ export default function Game(props: {
     } else if (showAutoPlayOverlay && autoPlaying && pendingReplay && pendingReplay.current >= pendingReplay.actions.length) {
       // Replay finished
       setPendingReplay(null);
-      setHighlightedCell(null);
+      setHighlightedCell(undefined);
       lastPlayedStep.current = null;
       setShowAutoPlayOverlay(false);
       setAutoPlaying(false);
@@ -263,6 +267,7 @@ export default function Game(props: {
         cols={cols}
         onCellAction={onCellAction}
         seed={seed}
+        lastStepOnMine={revealedMinePosition}
       />
 
       {/* Right side: Sidebar - now responsive */}
@@ -270,7 +275,7 @@ export default function Game(props: {
         leaderboards={leaderboards}
         difficulty={difficulty}
         userActions={userActions}
-        setHoveredCell={setHighlightedCell}
+        setHighlightedCell={setHighlightedCell}
         playHistory={playHistory}
         onRetry={onRetry}
         onReplay={onClickReplayButton}

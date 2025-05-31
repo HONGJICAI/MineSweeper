@@ -12,14 +12,14 @@ export default function ActionList({
     setHoveredCell,
 }: {
     userActions: UserActionDetail[];
-    setHoveredCell: (cell: { r: number; c: number } | null) => void;
+    setHoveredCell: (cell?: { r: number; c: number }) => void;
 }) {
     const handleMouseEnter = useCallback(
         (position: { r: number; c: number }) => () => setHoveredCell(position),
         [setHoveredCell]
     );
     const handleMouseLeave = useCallback(
-        () => setHoveredCell(null),
+        () => setHoveredCell(undefined),
         [setHoveredCell]
     );
 

@@ -7,7 +7,8 @@ import { useDesktopMouse } from "./hooks/useDesktopMouse";
 type BoardProps = {
     board: CellType[][];
     gameStatus: GameStatus;
-    highlightedCell: Position | null;
+    highlightedCell?: Position;
+    lastStepOnMine?: Position;
     rows: number;
     cols: number;
     onCellAction: (action: UserAction) => void;
@@ -18,6 +19,7 @@ const Board = React.memo(function Board({
     highlightedCell,
     rows,
     cols,
+    lastStepOnMine,
     onCellAction,
 }: BoardProps) {
     const {
@@ -66,8 +68,10 @@ const Board = React.memo(function Board({
                         cell={cell}
                         r={r}
                         c={c}
+                        gameStatus={gameStatus}
                         isPressed={showAsPressed ?? false}
                         isHighlighted={!!isHighlighted}
+                        lastStepOnMine={lastStepOnMine?.r === r && lastStepOnMine?.c === c}
                         onMouseDown={handleMouseDown}
                         onMouseUp={handleMouseUp}
                     // onTouchStart={(e) => handleTouchStart?.(e, r, c)}
@@ -76,7 +80,7 @@ const Board = React.memo(function Board({
                 );
             });
         });
-    }, [board, gameStatus, mouseAction, highlightedCell, handleMouseDown, handleMouseUp]);
+    }, [board, gameStatus, mouseAction, highlightedCell, handleMouseDown, handleMouseUp, lastStepOnMine]);
 
     return (
         <div

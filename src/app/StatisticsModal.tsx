@@ -101,7 +101,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
     }, [playHistory]);
 
     // Calculate storage usage
-    const storageInfo = useMemo(() => getLocalStorageSize(), [playHistory]);
+    const storageInfo = getLocalStorageSize();
 
     if (!show) return null;
 

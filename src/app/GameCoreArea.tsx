@@ -2,7 +2,7 @@ import React from "react";
 import GameControls from "./GameControls";
 import Board from "./Board";
 import { CellType } from "./Cell";
-import { Difficulty, GameStatus, UserAction } from "./Game.types";
+import { Difficulty, GameStatus, Position, UserAction } from "./Game.types";
 
 interface GameCoreAreaProps {
     title: string;
@@ -17,11 +17,12 @@ interface GameCoreAreaProps {
     setShowStats: (show: boolean) => void;
     board: CellType[][];
     gameStatus: GameStatus;
-    highlightedCell: { r: number; c: number } | null;
+    highlightedCell?: Position;
     rows: number;
     cols: number;
     onCellAction: (action: UserAction) => void;
     seed: string;
+    lastStepOnMine?: Position;
 }
 
 const GameCoreArea = React.memo(function GameCoreArea({
@@ -42,6 +43,7 @@ const GameCoreArea = React.memo(function GameCoreArea({
     cols,
     onCellAction,
     seed,
+    lastStepOnMine
 }: GameCoreAreaProps) {
     // Calculate minimum dimensions based on board size
     // Cell size is 8 (assuming w-8 h-8 which is 32px)
@@ -94,6 +96,7 @@ const GameCoreArea = React.memo(function GameCoreArea({
                 board={board}
                 gameStatus={gameStatus}
                 highlightedCell={highlightedCell}
+                lastStepOnMine={lastStepOnMine}
                 rows={rows}
                 cols={cols}
                 onCellAction={onCellAction}

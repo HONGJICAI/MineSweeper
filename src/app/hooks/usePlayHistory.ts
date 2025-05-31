@@ -11,10 +11,6 @@ export function usePlayHistory() {
 
     const addPlayHistoryEntry = useCallback((entry: PlayHistory) => {
         if (playHistory === null) return;
-        for (let i = 0; i + 1 < entry.actions.length; i++) {
-            entry.actions[i].time = entry.actions[i + 1].time - entry.actions[i].time;
-        }
-        entry.actions[entry.actions.length - 1].time = 0; // Last action has no time difference
         setPlayHistory([entry, ...playHistory]);
     }, [playHistory, setPlayHistory]);
 
