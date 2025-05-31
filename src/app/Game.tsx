@@ -38,7 +38,7 @@ export default function Game(props: {
   const { timerState, timerRef, startTimer, stopTimer, resetTimer } = useTimer();
   const [showStats, setShowStats] = useState(false);
   const { userActions, addUserAction, resetUserActions } = useUserActions();
-  const { leaderboards, addEntry: addLeaderboard } = useLeaderboard();
+  const { leaderboards, addLeaderboard, clearLeaderboard } = useLeaderboard();
   const { playHistory, addPlayHistoryEntry, clearPlayHistory } = usePlayHistory();
   const [seed, setSeed] = useState<string>("");
   const faceEmoji = useMemo(() => {
@@ -283,6 +283,7 @@ export default function Game(props: {
           onClose={onCloseStats}
           playHistory={playHistory ?? []}
           onClearHistory={clearPlayHistory}
+          onClearLeaderboard={clearLeaderboard}
         />
       )}
       {showAutoPlayOverlay &&

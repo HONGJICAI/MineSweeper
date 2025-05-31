@@ -3,30 +3,75 @@ import { Difficulty, DifficultyText, PlayHistory } from "./Game.types";
 const stopPropagation = (e: React.MouseEvent) => {
     e.stopPropagation();
 }
+
+// Helper function to calculate localStorage size
+const getLocalStorageSize = (): { used: number; percentage: number; formatted: string } => {
+    let totalSize = 0;
+    try {
+        for (const key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+                totalSize += localStorage[key].length + key.length;
+            }
+        }
+    } catch (e) {
+        console.error('Error calculating localStorage size:', e);
+    }
+    
+    // Convert to KB/MB
+    const sizeInKB = totalSize / 1024;
+    const sizeInMB = sizeInKB / 1024;
+    const maxSizeMB = 5; // 5MB max for most browsers
+    const percentage = Math.round((sizeInMB / maxSizeMB) * 100);
+    
+    let formatted = '';
+    if (sizeInMB >= 1) {
+        formatted = `${sizeInMB.toFixed(2)} MB`;
+    } else {
+        formatted = `${sizeInKB.toFixed(2)} KB`;
+    }
+    
+    return { used: sizeInMB, percentage, formatted };
+};
+
 const StatisticsModal = React.memo(function StatisticsModal({
     show,
     onClose,
     playHistory,
     onClearHistory,
+    onClearLeaderboard,
 }: {
     show: boolean;
     onClose: () => void;
     playHistory: PlayHistory[];
     onClearHistory?: () => void;
+    onClearLeaderboard?: () => void;
 }) {
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<'history' | 'leaderboard' | null>(null);
 
     const handleClearHistory = useCallback(() => {
+        setConfirmAction('history');
         setShowConfirmDialog(true);
     }, []);
 
-    const confirmClearHistory = useCallback(() => {
-        onClearHistory?.();
-        setShowConfirmDialog(false);
-    }, [onClearHistory]);
+    const handleClearLeaderboard = useCallback(() => {
+        setConfirmAction('leaderboard');
+        setShowConfirmDialog(true);
+    }, []);
 
-    const cancelClearHistory = useCallback(() => {
+    const confirmClear = useCallback(() => {
+        if (confirmAction === 'history') {
+            onClearHistory?.();
+        } else if (confirmAction === 'leaderboard') {
+            onClearLeaderboard?.();
+        }
         setShowConfirmDialog(false);
+        setConfirmAction(null);
+    }, [confirmAction, onClearHistory, onClearLeaderboard]);
+
+    const cancelClear = useCallback(() => {
+        setShowConfirmDialog(false);
+        setConfirmAction(null);
     }, []);
 
     // Calculate statistics
@@ -54,6 +99,9 @@ const StatisticsModal = React.memo(function StatisticsModal({
 
         return stats;
     }, [playHistory]);
+
+    // Calculate storage usage
+    const storageInfo = useMemo(() => getLocalStorageSize(), [playHistory]);
 
     if (!show) return null;
 
@@ -92,15 +140,46 @@ const StatisticsModal = React.memo(function StatisticsModal({
                     ))}
                 </div>
 
-                {/* Clear History Button */}
-                {playHistory.length > 0 && onClearHistory && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <button
-                            onClick={handleClearHistory}
-                            className="text-sm text-white bg-red-600 hover:scale-105 rounded-md px-3 py-1 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                        >
-                            Clear Game History
-                        </button>
+                {/* Storage Usage */}
+                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Storage Usage</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{storageInfo.formatted} / 5 MB</span>
+                    </div>
+                    <div className="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-2">
+                        <div 
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                                storageInfo.percentage > 80 ? 'bg-red-600' : 
+                                storageInfo.percentage > 60 ? 'bg-yellow-500' : 
+                                'bg-green-500'
+                            }`}
+                            style={{ width: `${Math.min(storageInfo.percentage, 100)}%` }}
+                        />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {storageInfo.percentage}% of available storage used
+                    </p>
+                </div>
+
+                {/* Clear Buttons */}
+                {((playHistory.length > 0 && onClearHistory) || onClearLeaderboard) && (
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-2 flex-wrap">
+                        {playHistory.length > 0 && onClearHistory && (
+                            <button
+                                onClick={handleClearHistory}
+                                className="text-sm text-white bg-red-600 hover:scale-105 rounded-md px-3 py-1 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                            >
+                                Clear Game History
+                            </button>
+                        )}
+                        {onClearLeaderboard && (
+                            <button
+                                onClick={handleClearLeaderboard}
+                                className="text-sm text-white bg-orange-600 hover:scale-105 rounded-md px-3 py-1 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                            >
+                                Clear Leaderboard
+                            </button>
+                        )}
                     </div>
                 )}
 
@@ -109,23 +188,23 @@ const StatisticsModal = React.memo(function StatisticsModal({
                     <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
                         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 m-4 max-w-sm shadow-xl">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                                Clear History?
+                                Clear {confirmAction === 'history' ? 'History' : 'Leaderboard'}?
                             </h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                Are you sure you want to clear all game history? This action cannot be undone.
+                                Are you sure you want to clear all {confirmAction === 'history' ? 'game history' : 'leaderboard entries'}? This action cannot be undone.
                             </p>
                             <div className="flex gap-3 justify-end">
                                 <button
-                                    onClick={cancelClearHistory}
+                                    onClick={cancelClear}
                                     className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
                                 >
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={confirmClearHistory}
+                                    onClick={confirmClear}
                                     className="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500"
                                 >
-                                    Clear History
+                                    Clear {confirmAction === 'history' ? 'History' : 'Leaderboard'}
                                 </button>
                             </div>
                         </div>

@@ -18,7 +18,7 @@ export function useLeaderboard() {
         }
     );
 
-    const addEntry = useCallback(
+    const addLeaderboard = useCallback(
         (difficulty: Difficulty, entry: PlayHistory) => {
             if (leaderboards === null) return;
             const newLeaderboards = { ...leaderboards };
@@ -38,5 +38,13 @@ export function useLeaderboard() {
         [leaderboards, setLeaderboards]
     );
 
-    return { leaderboards, addEntry };
+    const clearLeaderboard = useCallback(() => {
+        setLeaderboards({
+            easy: [],
+            medium: [],
+            hard: [],
+        });
+    }, [setLeaderboards]);
+
+    return { leaderboards, addLeaderboard, clearLeaderboard };
 }
