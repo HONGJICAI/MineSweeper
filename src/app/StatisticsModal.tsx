@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { PlayHistory } from "./hooks/usePlayHistory";
-import { Difficulty } from "./Game.types";
+import { Difficulty, DifficultyText } from "./Game.types";
 
 const StatisticsModal = React.memo(function StatisticsModal({
     show,
@@ -13,11 +13,20 @@ const StatisticsModal = React.memo(function StatisticsModal({
     playHistory: PlayHistory[];
     onClearHistory?: () => void;
 }) {
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
     const handleClearHistory = useCallback(() => {
-        if (window.confirm("Are you sure you want to clear all play history?")) {
-            onClearHistory?.();
-        }
+        setShowConfirmDialog(true);
+    }, []);
+
+    const confirmClearHistory = useCallback(() => {
+        onClearHistory?.();
+        setShowConfirmDialog(false);
     }, [onClearHistory]);
+
+    const cancelClearHistory = useCallback(() => {
+        setShowConfirmDialog(false);
+    }, []);
 
     // Calculate statistics
     const statistics = useMemo(() => {
@@ -48,8 +57,14 @@ const StatisticsModal = React.memo(function StatisticsModal({
     if (!show) return null;
 
     return (
-        <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-h-full max-w-md relative">
+        <div 
+            className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50"
+            onClick={onClose}
+        >
+            <div 
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-h-full max-w-md relative"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <button
                     className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
                     onClick={onClose}
@@ -64,7 +79,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
                     {(['easy', 'medium', 'hard'] as Difficulty[]).map((difficulty) => (
                         <div key={difficulty} className="text-center">
                             <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 capitalize">
-                                {difficulty}
+                                {DifficultyText[difficulty]}
                             </h3>
                             <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                 {statistics[difficulty].rate}%
@@ -81,10 +96,38 @@ const StatisticsModal = React.memo(function StatisticsModal({
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button
                             onClick={handleClearHistory}
-                            className="text-sm text-white bg-red-600 hover:scale-1.05 rounded-md px-3 py-1 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                            className="text-sm text-white bg-red-600 hover:scale-105 rounded-md px-3 py-1 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                         >
                             Clear Game History
                         </button>
+                    </div>
+                )}
+
+                {/* Confirmation Dialog */}
+                {showConfirmDialog && (
+                    <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 m-4 max-w-sm shadow-xl">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                                Clear History?
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                Are you sure you want to clear all game history? This action cannot be undone.
+                            </p>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={cancelClearHistory}
+                                    className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmClearHistory}
+                                    className="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                >
+                                    Clear History
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

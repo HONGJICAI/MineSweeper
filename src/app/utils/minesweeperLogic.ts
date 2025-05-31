@@ -47,7 +47,6 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
         if (seed === "") {
             // Generate a random seed if not provided
             seed = generateSeed();
-            console.log(`Generated seed: ${seed}`);
         }
 
         const rng = new SeededRandom(seed);

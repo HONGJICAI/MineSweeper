@@ -1,11 +1,21 @@
 export enum GameStatus {
-    Init = 0,
-    Gaming = 1,
-    GameOver = 2,
-    Win = 3
+  Init = 0,
+  Gaming = 1,
+  GameOver = 2,
+  Win = 3
 }
 
-export type Difficulty = "easy" | "medium" | "hard";
+const Difficulty = {
+  Easy: "easy",
+  Medium: "medium",
+  Hard: "hard",
+} as const;
+export type Difficulty = (typeof Difficulty)[keyof typeof Difficulty];
+export const DifficultyText = {
+  [Difficulty.Easy]: "🥉",
+  [Difficulty.Medium]: "🥈",
+  [Difficulty.Hard]: "🥇",
+};
 export type ActionType = "reveal" | "flag" | "chord";
 export type Position = { r: number; c: number };
 export type UserAction = {

@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { PlayHistory } from "./hooks/usePlayHistory";
-import { Difficulty, Position, UserActionWithScore } from "./Game.types";
+import { Difficulty, DifficultyText, Position, UserActionWithScore } from "./Game.types";
 
 interface HistoryListProps {
     playHistory: PlayHistory[] | null;
@@ -55,6 +55,9 @@ const HistoryList = React.memo(function HistoryList({ playHistory, onRetry, onRe
                         onClick={createHandleItemClick(idx)}
                         className="grid grid-cols-[max-content_max-content_1fr] gap-2 text-sm items-center text-gray-900 dark:text-gray-100 p-2 cursor-pointer"
                     >
+                        <span className="text-center max-w-[8ch]" title={entry.difficulty}>
+                            {DifficultyText[entry.difficulty]}
+                        </span>
                         <span
                             className={`font-semibold min-w-[4ch] ${entry.result === "Win"
                                 ? "text-green-600 dark:text-green-400"
@@ -63,9 +66,6 @@ const HistoryList = React.memo(function HistoryList({ playHistory, onRetry, onRe
                             title={entry.result}
                         >
                             {entry.result}
-                        </span>
-                        <span className="text-center max-w-[8ch]" title={entry.difficulty}>
-                            ({entry.difficulty})
                         </span>
                         <span className="text-right break-words">
                             {entry.time}s {entry.date && <span className="text-gray-500 dark:text-gray-400">({entry.date})</span>}
@@ -91,13 +91,13 @@ const HistoryList = React.memo(function HistoryList({ playHistory, onRetry, onRe
                                 >
                                     ▶️
                                 </button>
-                                <button
+                                {/* <button
                                     className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                                     title="AI play"
                                     disabled
                                 >
                                     🤖
-                                </button>
+                                </button> */}
                             </div>
                         </div>
                     )}

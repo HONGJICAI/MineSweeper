@@ -24,7 +24,7 @@ const Cell = React.memo(function Cell({
     r,
     c,
     isPressed = false,
-    isHighlighted,
+    isHighlighted = false,
     onMouseDown,
     onMouseUp,
     onTouchStart,

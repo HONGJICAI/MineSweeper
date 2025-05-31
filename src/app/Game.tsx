@@ -60,19 +60,23 @@ export default function Game(props: {
 
   const onWinOrLose = useCallback((status: GameStatus) => {
     setGameStatus(status);
-    if (status === GameStatus.Win) {
-      addLeaderboard(difficulty, {
+    if (skipHistory.current) {
+      skipHistory.current = false;
+    } else {
+      if (status === GameStatus.Win) {
+        addLeaderboard(difficulty, {
+          time: timerRef.current,
+          date: new Date().toLocaleString(),
+        });
+      }
+      addPlayHistoryEntry({
+        result: status === GameStatus.Win ? "Win" : "Loss",
         time: timerRef.current,
-        date: new Date().toLocaleString(),
+        difficulty,
+        seed,
+        actions: userActions,
       });
     }
-    addPlayHistoryEntry({
-      result: status === GameStatus.Win ? "Win" : "Loss",
-      time: timerRef.current,
-      difficulty,
-      seed,
-      actions: userActions,
-    });
     stopTimer();
   }, [addLeaderboard, addPlayHistoryEntry, difficulty, seed, userActions, timerRef, stopTimer]);
 
@@ -163,6 +167,7 @@ export default function Game(props: {
 
   //#region Replay logic
   const [pendingReplay, setPendingReplay] = useState<{ seed: string; actions: UserActionWithScore[], current: number } | null>(null);
+  const skipHistory = useRef<boolean>(false);
   const lastPlayedStep = useRef<number | null>(null);
 
   useEffect(() => {
@@ -177,6 +182,7 @@ export default function Game(props: {
         } else if (action.type === "chord") {
           handleChordCell(step.r, step.c);
         }
+        setHighlightedCell(step);
         addUserAction({
           type: action.type,
           position: step,
@@ -193,20 +199,15 @@ export default function Game(props: {
             }
             return null;
           });
-        }
-          , 500);
+        }, 500);
       }
     } else if (pendingReplay && pendingReplay.current >= pendingReplay.actions.length) {
       // Replay finished
       setPendingReplay(null);
+      setHighlightedCell(null);
       lastPlayedStep.current = null;
-      if (gameStatus === GameStatus.Init) {
-        setGameStatus(GameStatus.Gaming);
-      }
     }
-
-  }
-    , [pendingReplay, gameStatus, board, rows, cols, handleCellClick, handleFlagCell, handleChordCell, addUserAction]);
+  }, [pendingReplay, gameStatus, board, rows, cols, handleCellClick, handleFlagCell, handleChordCell, addUserAction]);
 
   const onReplay = useCallback((seed: string, replayDifficulty: Difficulty, actions: UserActionWithScore[]) => {
     if (replayDifficulty !== difficulty) {
@@ -215,6 +216,7 @@ export default function Game(props: {
       onDifficultyChange();
     }
     setPendingReplay({ seed, actions, current: 0 });
+    skipHistory.current = true;;
   }, [difficulty, onDifficultyChange]);
   //#endregion
 
@@ -261,9 +263,11 @@ export default function Game(props: {
           onClearHistory={clearPlayHistory}
         />
       )}
-      <AutoGamingOverlay
-        isAutoPlaying={!!pendingReplay}
-      />
+      {!!pendingReplay &&
+        <AutoGamingOverlay
+          isAutoPlaying={true}
+          title={`Replaying actions ${pendingReplay.current + 1}/${pendingReplay.actions.length}`}
+        />}
     </div>
   );
 }

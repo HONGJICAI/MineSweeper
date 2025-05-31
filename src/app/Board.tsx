@@ -1,13 +1,13 @@
 import React, { useCallback, useMemo } from "react";
 import Cell from "./Cell";
 import { CellType } from "./Cell";
-import { GameStatus, UserAction } from "./Game.types";
+import { GameStatus, Position, UserAction } from "./Game.types";
 import { useDesktopMouse } from "./hooks/useDesktopMouse";
 
 type BoardProps = {
     board: CellType[][];
     gameStatus: GameStatus;
-    highlightedCell: { r: number; c: number } | null;
+    highlightedCell: Position | null;
     rows: number;
     cols: number;
     onCellAction: (action: UserAction) => void;

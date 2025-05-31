@@ -1,7 +1,7 @@
 import React from "react";
 import type { LeaderboardEntry } from "./hooks/useLeaderboard";
 import { TitledDiv } from "./components/TitledDiv";
-import { Difficulty } from "./Game.types";
+import { Difficulty, DifficultyText } from "./Game.types";
 
 export default function Leaderboard({
     leaderboards,
@@ -10,14 +10,8 @@ export default function Leaderboard({
     leaderboards: Record<Difficulty, LeaderboardEntry[]> | null;
     difficulty: Difficulty;
 }) {
-    const difficultyEmoji = {
-        easy: "🥉",
-        medium: "🥈",
-        hard: "🥇",
-    };
-
     return (
-        <TitledDiv title={`Leaderboard ${difficultyEmoji[difficulty]}`} className="w-full min-w-[220px]">
+        <TitledDiv title={`Leaderboard ${DifficultyText[difficulty]}`} className="w-full min-w-[220px]">
             <ol className="list-decimal list-inside rounded p-1 text-gray-500" >
                 {leaderboards === null && (
                     <li className="">Loading...</li>
