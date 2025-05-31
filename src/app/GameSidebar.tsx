@@ -33,19 +33,19 @@ const GameSidebar = React.memo(function GameSidebar({
     const handleCloseSidebar = useCallback(() => setIsOpen(false), []);
     const handleRetry = useCallback((seed: string, difficulty: Difficulty, firstStep: Position) => {
         onRetry(seed, difficulty, firstStep);
-        setIsOpen(false); // Close sidebar after replay
-        setActiveTab("actions"); // Reset to actions tab
+        setIsOpen(false);
+        setActiveTab("actions");
     }, [onRetry]);
     const handleReplay = useCallback((seed: string, difficulty: Difficulty, actions: UserActionDetail[]) => {
         onReplay(seed, difficulty, actions);
-        setIsOpen(false); // Close sidebar after replay
-        setActiveTab("actions"); // Reset to actions tab
+        setIsOpen(false);
+        setActiveTab("actions");
     }
         , [onReplay]);
 
     const sidebarContent = useMemo(() =>
         <>
-            <Leaderboard leaderboards={leaderboards} difficulty={difficulty} />
+            <Leaderboard leaderboards={leaderboards} difficulty={difficulty} onReplay={onReplay} onRetry={onRetry} />
 
             <div className="flex flex-col h-full overflow-hidden">
                 {/* Tab Headers */}
