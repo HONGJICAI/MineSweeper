@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 /**
  * Hook to wrap around useState that stores the value in the browser local/session storage.
@@ -53,12 +53,12 @@ function useStorage<T>(
         return () => window.removeEventListener('storage', handleStorageChange);
     }, [key, storageKind, storageAvailable, storage]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const setValue = (value: T) => {
+    const setValue = useCallback((value: T) => {
         setStoredValue(value);
         if (storageAvailable && storage) {
             storage.setItem(key, JSON.stringify(value));
         }
-    };
+    }, [key, storageAvailable, storage]);
 
     return [storedValue, setValue];
 }

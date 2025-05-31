@@ -35,7 +35,7 @@ export function useLeaderboard() {
             newLeaderboards[difficulty] = existingEntries.slice(0, 3);
             setLeaderboards(newLeaderboards);
         },
-        [leaderboards]
+        [leaderboards, setLeaderboards]
     );
 
     return { leaderboards, addEntry };

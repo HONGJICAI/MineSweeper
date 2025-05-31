@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useMemo, useCallback, use } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { CellType } from "./Cell";
 import {
   easyMineSweeper,
@@ -16,6 +16,7 @@ import GameCoreArea from "./GameCoreArea";
 import GameSidebar from "./GameSidebar";
 import { useMineSweeperLogic } from "./hooks/useMineSweeperLogic";
 import AutoGamingOverlay from "./AutoGamingOverlay";
+import { useTimer } from "./hooks/useTimer";
 
 export default function Game(props: {
   difficulty: Difficulty;
@@ -33,14 +34,12 @@ export default function Game(props: {
   const { mines, rows, cols, createEmptyBoard, resetBoardInPlace } = sweeper;
   const [board, setBoard] = useState<CellType[][]>(createEmptyBoard());
   const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.Init);
-  const [timer, setTimer] = useState(0);
-  const timerRef = useRef<number>(0);
+  const { timerState, timerRef, startTimer, stopTimer, resetTimer } = useTimer();
   const [showStats, setShowStats] = useState(false);
   const { userActions, addUserAction, resetUserActions } = useUserActions();
-  const { leaderboards, addEntry } = useLeaderboard();
+  const { leaderboards, addEntry: addLeaderboard } = useLeaderboard();
   const { playHistory, addPlayHistoryEntry, clearPlayHistory } = usePlayHistory();
   const [seed, setSeed] = useState<string>("");
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const faceEmoji = useMemo(() => {
     switch (gameStatus) {
       case GameStatus.GameOver:
@@ -52,38 +51,21 @@ export default function Game(props: {
     }
   }, [gameStatus]);
 
-  // Timer effect
-  useEffect(() => {
-    if (gameStatus === GameStatus.Gaming) {
-      intervalRef.current = setInterval(() => {
-        setTimer((t) => t + 1);
-        timerRef.current += 1;
-      }, 1000);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [gameStatus, timerRef]);
-
   const onBeginGame = useCallback((board: CellType[][], r: number, c: number, seed?: string) => {
-    if (gameStatus === GameStatus.Init) {
-      const generatedSeed = sweeper.generateBoardInPlace(board, r, c, seed);
-      setSeed(generatedSeed);
-      setGameStatus(GameStatus.Gaming);
-    }
-  }, [gameStatus, sweeper]);
+    const generatedSeed = sweeper.generateBoardInPlace(board, r, c, seed);
+    setSeed(generatedSeed);
+    setGameStatus(GameStatus.Gaming);
+    startTimer();
+  }, [sweeper, startTimer]);
 
   const onWinOrLose = useCallback((status: GameStatus) => {
     setGameStatus(status);
     if (status === GameStatus.Win) {
-      // Add entry to leaderboard
-      const entry = {
+      addLeaderboard(difficulty, {
         time: timerRef.current,
         date: new Date().toLocaleString(),
-      };
-      addEntry(difficulty, entry);
+      });
     }
-    // Add history
     addPlayHistoryEntry({
       result: status === GameStatus.Win ? "Win" : "Loss",
       time: timerRef.current,
@@ -91,13 +73,8 @@ export default function Game(props: {
       seed,
       actions: userActions,
     });
-    // Stop the timer
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-      timerRef.current = 0;
-    }
-  }, [addEntry, addPlayHistoryEntry, difficulty, seed, userActions, timerRef]);
+    stopTimer();
+  }, [addLeaderboard, addPlayHistoryEntry, difficulty, seed, userActions, timerRef, stopTimer]);
 
   const { flagCount, handleCellClick, handleFlagCell, handleChordCell } = useMineSweeperLogic({
     board,
@@ -118,7 +95,7 @@ export default function Game(props: {
 
   const onCellAction = useCallback(
     (action: UserAction) => {
-      let func: ((r: number, c: number) => number) | undefined = action2function[action.type] ? action2function[action.type] : undefined;
+      const func: ((r: number, c: number) => number) | undefined = action2function[action.type] ? action2function[action.type] : undefined;
       if (!func) {
         console.warn(`No function found for action type: ${action.type}`);
         return;
@@ -129,7 +106,7 @@ export default function Game(props: {
         position: action.position,
         score,
       });
-    }, [handleCellClick, handleFlagCell, handleChordCell, addUserAction]);
+    }, [addUserAction, action2function]);
 
   const handleReset = useCallback((clear = true) => {
     if (clear) {
@@ -137,18 +114,12 @@ export default function Game(props: {
         resetBoardInPlace(prevBoard);
         return [...prevBoard];
       });
-      setSeed("");
     }
     setGameStatus(GameStatus.Init);
-    setTimer(0);
-    timerRef.current = 0;
+    resetTimer();
     setSeed("");
     resetUserActions();
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }, [resetBoardInPlace, resetUserActions, timerRef]);
+  }, [resetBoardInPlace, resetUserActions, resetTimer]);
 
   const onDifficultyChange = useCallback(() => {
     setBoard(createEmptyBoard())
@@ -159,7 +130,7 @@ export default function Game(props: {
     onDifficultyChange();
   }, [difficulty, onDifficultyChange]);
 
-  const [hoveredCell, setHoveredCell] = useState<{ r: number; c: number } | null>(null);
+  const [highlightedCell, setHighlightedCell] = useState<{ r: number; c: number } | null>(null);
 
   const onCloseStats = useCallback(() => {
     setShowStats(false);
@@ -256,14 +227,14 @@ export default function Game(props: {
         setDifficulty={setDifficulty}
         mobileAction={mobileAction}
         setMobileAction={setMobileAction}
-        timer={timer}
+        timer={timerState}
         handleReset={handleReset}
         faceEmoji={faceEmoji}
         mines={mines - flagCount}
         setShowStats={setShowStats}
         board={board}
         gameStatus={gameStatus}
-        hoveredCell={hoveredCell}
+        highlightedCell={highlightedCell}
         rows={rows}
         cols={cols}
         onCellAction={onCellAction}
@@ -275,7 +246,7 @@ export default function Game(props: {
         leaderboards={leaderboards}
         difficulty={difficulty}
         userActions={userActions}
-        setHoveredCell={setHoveredCell}
+        setHoveredCell={setHighlightedCell}
         playHistory={playHistory}
         onRetry={onRetry}
         onReplay={onReplay}
@@ -292,7 +263,6 @@ export default function Game(props: {
       )}
       <AutoGamingOverlay
         isAutoPlaying={!!pendingReplay}
-        onCancelAutoPlay={() => setPendingReplay(null)}
       />
     </div>
   );

@@ -28,6 +28,18 @@ const HistoryList = React.memo(function HistoryList({ playHistory, onRetry, onRe
         onReplay(entry.seed, entry.difficulty, entry.actions);
     }, [onReplay]);
 
+    const createHandleItemClick = useCallback((idx: number) => {
+        return () => handleItemClick(idx);
+    }, [handleItemClick]);
+
+    const createHandleRetry = useCallback((entry: PlayHistory) => {
+        return () => handleRetry(entry);
+    }, [handleRetry]);
+
+    const createHandleReplay = useCallback((entry: PlayHistory) => {
+        return () => handleReplay(entry);
+    }, [handleReplay]);
+
     return (
         <ul className="space-y-1 overflow-y-auto rounded">
             {playHistory === null && (
@@ -40,13 +52,13 @@ const HistoryList = React.memo(function HistoryList({ playHistory, onRetry, onRe
                     className="border border-transparent hover:border-gray-300 dark:hover:border-gray-600 rounded transition-all"
                 >
                     <div
-                        onClick={handleItemClick.bind(null, idx)}
+                        onClick={createHandleItemClick(idx)}
                         className="grid grid-cols-[max-content_max-content_1fr] gap-2 text-sm items-center text-gray-900 dark:text-gray-100 p-2 cursor-pointer"
                     >
                         <span
                             className={`font-semibold min-w-[4ch] ${entry.result === "Win"
-                                    ? "text-green-600 dark:text-green-400"
-                                    : "text-red-600 dark:text-red-400"
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-red-600 dark:text-red-400"
                                 }`}
                             title={entry.result}
                         >
@@ -68,14 +80,14 @@ const HistoryList = React.memo(function HistoryList({ playHistory, onRetry, onRe
                                 <button
                                     className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                                     title="Retry game"
-                                    onClick={handleRetry.bind(null, entry)}
+                                    onClick={createHandleRetry(entry)}
                                 >
                                     🔄
                                 </button>
                                 <button
                                     className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                                     title="Replay your actions"
-                                    onClick={handleReplay.bind(null, entry)}
+                                    onClick={createHandleReplay(entry)}
                                 >
                                     ▶️
                                 </button>
@@ -83,9 +95,6 @@ const HistoryList = React.memo(function HistoryList({ playHistory, onRetry, onRe
                                     className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                                     title="AI play"
                                     disabled
-                                    onClick={(e) => {
-                                        console.log('AI play', idx);
-                                    }}
                                 >
                                     🤖
                                 </button>

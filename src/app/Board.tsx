@@ -7,7 +7,7 @@ import { useDesktopMouse } from "./hooks/useDesktopMouse";
 type BoardProps = {
     board: CellType[][];
     gameStatus: GameStatus;
-    hoveredCell: { r: number; c: number } | null;
+    highlightedCell: { r: number; c: number } | null;
     rows: number;
     cols: number;
     onCellAction: (action: UserAction) => void;
@@ -15,7 +15,7 @@ type BoardProps = {
 const Board = React.memo(function Board({
     board,
     gameStatus,
-    hoveredCell,
+    highlightedCell,
     rows,
     cols,
     onCellAction,
@@ -58,7 +58,7 @@ const Board = React.memo(function Board({
                     Math.abs(mouseAction.position.c - c) <= 1 &&
                     mouseAction.rightDown;
                 const showAsPressed = isPressed || isNeighborPressed;
-                const isHighlighted = hoveredCell && hoveredCell.r === r && hoveredCell.c === c;
+                const isHighlighted = highlightedCell && highlightedCell.r === r && highlightedCell.c === c;
 
                 return (
                     <Cell
@@ -76,7 +76,7 @@ const Board = React.memo(function Board({
                 );
             });
         });
-    }, [board, gameStatus, mouseAction, hoveredCell, handleMouseDown, handleMouseUp]);
+    }, [board, gameStatus, mouseAction, highlightedCell, handleMouseDown, handleMouseUp]);
 
     return (
         <div

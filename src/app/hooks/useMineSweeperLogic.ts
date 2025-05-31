@@ -44,7 +44,7 @@ export function useMineSweeperLogic({
             else if (revealMine)
                 onWinOrLose?.(GameStatus.GameOver);
         }
-    }, [revealedCount, requiredRevealedCount, gameStatus, onWinOrLose]);
+    }, [revealedCount, requiredRevealedCount, gameStatus, onWinOrLose, revealMine]);
 
     useEffect(() => {
         // reset
@@ -83,7 +83,6 @@ export function useMineSweeperLogic({
         countFlaggedAround,
         revealAroundInPlace,
         revealAllMinesInPlace,
-        onWinOrLose,
     ]);
 
     const handleFlagCell = useCallback((r: number, c: number) => {
@@ -133,7 +132,6 @@ export function useMineSweeperLogic({
         board,
         setBoard,
         onBeginGame,
-        onWinOrLose,
         revealCellInPlace,
         revealAllMinesInPlace,
     ]);

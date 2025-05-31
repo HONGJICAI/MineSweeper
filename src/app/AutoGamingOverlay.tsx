@@ -3,13 +3,12 @@ import './AutoGamingOverlay.css';
 
 interface AutoGamingOverlayProps {
   isAutoPlaying: boolean;
-  onCancelAutoPlay: () => void;
+  onCancelAutoPlay?: () => void;
   title?: string;
 }
 
 const AutoGamingOverlay: React.FC<AutoGamingOverlayProps> = ({
   isAutoPlaying,
-  onCancelAutoPlay,
   title,
 }) => {
   if (!isAutoPlaying) return null;

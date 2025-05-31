@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 // Global store to hold singleton states
-const globalStore = new Map<string, any>();
+const globalStore = new Map<string, unknown>();
 const listeners = new Map<string, Set<() => void>>();
 
 /**

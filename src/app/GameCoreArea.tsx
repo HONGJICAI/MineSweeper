@@ -17,7 +17,7 @@ interface GameCoreAreaProps {
     setShowStats: (show: boolean) => void;
     board: CellType[][];
     gameStatus: GameStatus;
-    hoveredCell: { r: number; c: number } | null;
+    highlightedCell: { r: number; c: number } | null;
     rows: number;
     cols: number;
     onCellAction: (action: UserAction) => void;
@@ -37,7 +37,7 @@ const GameCoreArea = React.memo(function GameCoreArea({
     setShowStats,
     board,
     gameStatus,
-    hoveredCell,
+    highlightedCell,
     rows,
     cols,
     onCellAction,
@@ -93,7 +93,7 @@ const GameCoreArea = React.memo(function GameCoreArea({
             <Board
                 board={board}
                 gameStatus={gameStatus}
-                hoveredCell={hoveredCell}
+                highlightedCell={highlightedCell}
                 rows={rows}
                 cols={cols}
                 onCellAction={onCellAction}
