@@ -2,17 +2,17 @@ import React, { useMemo, useState, useCallback } from "react";
 import Leaderboard from "./Leaderboard";
 import ActionList from "./ActionList";
 import PlayHistoryList from "./PlayHistoryList";
-import { Difficulty, PlayHistory, Position, UserActionDetail } from "./Game.types";
+import { PlayHistory, Position, UserActionDetail } from "./Game.types";
 import { Leaderboards } from "./hooks/useLeaderboard";
 
 type GameSidebarProps = {
     leaderboards: Leaderboards | null;
     difficulty: "easy" | "medium" | "hard";
     userActions: UserActionDetail[];
-    setHighlightedCell: (cell?: Position ) => void;
+    setHighlightedCell: (cell?: Position) => void;
     playHistory: PlayHistory[] | null;
-    onRetry: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
-    onReplay: (seed: string, difficulty: Difficulty, actions: UserActionDetail[]) => void;
+    onRetry: (seed: string, firstStep: Position) => void;
+    onReplay: (seed: string, actions: UserActionDetail[]) => void;
 };
 
 const GameSidebar = React.memo(function GameSidebar({
@@ -31,20 +31,16 @@ const GameSidebar = React.memo(function GameSidebar({
     const handleHistoryClick = useCallback(() => setActiveTab("history"), []);
     const handleOpenSidebar = useCallback(() => setIsOpen(true), []);
     const handleCloseSidebar = useCallback(() => setIsOpen(false), []);
-    const handleRetry = useCallback((seed: string, difficulty: Difficulty, firstStep: Position) => {
-        onRetry(seed, difficulty, firstStep);
+    const handleRetry = useCallback((seed: string, firstStep: Position) => {
+        onRetry(seed, firstStep);
         setIsOpen(false);
         setActiveTab("actions");
     }, [onRetry]);
-    const handleReplay = useCallback((seed: string, difficulty: Difficulty, actions: UserActionDetail[]) => {
-        onReplay(seed, difficulty, actions);
+    const handleReplay = useCallback((seed: string, actions: UserActionDetail[]) => {
+        onReplay(seed, actions);
         setIsOpen(false);
         setActiveTab("actions");
     }, [onReplay]);
-
-    const currentHistory = useMemo(() => {
-        return playHistory?.filter(entry => entry.difficulty === difficulty) ?? null;
-    }, [playHistory, difficulty]);
 
     const sidebarContent = useMemo(() =>
         <>
@@ -89,12 +85,12 @@ const GameSidebar = React.memo(function GameSidebar({
                     {activeTab === "actions" ? (
                         <ActionList userActions={userActions} setHoveredCell={setHighlightedCell} />
                     ) : (
-                        <PlayHistoryList playHistory={currentHistory} onRetry={handleRetry} onReplay={handleReplay} />
+                        <PlayHistoryList playHistory={playHistory} onRetry={handleRetry} onReplay={handleReplay} />
                     )}
                 </div>
             </div>
         </>
-        , [leaderboards, difficulty, userActions, activeTab, setHighlightedCell, handleActionsClick, handleHistoryClick, handleRetry, handleReplay, currentHistory]);
+        , [leaderboards, difficulty, userActions, activeTab, setHighlightedCell, handleActionsClick, handleHistoryClick, handleRetry, handleReplay, playHistory]);
 
     return (
         <>

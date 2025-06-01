@@ -1,10 +1,10 @@
 import React, { useCallback, useState } from "react";
-import { Difficulty, DifficultyText, PlayHistory, Position, UserActionDetail } from "./Game.types";
+import { PlayHistory, Position, UserActionDetail } from "./Game.types";
 
 interface HistoryListProps {
     playHistory: PlayHistory[] | null;
-    onRetry: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
-    onReplay: (seed: string, difficulty: Difficulty, actions: UserActionDetail[]) => void;
+    onRetry: (seed: string, firstStep: Position) => void;
+    onReplay: (seed: string, actions: UserActionDetail[]) => void;
 }
 
 const PlayHistoryList = React.memo(function HistoryList({ playHistory, onRetry, onReplay }: HistoryListProps) {
@@ -20,11 +20,11 @@ const PlayHistoryList = React.memo(function HistoryList({ playHistory, onRetry, 
             console.warn("No first step available for replay.");
             return;
         }
-        onRetry(entry.seed, entry.difficulty, firstStep);
+        onRetry(entry.seed, firstStep);
     }, [onRetry]);
 
     const handleReplay = useCallback((entry: PlayHistory) => {
-        onReplay(entry.seed, entry.difficulty, entry.actions);
+        onReplay(entry.seed, entry.actions);
     }, [onReplay]);
 
     const createHandleItemClick = useCallback((idx: number) => {
@@ -67,9 +67,6 @@ const PlayHistoryList = React.memo(function HistoryList({ playHistory, onRetry, 
                         onClick={createHandleItemClick(idx)}
                         className="grid grid-cols-[max-content_max-content_1fr] gap-2 text-sm items-center text-gray-900 dark:text-gray-100 p-2 cursor-pointer"
                     >
-                        <span className="text-center max-w-[8ch]" title={entry.difficulty}>
-                            {DifficultyText[entry.difficulty]}
-                        </span>
                         <span
                             className={`font-semibold min-w-[4ch] ${entry.result === "Win"
                                 ? "text-green-600 dark:text-green-400"

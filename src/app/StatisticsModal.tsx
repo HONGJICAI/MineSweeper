@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Difficulty, DifficultyText, PlayHistory } from "./Game.types";
+import { Difficulty, DifficultyText } from "./Game.types";
+import { PlayHistoryMap } from "./hooks/usePlayHistory";
 const stopPropagation = (e: React.MouseEvent) => {
     e.stopPropagation();
 }
@@ -36,13 +37,13 @@ const getLocalStorageSize = (): { used: number; percentage: number; formatted: s
 const StatisticsModal = React.memo(function StatisticsModal({
     show,
     onClose,
-    playHistory,
+    playHistoryMap,
     onClearHistory,
     onClearLeaderboard,
 }: {
     show: boolean;
     onClose: () => void;
-    playHistory: PlayHistory[];
+    playHistoryMap: PlayHistoryMap;
     onClearHistory?: () => void;
     onClearLeaderboard?: () => void;
 }) {
@@ -82,11 +83,11 @@ const StatisticsModal = React.memo(function StatisticsModal({
             hard: { wins: 0, total: 0, rate: 0 },
         };
 
-        playHistory.forEach((entry) => {
-            stats[entry.difficulty].total++;
-            if (entry.result === "Win") {
-                stats[entry.difficulty].wins++;
-            }
+        Object.keys(playHistoryMap).forEach((difficulty) => {
+            const diff = difficulty as Difficulty;
+            const history = playHistoryMap[diff] || [];
+            stats[diff].total = history.length;
+            stats[diff].wins = history.filter(entry => entry.result === 'Win').length;
         });
 
         // Calculate success rates
@@ -98,7 +99,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
         });
 
         return stats;
-    }, [playHistory]);
+    }, [playHistoryMap]);
 
     // Calculate storage usage
     const storageInfo = getLocalStorageSize();

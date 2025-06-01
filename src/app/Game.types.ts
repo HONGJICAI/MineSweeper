@@ -30,7 +30,6 @@ export type UserActionDetail = UserAction & {
 export type PlayHistory = {
     result: "Win" | "Loss";
     time: number;
-    difficulty: Difficulty;
     seed: string;
     actions: UserActionDetail[];
     date: string;

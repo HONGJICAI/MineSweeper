@@ -39,7 +39,7 @@ export default function Game(props: {
   const [showStats, setShowStats] = useState(false);
   const { userActions, addUserAction, resetUserActions } = useUserActions();
   const { leaderboards, addLeaderboard, clearLeaderboard } = useLeaderboard();
-  const { playHistory, addPlayHistoryEntry, clearPlayHistory } = usePlayHistory();
+  const { playHistoryMap, addPlayHistoryEntry, clearPlayHistory } = usePlayHistory();
   const [seed, setSeed] = useState<string>("");
   const faceEmoji = useMemo(() => {
     switch (gameStatus) {
@@ -71,7 +71,6 @@ export default function Game(props: {
       const playHistory: PlayHistory = {
         result: status === GameStatus.Win ? "Win" : "Loss",
         time: timerRef.current,
-        difficulty,
         seed,
         actions: userActions,
         date: new Date().toLocaleDateString("en-US", {
@@ -83,7 +82,7 @@ export default function Game(props: {
       if (status === GameStatus.Win) {
         addLeaderboard(difficulty, playHistory);
       }
-      addPlayHistoryEntry(playHistory);
+      addPlayHistoryEntry(difficulty, playHistory);
     }
     stopTimer();
   }, [addLeaderboard, addPlayHistoryEntry, difficulty, seed, userActions, timerRef, stopTimer]);
@@ -152,14 +151,10 @@ export default function Game(props: {
   //#region Retry logic
   const [pendingRetry, setPendingRetry] = useState<{ seed: string, firstStep: Position }>();
 
-  const onRetry = useCallback((seed: string, replayDifficulty: Difficulty, firstStep: Position) => {
-    if (replayDifficulty !== difficulty) {
-      setDifficulty(replayDifficulty);
-    } else {
-      onDifficultyChange();
-    }
+  const onRetry = useCallback((seed: string, firstStep: Position) => {    
+    handleReset();
     setPendingRetry({ seed, firstStep });
-  }, [difficulty, onDifficultyChange]);
+  }, [handleReset]);
 
   useEffect(() => {
     if (pendingRetry && gameStatus === GameStatus.Init && board.length === rows && board[0]?.length === cols) {
@@ -183,7 +178,7 @@ export default function Game(props: {
   const [showAutoPlayOverlay, setShowAutoPlayOverlay] = useState<boolean>(false);
   const replayTitle = useMemo(() => {
     if (!pendingReplay) return undefined;
-    return `Replaying actions ${pendingReplay.current + 1}/${pendingReplay.actions.length}`;
+    return `Replaying ${pendingReplay.current + 1}/${pendingReplay.actions.length}`;
   }, [pendingReplay]);
 
   useEffect(() => {
@@ -223,17 +218,13 @@ export default function Game(props: {
     }
   }, [autoPlaying, showAutoPlayOverlay, pendingReplay, gameStatus, board, rows, cols, handleCellClick, handleFlagCell, handleChordCell, addUserAction]);
 
-  const onClickReplayButton = useCallback((seed: string, replayDifficulty: Difficulty, actions: UserActionDetail[]) => {
-    if (replayDifficulty !== difficulty) {
-      setDifficulty(replayDifficulty);
-    } else {
-      onDifficultyChange();
-    }
+  const onClickReplayButton = useCallback((seed: string, actions: UserActionDetail[]) => {
+    handleReset();
     setShowAutoPlayOverlay(true);
     setPendingReplay({ seed, actions, current: 0 });
-    skipHistory.current = true;;
-  }, [difficulty, onDifficultyChange]);
+  }, [handleReset]);
   const onStartReplay = useCallback((speed: number) => {
+    skipHistory.current = true;;
     ReplayConfig.speed = speed;
     setAutoPlaying(true);
   }, []);
@@ -276,17 +267,17 @@ export default function Game(props: {
         difficulty={difficulty}
         userActions={userActions}
         setHighlightedCell={setHighlightedCell}
-        playHistory={playHistory}
+        playHistory={playHistoryMap?.[difficulty] ?? null}
         onRetry={onRetry}
         onReplay={onClickReplayButton}
       />
 
       {/* Statistics Modal */}
-      {showStats && (
+      {showStats && playHistoryMap && (
         <StatisticsModal
           show={showStats}
           onClose={onCloseStats}
-          playHistory={playHistory ?? []}
+          playHistoryMap={playHistoryMap}
           onClearHistory={clearPlayHistory}
           onClearLeaderboard={clearLeaderboard}
         />

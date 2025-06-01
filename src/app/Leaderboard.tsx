@@ -5,8 +5,8 @@ import { Difficulty, DifficultyText, PlayHistory, Position, UserActionDetail } f
 interface LeaderboardProps {
     leaderboards: Record<Difficulty, PlayHistory[]> | null;
     difficulty: Difficulty;
-    onRetry: (seed: string, difficulty: Difficulty, firstStep: Position) => void;
-    onReplay: (seed: string, difficulty: Difficulty, actions: UserActionDetail[]) => void;
+    onRetry: (seed: string, firstStep: Position) => void;
+    onReplay: (seed: string, actions: UserActionDetail[]) => void;
 }
 
 export default function Leaderboard({
@@ -27,11 +27,11 @@ export default function Leaderboard({
             console.warn("No first step available for retry.");
             return;
         }
-        onRetry?.(entry.seed, entry.difficulty, firstStep);
+        onRetry?.(entry.seed, firstStep);
     }, [onRetry]);
 
     const handleReplay = useCallback((entry: PlayHistory) => {
-        onReplay?.(entry.seed, entry.difficulty, entry.actions);
+        onReplay?.(entry.seed, entry.actions);
     }, [onReplay]);
 
     const createHandleItemClick = useCallback((idx: number) => {
