@@ -40,7 +40,7 @@ const PlayHistoryList = React.memo(function HistoryList({ playHistory, onRetry, 
     }, [handleReplay]);
 
     return (
-        <ul className="space-y-1 overflow-y-auto rounded h-full">
+        <ul className="space-y-1 overflow-y-auto rounded h-full scrollbar-hide">
             {playHistory === null && (
                 <li className="flex items-center justify-center h-full">
                     <div className="text-center">
