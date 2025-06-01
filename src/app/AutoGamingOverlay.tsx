@@ -37,10 +37,8 @@ const AutoGamingOverlay: React.FC<AutoGamingOverlayProps> = ({
         <div className="replay-dot"></div>
         <span className="replay-text">{title || 'REPLAY'}</span>
       </div>
-      {!isAutoPlaying && (
         <div className="overlay-content">
-          {/* <div className="overlay-controls"> */}
-          <Modal show={true} onClose={onCancelAutoPlay} title="Auto Gaming Options">
+          <Modal show={!isAutoPlaying} onClose={onCancelAutoPlay} title="Auto Gaming Options">
             <div className="flex gap-6">
               {/* Left side - Options */}
               <div className="flex-1 speed-options dark:text-gray-100">
@@ -95,7 +93,6 @@ const AutoGamingOverlay: React.FC<AutoGamingOverlayProps> = ({
             </div>
           </Modal>
         </div>
-      )}
     </div>
   );
 };
