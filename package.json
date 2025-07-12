@@ -9,7 +9,7 @@
     "build": "yarn workspaces foreach --all -pt run build",
     "build:web": "yarn workspaces foreach --all -pt run build:web",
     "build:desktop": "yarn workspaces foreach --all -pt run build:desktop",
-    "tauri": "yarn workspace minesweeper tauri",
+    "tauri": "yarn workspaces foreach --all run tauri",
     "tauri:ms": "yarn workspace minesweeper tauri:ms"
   }
 }
