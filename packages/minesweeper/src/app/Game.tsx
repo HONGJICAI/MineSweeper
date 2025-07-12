@@ -1,4 +1,3 @@
-"use client";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { CellType } from "./Cell";
 import {
@@ -7,7 +6,6 @@ import {
   mediumMineSweeper
 } from "./utils/minesweeperLogic";
 import { Difficulty, GameStatus, PlayHistory, Position, UserAction, UserActionDetail } from "./Game.types";
-import React from "react";
 import StatisticsModal from "./StatisticsModal";
 import { useUserActions } from "./hooks/useUserActions";
 import { useLeaderboard } from "./hooks/useLeaderboard";

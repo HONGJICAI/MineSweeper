@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { Button } from "./components/Button";
 import { Difficulty } from "./Game.types";
 import { setWindowSize } from "./utils/platform";

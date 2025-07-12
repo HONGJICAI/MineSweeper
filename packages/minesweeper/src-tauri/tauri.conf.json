@@ -1,13 +1,13 @@
 {
-  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "$schema": "../../../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "MineSweeper",
   "version": "0.1.0",
   "identifier": "dev.caiji.minesweeper",
   "build": {
-    "frontendDist": "../out",
+    "frontendDist": "../dist",
     "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build:desktop"
+    "beforeDevCommand": "yarn run dev",
+    "beforeBuildCommand": "yarn run build:desktop"
   },
   "app": {
     "windows": [
