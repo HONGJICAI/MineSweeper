@@ -28,3 +28,25 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## LocalStorage in Windows
+
+`%LOCALAPPDATA%\<IDENTIFIER>\EBWebView\Default`
+
+## Microsoft Store
+
+An unsigned package must include a special OID (organization ID) value in its Identity element in the manifest file, otherwise it won't be allowed to register. An unsigned package will never have the same identity as a package that's signed. That prevents unsigned packages from conflicting with, or spoofing the identity of, a signed package.
+
+```xml
+<Identity Name="NumberGuesserManifest"
+  Publisher="CN=AppModelSamples, OID.2.25.311729368913984317654407730594956997722=1"
+  Version="1.0.0.0" />
+```
+
+<https://learn.microsoft.com/en-us/windows/msix/package/unsigned-package>
+
+Install
+
+```powershell
+Add-MsixPackage -Path .\minesweeperh5_unsigned.msix -AllowUnsigned
+```

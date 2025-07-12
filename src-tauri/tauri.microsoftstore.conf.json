@@ -1,0 +1,16 @@
+{
+  "productName": "B4BA16B8.MineSweeperH5",
+  "version": "0.1.0",
+  "identifier": "dev.caiji.minesweeper",
+  "bundle": {    
+    "targets": [
+      "msi"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "offlineInstaller"
+      }
+    },
+    "publisher": "Cai Ji"
+  }
+}
