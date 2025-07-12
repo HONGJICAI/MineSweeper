@@ -4,6 +4,7 @@ import ActionList from "./ActionList";
 import PlayHistoryList from "./PlayHistoryList";
 import { PlayHistory, Position, UserActionDetail } from "./Game.types";
 import { Leaderboards } from "./hooks/useLeaderboard";
+import styles from "./GameSidebar.module.css";
 
 type GameSidebarProps = {
     leaderboards: Leaderboards | null;
@@ -71,17 +72,8 @@ const GameSidebar = React.memo(function GameSidebar({
 
                 {/* Tab Content */}
                 <div
-                    className="flex-1 overflow-y-auto overflow-x-hidden"
-                    style={{
-                        scrollbarWidth: "none",
-                        msOverflowStyle: "none",
-                    }}
+                    className={`flex-1 overflow-y-auto overflow-x-hidden ${styles.scrollbarHidden}`}
                 >
-                    <style jsx>{`
-                        div::-webkit-scrollbar {
-                            display: none;
-                        }
-                    `}</style>
                     {activeTab === "actions" ? (
                         <ActionList userActions={userActions} setHoveredCell={setHighlightedCell} />
                     ) : (
@@ -94,23 +86,6 @@ const GameSidebar = React.memo(function GameSidebar({
 
     return (
         <>
-            <style jsx>{`
-                @keyframes slideEmoji {
-                    0%, 45% {
-                        transform: translateY(0%);
-                    }
-                    50%, 95% {
-                        transform: translateY(-100%);
-                    }
-                    100% {
-                        transform: translateY(0%);
-                    }
-                }
-                
-                .emoji-slider {
-                    animation: slideEmoji 4s infinite;
-                }
-            `}</style>
 
             {/* Mobile floating button - only visible on small screens */}
             <button
@@ -119,7 +94,7 @@ const GameSidebar = React.memo(function GameSidebar({
                 aria-label="Open sidebar"
             >
                 <div className="relative w-6 h-6 overflow-hidden">
-                    <div className="emoji-slider absolute inset-0 flex flex-col">
+                    <div className={`${styles.emojiSlider} absolute inset-0 flex flex-col`}>
                         <span className="h-6 flex items-center justify-center">🏆</span>
                         <span className="h-6 flex items-center justify-center">📋</span>
                     </div>

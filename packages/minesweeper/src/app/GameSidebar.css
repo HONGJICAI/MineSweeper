@@ -1,0 +1,24 @@
+@keyframes slideEmoji {
+    0%, 45% {
+        transform: translateY(0%);
+    }
+    50%, 95% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(0%);
+    }
+}
+
+.emoji-slider {
+    animation: slideEmoji 4s infinite;
+}
+
+.scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+}
