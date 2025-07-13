@@ -13,7 +13,8 @@
     "tauri:icons": "yarn run tauri icon ./src-tauri/icons/128x128@2x.png",
     "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
     "build:web": "cross-env VITE_PLATFORM=web vite build",
-    "build:desktop": "cross-env VITE_PLATFORM=desktop vite build"
+    "build:desktop": "cross-env VITE_PLATFORM=desktop vite build",
+    "postinstall": "yarn run tauri:icons"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.5.0",

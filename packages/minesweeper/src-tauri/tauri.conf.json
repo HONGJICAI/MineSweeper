@@ -7,7 +7,7 @@
     "frontendDist": "../dist",
     "devUrl": "http://localhost:3000",
     "beforeDevCommand": "yarn run dev",
-    "beforeBuildCommand": "yarn run tauri:icons && yarn run build:desktop"
+    "beforeBuildCommand": "yarn run build:desktop"
   },
   "app": {
     "windows": [
