@@ -35,7 +35,7 @@ export function useMobileTouch({
   }
 
   function handleTouchEnd(
-    e: React.TouchEvent<HTMLButtonElement>,
+    _: React.TouchEvent<HTMLButtonElement>,
     r: number,
     c: number
   ) {

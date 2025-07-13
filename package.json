@@ -1,34 +1,12 @@
 {
-  "name": "minesweeper",
-  "version": "0.1.0",
+  "name": "caiji-games",
   "private": true,
+  "packageManager": "pnpm@10.13.0",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "tauri": "tauri",
-    "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
-    "build:web": "cross-env NEXT_PUBLIC_PLATFORM=web next build",
-    "build:desktop": "cross-env NEXT_PUBLIC_PLATFORM=desktop next build"
-  },
-  "dependencies": {
-    "@tauri-apps/api": "^2.5.0",
-    "next": "15.3.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@tauri-apps/cli": "^2.5.0",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "cross-env": "^7.0.3",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.2",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "build": "pnpm -r --parallel run build",
+    "build:web": "pnpm -r --parallel run build:web",
+    "build:desktop": "pnpm -r --parallel run build:desktop",
+    "tauri": "pnpm -r run tauri",
+    "tauri:ms": "pnpm --filter minesweeper tauri:ms"
   }
 }
