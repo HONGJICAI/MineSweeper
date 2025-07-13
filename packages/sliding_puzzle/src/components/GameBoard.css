@@ -1,0 +1,248 @@
+.game-board-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* padding: 1rem; */
+  gap: 1rem;
+}
+
+.game-board {
+  display: grid;
+  gap: var(--gap);
+  background-color: #333;
+  border-radius: 10px;
+  padding: var(--padding);
+  width: var(--board-size);
+  height: var(--board-size);
+  box-sizing: border-box;
+}
+
+/* 动态网格布局 - 使用CSS自定义属性进行通用计算 */
+.game-board {
+  --board-size: 480px;
+  --padding: 8px;
+  --gap: 3px;
+}
+
+.game-board[data-grid-size="3"] {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  --grid-count: 3;
+}
+
+.game-board[data-grid-size="4"] {
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  --grid-count: 4;
+}
+
+.game-board[data-grid-size="5"] {
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  --grid-count: 5;
+}
+
+.game-board[data-grid-size="6"] {
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  --grid-count: 6;
+}
+
+/* 通用字体大小计算 - 基于瓦片大小的百分比 */
+.tile {
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* 只对 transform 和 background-color 应用过渡效果，避免背景图片位置变化时的滑动效果 */
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  -webkit-user-select: none;
+  user-select: none;
+  font-weight: bold;
+  color: #333;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* 动态字体大小：基于瓦片宽度的25% */
+  font-size: calc((var(--board-size) - var(--padding) * 2 - var(--gap) * (var(--grid-count) - 1)) / var(--grid-count) * 0.25);
+}
+
+.tile:hover:not(.empty) {
+  background-color: #e0e0e0;
+  transform: scale(0.95);
+}
+
+.tile:active:not(.empty) {
+  transform: scale(0.9);
+}
+
+.tile.empty {
+  background-color: transparent;
+  cursor: default;
+}
+
+.tile.empty.completed-empty {
+  background-color: #f0f0f0;
+  cursor: default;
+  animation: fadeInTile 1.5s ease-in-out forwards;
+}
+
+.tile.empty.completed-empty.image-tile {
+  animation: fadeInImageTile 1.5s ease-in-out forwards;
+}
+
+@keyframes fadeInTile {
+  0% {
+    background-color: transparent;
+    color: transparent;
+  }
+  50% {
+    background-color: rgba(240, 240, 240, 0.5);
+    color: rgba(51, 51, 51, 0.5);
+  }
+  100% {
+    background-color: #f0f0f0;
+    color: #333;
+  }
+}
+
+@keyframes fadeInImageTile {
+  0% {
+    background-color: transparent;
+    opacity: 0;
+  }
+  50% {
+    background-color: rgba(240, 240, 240, 0.3);
+    opacity: 0.5;
+  }
+  100% {
+    background-color: #f0f0f0;
+    opacity: 1;
+  }
+}
+
+/* .number-tile {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.number-tile:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b4e8a 100%);
+} */
+
+.image-tile {
+  padding: 0;
+}
+
+.tile-image {
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+}
+
+.image-tile-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.empty-tile {
+  width: 100%;
+  height: 100%;
+}
+
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .game-board {
+    --board-size: 320px;
+    --padding: 8px;
+    --gap: 2px;
+  }
+  
+  .tile {
+    border-radius: 6px;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) {
+  .tile:hover:not(.empty) {
+    background-color: #f0f0f0;
+    transform: none;
+  }
+  
+  .number-tile:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .tile:active:not(.empty) {
+    transform: scale(0.95);
+  }
+}
+
+/* 键盘导航 */
+.tile:focus {
+  outline: 3px solid #4A90E2;
+  outline-offset: 2px;
+}
+
+/* 深色模式 */
+@media (prefers-color-scheme: dark) {
+  .game-board {
+    background-color: #555;
+  }
+  
+  .tile {
+    background-color: #444;
+    color: #f6f6f6;
+  }
+  
+  .tile:hover:not(.empty) {
+    background-color: #555;
+  }
+  
+  .tile.empty.completed-empty {
+    background-color: #444;
+    animation: fadeInTileDark 1.5s ease-in-out forwards;
+  }
+  
+  .tile.empty.completed-empty.image-tile {
+    animation: fadeInImageTileDark 1.5s ease-in-out forwards;
+  }
+}
+
+@keyframes fadeInTileDark {
+  0% {
+    background-color: transparent;
+    color: transparent;
+  }
+  50% {
+    background-color: rgba(68, 68, 68, 0.5);
+    color: rgba(246, 246, 246, 0.5);
+  }
+  100% {
+    background-color: #444;
+    color: #f6f6f6;
+  }
+}
+
+@keyframes fadeInImageTileDark {
+  0% {
+    background-color: transparent;
+    opacity: 0;
+  }
+  50% {
+    background-color: rgba(68, 68, 68, 0.3);
+    opacity: 0.5;
+  }
+  100% {
+    background-color: #444;
+    opacity: 1;
+  }
+}

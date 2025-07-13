@@ -1,0 +1,14 @@
+/* ProgressBar 组件专用样式 */
+.progress-fill {
+  width: var(--progress-width, 0%);
+}
+
+/* 如果需要 shimmer 动画的自定义版本 */
+@keyframes custom-shimmer {
+  0% { transform: translateX(-100%) skewX(-12deg); }
+  100% { transform: translateX(200%) skewX(-12deg); }
+}
+
+.animate-custom-shimmer {
+  animation: custom-shimmer 2s infinite;
+}

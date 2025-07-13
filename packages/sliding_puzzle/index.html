@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/128x128@2x.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sliding Puzzle</title>
+    <style>
+      /* 禁用文本选择 */
+      * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      
+      /* 禁用拖拽 */
+      * {
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+      }
+      
+      /* 禁用页面滚动 */
+      html, body {
+        overflow: hidden;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      
+      /* 禁用触摸滚动 */
+      body {
+        touch-action: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // 禁用右键菜单
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+      });
+      
+      // 禁用拖拽选择文本
+      document.addEventListener('selectstart', function(e) {
+        e.preventDefault();
+        return false;
+      });
+      
+      // 禁用页面滚动
+      document.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        return false;
+      }, { passive: false });
+      
+      // 禁用键盘滚动（上下箭头、Page Up/Down、Home/End、空格键）
+      document.addEventListener('keydown', function(e) {
+        var keys = [32, 33, 34, 35, 36, 37, 38, 39, 40];
+        if (keys.includes(e.keyCode)) {
+          e.preventDefault();
+          return false;
+        }
+      });
+      
+      // 禁用触摸滚动
+      document.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        return false;
+      }, { passive: false });
+      
+      // 禁用双击缩放
+      document.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        return false;
+      });
+    </script>
+  </body>
+</html>

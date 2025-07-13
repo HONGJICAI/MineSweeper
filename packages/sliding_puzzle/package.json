@@ -1,0 +1,40 @@
+{
+  "name": "sliding_puzzle",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "serve": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "tauri": "tauri",
+    "tauri:icons": "tauri icon public/128x128@2x.png",
+    "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
+    "build:web": "cross-env VITE_PLATFORM=web vite build",
+    "build:desktop": "cross-env VITE_PLATFORM=desktop vite build",
+    "postinstall": "pnpm run tauri:icons"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.5.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.11",
+    "@tauri-apps/cli": "^2.5.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@typescript-eslint/eslint-plugin": "^7.13.1",
+    "@typescript-eslint/parser": "^7.13.1",
+    "@vitejs/plugin-react": "^4.3.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^9",
+    "tailwindcss": "^4",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1"
+  },
+  "packageManager": "pnpm@10.13.0"
+}
