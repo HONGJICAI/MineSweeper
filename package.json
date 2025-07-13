@@ -1,15 +1,12 @@
 {
   "name": "caiji-games",
   "private": true,
-  "packageManager": "yarn@4.9.2",
-  "workspaces": [
-    "packages/*"
-  ],
+  "packageManager": "pnpm@10.13.0",
   "scripts": {
-    "build": "yarn workspaces foreach --all -pt run build",
-    "build:web": "yarn workspaces foreach --all -pt run build:web",
-    "build:desktop": "yarn workspaces foreach --all -pt run build:desktop",
-    "tauri": "yarn workspaces foreach --all run tauri",
-    "tauri:ms": "yarn workspace minesweeper tauri:ms"
+    "build": "pnpm -r --parallel run build",
+    "build:web": "pnpm -r --parallel run build:web",
+    "build:desktop": "pnpm -r --parallel run build:desktop",
+    "tauri": "pnpm -r run tauri",
+    "tauri:ms": "pnpm --filter minesweeper tauri:ms"
   }
 }
