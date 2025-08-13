@@ -52,6 +52,9 @@ jobs:
           # Use full path to sdkmanager since PATH isn't updated yet in this shell
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
+      - name: Init Android Project
+        run: pnpm --filter sliding_puzzle run tauri:android:init
+          
       - name: Build Android APK
         run: pnpm --filter sliding_puzzle run build:android
 
