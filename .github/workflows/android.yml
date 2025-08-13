@@ -37,7 +37,7 @@ jobs:
         run: pnpm --filter sliding_puzzle run build:android
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sliding-puzzle-android
           path: packages/sliding_puzzle/src-tauri/android/app/build/outputs/apk/release/app-release.apk
