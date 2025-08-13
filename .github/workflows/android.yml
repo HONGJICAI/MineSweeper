@@ -25,6 +25,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Build shared packages
+        run: |
+          pnpm --filter @caiji-games/shared-* run build
+
       - name: Setup Java (for Android SDK)
         uses: actions/setup-java@v3
         with:
