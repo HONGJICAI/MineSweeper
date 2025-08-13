@@ -64,4 +64,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sliding-puzzle-android
-          path: packages/sliding_puzzle/src-tauri/android/app/build/outputs/apk/release/app-release.apk
+          path: packages/sliding_puzzle/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
