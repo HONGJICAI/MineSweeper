@@ -1,8 +1,8 @@
 name: Build Android APK
 
 on:
-  push:
-    branches: [ sliding_puzzle ]
+  # push:
+  #   branches: [ sliding_puzzle ]
   pull_request:
     branches: [ main ]
 
