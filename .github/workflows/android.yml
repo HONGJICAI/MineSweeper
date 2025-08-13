@@ -1,0 +1,43 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ sliding_puzzle ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node & pnpm
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Setup Java (for Android SDK)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 11
+
+      - name: Install Android SDK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y adb
+          yes | sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+
+      - name: Build Android APK
+        run: pnpm --filter sliding_puzzle run build:android
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sliding-puzzle-android
+          path: packages/sliding_puzzle/src-tauri/android/app/build/outputs/apk/release/app-release.apk
