@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import SlidingPuzzle from "./components/SlidingPuzzle";
 import { GameMode } from './types/game';
-import "./App.css";
-import DarkModeToggle from './components/DarkModeToggle';
+import { DarkModeToggle } from '@caiji-games/shared-ui';
 
 function App() {
   const [mode, setMode] = useState<GameMode>('number');
 
   return (
-    <main className="">
+    <div className="antialiased bg-white dark:bg-gray-900">
       <DarkModeToggle />
       <SlidingPuzzle mode={mode} onModeChange={setMode} />
-    </main>
+    </div>
   );
 }
 

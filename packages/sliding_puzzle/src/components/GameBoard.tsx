@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { GameState, GameMode } from '../types/game';
 import { setupImageTiles, clearImageTiles } from '../utils/imageUtils';
 import './GameBoard.css';
@@ -30,7 +30,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     }
   }, [mode, selectedImage, board]);
 
-  const getTileContent = (tile: number | null, index: number) => {
+  const getTileContent = useCallback((tile: number | null, index: number) => {
     // 如果游戏完成且这是最后一个位置（应该是空白块的位置）
     if (gameState.isCompleted && index === board.length - 1 && tile === null) {
       // 显示最后一个数字（对于3x3是9，4x4是16等）
@@ -51,7 +51,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
       // 图片模式 - 根据showNumbers决定是否显示数字
       return showNumbers ? tile : null;
     }
-  };
+  }, [showNumbers, gameState, mode, selectedImage]);
 
   const handleTileClick = (index: number) => {
     const tile = board[index];
@@ -101,7 +101,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         </div>
       );
     })
-    , [board, size, mode, selectedImage, gameState.isCompleted]);
+    , [board, size, mode, selectedImage, gameState.isCompleted, getTileContent]);
 
   return (
     <div className="game-board-container">

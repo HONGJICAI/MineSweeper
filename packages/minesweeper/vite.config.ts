@@ -26,8 +26,7 @@ export default defineConfig({
     port: 3000,
     strictPort: true,
     host: host || false,
-    open: true,
+    open: false,
   }, 
   envPrefix: ['VITE_', 'TAURI_ENV_*'],
-
 })

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { getDefaultImageUrl } from '../utils/defaultImages';
 import { GameMode } from '../types/game';
-import Modal from './Modal';
+import { Modal } from '@caiji-games/shared-ui';
 
 interface GameSettingsProps {
   mode: GameMode;
@@ -27,7 +27,7 @@ const GameSettings: React.FC<GameSettingsProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="game-settings">
+    <div>
       <button
         className="fixed top-4 right-4 z-40 p-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200 shadow-lg"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -80,7 +80,7 @@ const GameSettings: React.FC<GameSettingsProps> = ({
               {/* 图片选择 */}
               <div className="space-y-3">
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">图片选择</h4>
-                
+
                 {/* 图片选择按钮 */}
                 <div className="grid grid-cols-3 gap-2">
                   <button
@@ -92,7 +92,7 @@ const GameSettings: React.FC<GameSettingsProps> = ({
                   >
                     简单图
                   </button>
-                  
+
                   <label className="px-3 py-2 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200 cursor-pointer text-center">
                     上传图
                     <input
@@ -102,7 +102,7 @@ const GameSettings: React.FC<GameSettingsProps> = ({
                       className="hidden"
                     />
                   </label>
-                  
+
                   <button
                     className="px-3 py-2 text-sm bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors duration-200"
                     onClick={() => {
@@ -113,15 +113,15 @@ const GameSettings: React.FC<GameSettingsProps> = ({
                     Bing图
                   </button>
                 </div>
-                
+
                 {/* 图片预览 */}
                 <div className="mt-4">
                   <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">预览</h5>
                   <div className="w-full h-32 border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
                     {selectedImage ? (
-                      <img 
-                        src={selectedImage} 
-                        alt="Selected" 
+                      <img
+                        src={selectedImage}
+                        alt="Selected"
                         className="w-full h-full object-cover"
                       />
                     ) : (

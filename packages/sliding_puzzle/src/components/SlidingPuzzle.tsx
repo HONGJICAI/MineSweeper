@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { GameState, GameMode, GameStats } from '../types/game';
 import { GameEngine } from '../utils/gameEngine';
 import { getDefaultImageUrl } from '../utils/defaultImages';
@@ -13,7 +13,7 @@ interface SlidingPuzzleProps {
 }
 
 const SlidingPuzzle: React.FC<SlidingPuzzleProps> = ({ mode, onModeChange }) => {
-  const [gameState, setGameState] = useState<GameState>(() => {
+  const initState = useMemo(() => {
     const board = GameEngine.createSolvedBoard(3);
     return {
       board,
@@ -24,7 +24,8 @@ const SlidingPuzzle: React.FC<SlidingPuzzleProps> = ({ mode, onModeChange }) => 
       endTime: null,
       isCompleted: true,
     };
-  });
+  }, []); 
+  const [gameState, setGameState] = useState<GameState>(initState);
 
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [selectedImage, setSelectedImage] = useState<string>(() => {
@@ -42,7 +43,7 @@ const SlidingPuzzle: React.FC<SlidingPuzzleProps> = ({ mode, onModeChange }) => 
 
   // 时间计时器
   useEffect(() => {
-    let interval: number;
+    let interval: NodeJS.Timeout | null = null;
 
     if (gameState.startTime && !gameState.isCompleted) {
       interval = setInterval(() => {
@@ -103,7 +104,7 @@ const SlidingPuzzle: React.FC<SlidingPuzzleProps> = ({ mode, onModeChange }) => 
 
   // 改变游戏大小
   const handleSizeChange = useCallback((size: number) => {
-    const board = GameEngine.createBoard(size);
+    const board = GameEngine.createSolvedBoard(size);
     setGameState({
       board,
       size,
@@ -126,15 +127,15 @@ const SlidingPuzzle: React.FC<SlidingPuzzleProps> = ({ mode, onModeChange }) => 
     }
     
     // 切换模式时重置游戏
-    const board = GameEngine.createBoard(gameState.size);
+    const board = GameEngine.createSolvedBoard(gameState.size);
     setGameState({
       board,
       size: gameState.size,
       emptyIndex: board.indexOf(null),
       moves: 0,
-      startTime: Date.now(),
+      startTime: null,
       endTime: null,
-      isCompleted: false,
+      isCompleted: true,
     });
     setCurrentTime(0);
   }, [onModeChange, gameState.size]);
