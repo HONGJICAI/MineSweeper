@@ -17,7 +17,7 @@
     "postinstall": "pnpm run tauri:icons",
     "tauri:android:init": "npx tauri android init",
     "tauri:android:dev": "npx tauri android dev",
-    "build:android": "tsc && cross-env VITE_PLATFORM=mobile vite build && npx tauri android build --release"
+    "build:android": "cross-env VITE_PLATFORM=mobile vite build && npx tauri android build -- --apk"
   },
   "dependencies": {
     "@caiji-games/shared-ui": "workspace:*",
