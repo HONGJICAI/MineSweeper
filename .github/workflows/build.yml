@@ -2,7 +2,7 @@ name: Build MineSweeper
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -110,8 +110,18 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build desktop app
-        run: pnpm run tauri build
+      - name: Build desktop apps
+        run: |
+          if [ "${{ matrix.platform }}" = "ubuntu-22.04" ]; then
+            # Sequential build for Linux to avoid linuxdeploy race condition
+            echo "Building apps sequentially on Linux..."
+            pnpm run tauri:seq build
+          else
+            # Parallel build for other platforms
+            echo "Building apps in parallel..."
+            pnpm run tauri build
+          fi
+        shell: bash
 
       - name: Upload desktop build artifacts
         uses: actions/upload-artifact@v4
