@@ -62,27 +62,48 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          echo "$ANDROID_SIGNING_KEY_BASE64" | base64 --decode > keystore.jks
+          # Decode keystore
+          echo "$ANDROID_SIGNING_KEY_BASE64" | base64 --decode > packages/sliding_puzzle/src-tauri/gen/android/app/keystore.jks
           
-          # Create keystore.properties file
+          # Create gradle.properties in the Android project root
+          cat > packages/sliding_puzzle/src-tauri/gen/android/gradle.properties << EOF
+          android.useAndroidX=true
+          android.enableJetifier=true
+          RELEASE_STORE_FILE=keystore.jks
+          RELEASE_STORE_PASSWORD=$ANDROID_KEY_STORE_PASSWORD
+          RELEASE_KEY_ALIAS=$ANDROID_KEY_ALIAS
+          RELEASE_KEY_PASSWORD=$ANDROID_KEY_PASSWORD
+          EOF
+          
+          # Also create keystore.properties (for Tauri)
           cat > packages/sliding_puzzle/src-tauri/gen/android/keystore.properties << EOF
           storePassword=$ANDROID_KEY_STORE_PASSWORD
           keyPassword=$ANDROID_KEY_PASSWORD
           keyAlias=$ANDROID_KEY_ALIAS
-          storeFile=$(pwd)/keystore.jks
+          storeFile=keystore.jks
           EOF
           
       - name: Build Android APK
-        run: pnpm --filter sliding_puzzle run build:android
+        run: |
+          cd packages/sliding_puzzle
+          pnpm run build:android
+          
+      - name: List APK outputs
+        run: |
+          echo "Checking for APK files:"
+          find packages/sliding_puzzle/src-tauri/gen/android -name "*.apk" -type f -ls
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: sliding-puzzle-android
-          path: packages/sliding_puzzle/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+          path: |
+            packages/sliding_puzzle/src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
+            packages/sliding_puzzle/src-tauri/gen/android/app/build/outputs/apk/release/*.apk
 
       - name: Clean up keystore
         if: always()
         run: |
-          rm -f keystore.jks
+          rm -f packages/sliding_puzzle/src-tauri/gen/android/app/keystore.jks
           rm -f packages/sliding_puzzle/src-tauri/gen/android/keystore.properties
+          rm -f packages/sliding_puzzle/src-tauri/gen/android/gradle.properties
