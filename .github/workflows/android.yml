@@ -49,13 +49,28 @@ jobs:
           echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
           echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-          # Use full path to sdkmanager since PATH isn't updated yet in this shell
           yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
-          # Set NDK_HOME environment variable
           echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> $GITHUB_ENV
 
       - name: Init Android Project
         run: pnpm --filter sliding_puzzle run tauri:android:init
+
+      - name: Setup Android signing
+        env:
+          ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
+          ANDROID_KEY_STORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          echo "$ANDROID_SIGNING_KEY_BASE64" | base64 --decode > keystore.jks
+          
+          # Create keystore.properties file
+          cat > packages/sliding_puzzle/src-tauri/gen/android/keystore.properties << EOF
+          storePassword=$ANDROID_KEY_STORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=$(pwd)/keystore.jks
+          EOF
           
       - name: Build Android APK
         run: pnpm --filter sliding_puzzle run build:android
@@ -64,4 +79,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sliding-puzzle-android
-          path: packages/sliding_puzzle/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+          path: packages/sliding_puzzle/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+
+      - name: Clean up keystore
+        if: always()
+        run: |
+          rm -f keystore.jks
+          rm -f packages/sliding_puzzle/src-tauri/gen/android/keystore.properties

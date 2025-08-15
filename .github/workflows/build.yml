@@ -53,7 +53,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build web version
-        run: pnpm build:shared && pnpm build:web
+        run: pnpm build:web
 
       - name: Upload web build artifacts
         uses: actions/upload-artifact@v4
