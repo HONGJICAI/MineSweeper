@@ -7,7 +7,7 @@
     "build:shared": "pnpm --filter @caiji-games/shared-* run build",
     "build:web": "pnpm build:shared && pnpm -r --parallel run build:web",
     "build:desktop": "pnpm build:shared && pnpm -r --parallel run build:desktop",
-    "tauri": "pnpm -r run tauri",
+    "tauri": "pnpm build:shared && pnpm -r run tauri",
     "tauri:ms": "pnpm --filter minesweeper tauri:ms"
   }
 }

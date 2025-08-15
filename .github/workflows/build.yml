@@ -120,24 +120,3 @@ jobs:
           path: |
             packages/minesweeper/src-tauri/target/release/bundle/
           retention-days: 30
-
-  deploy-web:
-    runs-on: ubuntu-latest
-    needs: build-web
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download web build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: minesweeper-web
-          path: dist/
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          publish_branch: gh-pages
