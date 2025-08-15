@@ -84,6 +84,8 @@ jobs:
           EOF
           
       - name: Build Android APK
+        env:
+          GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
         run: |
           cd packages/sliding_puzzle
           pnpm run build:android
