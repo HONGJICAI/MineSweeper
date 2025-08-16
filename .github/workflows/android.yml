@@ -74,9 +74,6 @@ jobs:
           _JAVA_OPTIONS: "-Xmx6g"
         run: |
           cd packages/sliding_puzzle
-          # Also set gradle properties directly
-          echo "org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> src-tauri/gen/android/gradle.properties
-          echo "org.gradle.daemon=false" >> src-tauri/gen/android/gradle.properties
           pnpm run build:android
           
       - name: List APK outputs
