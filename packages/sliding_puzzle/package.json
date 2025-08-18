@@ -1,5 +1,5 @@
 {
-  "name": "minesweeper",
+  "name": "sliding_puzzle",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,10 @@
     "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
     "build:web": "cross-env VITE_PLATFORM=web vite build",
     "build:desktop": "cross-env VITE_PLATFORM=desktop vite build",
-    "postinstall": "pnpm run tauri:icons"
+    "postinstall": "pnpm run tauri:icons",
+    "tauri:android:init": "npx tauri android init",
+    "tauri:android:dev": "npx tauri android dev",
+    "build:android": "cross-env VITE_PLATFORM=mobile vite build && npx tauri android build --apk"
   },
   "dependencies": {
     "@caiji-games/shared-ui": "workspace:*",

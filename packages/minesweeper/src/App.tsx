@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import Game from "./app/Game";
-import DarkModeToggle from "./app/components/DarkModeToggle";
+import { DarkModeToggle } from "@caiji-games/shared-ui";
 
 function App() {
   const onContextMenu = useCallback(
