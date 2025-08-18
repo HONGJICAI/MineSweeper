@@ -125,16 +125,6 @@
   }
 }
 
-/* .number-tile {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.number-tile:hover {
-  background: linear-gradient(135deg, #5a67d8 0%, #6b4e8a 100%);
-} */
-
 .image-tile {
   padding: 0;
 }

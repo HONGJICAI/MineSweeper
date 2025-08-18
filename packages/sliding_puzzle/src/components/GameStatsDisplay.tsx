@@ -8,7 +8,7 @@ interface GameStatsDisplayProps {
   onResetGame?: () => void;
 }
 
-const GameStatsDisplay: React.FC<GameStatsDisplayProps> = ({ stats, onNewGame, onResetGame: onSolveGame }) => {
+const GameStatsDisplay: React.FC<GameStatsDisplayProps> = ({ stats, onNewGame, onResetGame }) => {
   return (
     <div className="flex gap-6 rounded-[10px] p-6 min-w-[200px] justify-center items-center">
       <div className="flex justify-between items-center">
@@ -16,24 +16,18 @@ const GameStatsDisplay: React.FC<GameStatsDisplayProps> = ({ stats, onNewGame, o
         <div className="font-medium text-gray-600 dark:text-gray-400">👣</div>
       </div>
       <div className="flex gap-2 items-center">
-        <EmojiBtn
-          emoji="▶️"
-          onClick={onNewGame}
-          title="开始新游戏"
-          ariaLabel="开始新游戏"
-        />
+          <EmojiBtn
+            emoji={stats.isCompleted ? "▶️" : "🔄"}
+            onClick={onNewGame}
+            title="Start"
+            ariaLabel="Start"
+          />
         <EmojiBtn
           emoji="⏹️"
-          onClick={onSolveGame}
-          title="自动解决拼图"
-          ariaLabel="自动解决拼图"
+          onClick={onResetGame}
+          title="Reset"
+          ariaLabel="Reset"
           disabled={stats.isCompleted}
-        />
-        <EmojiBtn
-          emoji="🔄"
-          onClick={onNewGame}
-          title="重置游戏"
-          ariaLabel="重置游戏"
         />
       </div>
 

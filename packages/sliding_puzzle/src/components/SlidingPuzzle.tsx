@@ -4,7 +4,6 @@ import { GameEngine } from '../utils/gameEngine';
 import { getDefaultImageUrl } from '../utils/defaultImages';
 import GameBoard from './GameBoard';
 import GameStatsDisplay from './GameStatsDisplay';
-import ProgressBar from './ProgressBar';
 import GameControl from './GameControl';
 
 interface SlidingPuzzleProps {
@@ -28,20 +27,9 @@ const SlidingPuzzle: React.FC<SlidingPuzzleProps> = ({ mode, onModeChange }) => 
   const [gameState, setGameState] = useState<GameState>(initState);
 
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const [selectedImage, setSelectedImage] = useState<string>(() => {
-    // 如果初始模式是图片模式，则设置默认图片
-    return mode === 'image' ? getDefaultImageUrl('simple') : '';
-  });
+  const [selectedImage, setSelectedImage] = useState<string>(getDefaultImageUrl('simple'));
   const [showNumbers, setShowNumbers] = useState<boolean>(false);
 
-  // 当模式切换到图片模式时，如果没有选择图片则设置默认图片
-  useEffect(() => {
-    if (mode === 'image' && !selectedImage) {
-      setSelectedImage(getDefaultImageUrl('simple'));
-    }
-  }, [mode]);
-
-  // 时间计时器
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
@@ -121,11 +109,6 @@ const SlidingPuzzle: React.FC<SlidingPuzzleProps> = ({ mode, onModeChange }) => 
   const handleModeChange = useCallback((newMode: GameMode) => {
     onModeChange(newMode);
     
-    // 如果切换到number模式，清除图片选择
-    if (newMode === 'number') {
-      setSelectedImage('');
-    }
-    
     // 切换模式时重置游戏
     const board = GameEngine.createSolvedBoard(gameState.size);
     setGameState({
@@ -193,8 +176,6 @@ const SlidingPuzzle: React.FC<SlidingPuzzleProps> = ({ mode, onModeChange }) => 
             showNumbers={showNumbers}
             onTileClick={handleTileClick}
           />
-
-          <ProgressBar progress={GameEngine.getCompletionProgress(gameState.board)} />
         </div>
       </div>
     </div>
