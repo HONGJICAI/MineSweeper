@@ -27,17 +27,17 @@ export default function GameControls({
   setShowStats,
 }: GameControlsProps) {
   const handleEasy = useCallback(async () => {
-    await setWindowSize(690, 500);
+    await setWindowSize(420, 480 + 32);
     setDifficulty("easy");
   }, [setDifficulty]);
   
   const handleMedium = useCallback(async () => {
-    await setWindowSize(960, 750);
+    await setWindowSize(660, 750);
     setDifficulty("medium");
   }, [setDifficulty]);
   
   const handleHard = useCallback(async() => {
-    await setWindowSize(1400, 750);
+    await setWindowSize(1140, 750);
     setDifficulty("hard");
   }, [setDifficulty]);
   

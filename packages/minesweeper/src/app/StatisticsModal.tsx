@@ -142,7 +142,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
                 </div>
 
                 {/* Storage Usage */}
-                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                {/* <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Storage Usage</span>
                         <span className="text-sm text-gray-600 dark:text-gray-400">{storageInfo.formatted} / 5 MB</span>
@@ -159,7 +159,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {storageInfo.percentage}% of available storage used
                     </p>
-                </div>
+                </div> */}
 
                 {/* Clear Buttons */}
                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-2 flex-wrap">

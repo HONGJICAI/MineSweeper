@@ -15,3 +15,15 @@ export const setWindowSize = async (width: number, height: number) => {
     console.warn('Failed to set window size:', error);
   }
 };
+
+export const setAchievements = async (achievements: string[]) => {
+  if (!isTauri()) return;
+  
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('set_achievements', { achievements });
+    console.log(`Achievements '${achievements}' unlocked successfully`);
+  } catch (error) {
+    console.error('Failed to set achievements:', error);
+  }
+};

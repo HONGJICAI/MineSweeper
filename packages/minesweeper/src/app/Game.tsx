@@ -30,7 +30,7 @@ export default function Game(props: {
     return hardMineSweeper();
   }, [difficulty]);
 
-  const { mines, rows, cols, createEmptyBoard, resetBoardInPlace } = sweeper;
+  const { mines, createEmptyBoard, resetBoardInPlace } = sweeper;
   const [board, setBoard] = useState<CellType[][]>(createEmptyBoard());
   const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.Init);
   const { timerState, timerRef, startTimer, stopTimer, resetTimer } = useTimer();
@@ -155,7 +155,7 @@ export default function Game(props: {
   }, [handleReset]);
 
   useEffect(() => {
-    if (pendingRetry && gameStatus === GameStatus.Init && board.length === rows && board[0]?.length === cols) {
+    if (pendingRetry && gameStatus === GameStatus.Init) {
       handleCellClick(pendingRetry.firstStep.r, pendingRetry.firstStep.c, pendingRetry.seed);
       addUserAction({
         type: "reveal",
@@ -165,7 +165,7 @@ export default function Game(props: {
       });
       setPendingRetry(undefined);
     }
-  }, [pendingRetry, gameStatus, board, rows, cols, handleCellClick, addUserAction]);
+  }, [pendingRetry, gameStatus, board, handleCellClick, addUserAction]);
   //#endregion
 
   //#region Replay logic
@@ -180,7 +180,7 @@ export default function Game(props: {
   }, [pendingReplay]);
 
   useEffect(() => {
-    if (autoPlaying && pendingReplay && (gameStatus === GameStatus.Init || gameStatus === GameStatus.Gaming) && board.length === rows && board[0]?.length === cols) {
+    if (autoPlaying && pendingReplay && (gameStatus === GameStatus.Init || gameStatus === GameStatus.Gaming)) {
       if (pendingReplay.current < pendingReplay.actions.length && lastPlayedStep.current !== pendingReplay.current) {
         const action = pendingReplay.actions[pendingReplay.current];
         const step = action.position;
@@ -214,7 +214,7 @@ export default function Game(props: {
       setShowAutoPlayOverlay(false);
       setAutoPlaying(false);
     }
-  }, [autoPlaying, showAutoPlayOverlay, pendingReplay, gameStatus, board, rows, cols, handleCellClick, handleFlagCell, handleChordCell, addUserAction]);
+  }, [autoPlaying, showAutoPlayOverlay, pendingReplay, gameStatus, board, handleCellClick, handleFlagCell, handleChordCell, addUserAction]);
 
   const onClickReplayButton = useCallback((seed: string, actions: UserActionDetail[]) => {
     handleReset();
@@ -252,8 +252,6 @@ export default function Game(props: {
         board={board}
         gameStatus={gameStatus}
         highlightedCell={highlightedCell}
-        rows={rows}
-        cols={cols}
         onCellAction={onCellAction}
         seed={seed}
         lastStepOnMine={revealedMinePosition}

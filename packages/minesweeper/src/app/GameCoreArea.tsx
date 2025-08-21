@@ -18,8 +18,6 @@ interface GameCoreAreaProps {
     board: CellType[][];
     gameStatus: GameStatus;
     highlightedCell?: Position;
-    rows: number;
-    cols: number;
     onCellAction: (action: UserAction) => void;
     seed: string;
     lastStepOnMine?: Position;
@@ -39,8 +37,6 @@ const GameCoreArea = React.memo(function GameCoreArea({
     board,
     gameStatus,
     highlightedCell,
-    rows,
-    cols,
     onCellAction,
     seed,
     lastStepOnMine
@@ -97,8 +93,6 @@ const GameCoreArea = React.memo(function GameCoreArea({
                 gameStatus={gameStatus}
                 highlightedCell={highlightedCell}
                 lastStepOnMine={lastStepOnMine}
-                rows={rows}
-                cols={cols}
                 onCellAction={onCellAction}
             />
         </div>

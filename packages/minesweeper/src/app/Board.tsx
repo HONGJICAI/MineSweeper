@@ -9,16 +9,12 @@ type BoardProps = {
     gameStatus: GameStatus;
     highlightedCell?: Position;
     lastStepOnMine?: Position;
-    rows: number;
-    cols: number;
     onCellAction: (action: UserAction) => void;
 };
 const Board = React.memo(function Board({
     board,
     gameStatus,
     highlightedCell,
-    rows,
-    cols,
     lastStepOnMine,
     onCellAction,
 }: BoardProps) {
@@ -86,8 +82,8 @@ const Board = React.memo(function Board({
         <div
             className="grid"
             style={{
-                gridTemplateRows: `repeat(${rows}, 2rem)`,
-                gridTemplateColumns: `repeat(${cols}, 2rem)`,
+                gridTemplateRows: `repeat(${board.length}, 2rem)`,
+                gridTemplateColumns: `repeat(${board[0].length}, 2rem)`,
                 gap: "2px",
             }}
             onMouseLeave={onLeaveBoard}
