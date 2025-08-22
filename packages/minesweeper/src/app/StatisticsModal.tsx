@@ -5,35 +5,6 @@ const stopPropagation = (e: React.MouseEvent) => {
     e.stopPropagation();
 }
 
-// Helper function to calculate localStorage size
-const getLocalStorageSize = (): { used: number; percentage: number; formatted: string } => {
-    let totalSize = 0;
-    try {
-        for (const key in localStorage) {
-            if (localStorage.hasOwnProperty(key)) {
-                totalSize += localStorage[key].length + key.length;
-            }
-        }
-    } catch (e) {
-        console.error('Error calculating localStorage size:', e);
-    }
-
-    // Convert to KB/MB
-    const sizeInKB = totalSize / 1024;
-    const sizeInMB = sizeInKB / 1024;
-    const maxSizeMB = 5; // 5MB max for most browsers
-    const percentage = Math.round((sizeInMB / maxSizeMB) * 100);
-
-    let formatted = '';
-    if (sizeInMB >= 1) {
-        formatted = `${sizeInMB.toFixed(2)} MB`;
-    } else {
-        formatted = `${sizeInKB.toFixed(2)} KB`;
-    }
-
-    return { used: sizeInMB, percentage, formatted };
-};
-
 const StatisticsModal = React.memo(function StatisticsModal({
     show,
     onClose,
@@ -100,9 +71,6 @@ const StatisticsModal = React.memo(function StatisticsModal({
 
         return stats;
     }, [playHistoryMap]);
-
-    // Calculate storage usage
-    const storageInfo = getLocalStorageSize();
 
     if (!show) return null;
 

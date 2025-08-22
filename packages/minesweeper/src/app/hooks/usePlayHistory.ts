@@ -9,7 +9,6 @@ const fastThreshold = { easy: 9, medium: 55, hard: 200 };
 const stepsThreshold = { easy: 15, medium: 85, hard: 300 };
 
 function checkAchievement(difficulty: Difficulty, history: PlayHistory): (keyof typeof Achievement)[] {
-    const iteration = Number.parseInt(history.seed.split("-")[1]) || 1;
     const ret: (keyof typeof Achievement)[] = [];
 
     // Achievement key mappings by difficulty

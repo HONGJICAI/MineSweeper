@@ -19,9 +19,6 @@ const Achievement = {
     completeEasyModeWithoutFlag: "completeEasyModeWithoutFlag",
     completeMediumModeWithoutFlag: "completeMediumModeWithoutFlag",
     completeHardModeWithoutFlag: "completeHardModeWithoutFlag",
-    // retry
-    completeAfterRetryFailGame: "completeAfterRetryFailGame",
-    fasterAfterRetrySucceedGame: "fasterAfterRetrySucceedGame",
 } as const;
 
 export { Achievement };
