@@ -8,12 +8,16 @@
     ]
   },
   "bundle": {
+    "active": false,
     "targets": [
-      "msi"
+      "nsis"
+    ],
+    "resources": [
+      "steam_api64.dll"
     ],
     "windows": {
       "webviewInstallMode": {
-        "type": "offlineInstaller"
+        "type": "skip"
       }
     },
     "publisher": "Cai Ji"

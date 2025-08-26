@@ -31,7 +31,9 @@ function Modal({
                     onClick={onClose}
                     aria-label="Close"
                 >
-                    ✖️
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                 </button>
                 {title && (<h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">{title}</h2>)
                 }

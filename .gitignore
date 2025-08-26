@@ -9,3 +9,7 @@ dist
 .next
 out
 icons
+target
+gen
+steam_api64.dll
+steam.zip
