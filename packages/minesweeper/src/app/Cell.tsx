@@ -71,7 +71,7 @@ const Cell = React.memo(function Cell({
             onMouseUp={handleMouseUp}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
-            className={`size-8 flex items-center justify-center border border-gray-400 dark:border-gray-600 text-lg font-mono select-none text-gray-900 dark:text-gray-100
+            className={`size-8 flex items-center justify-center border border-gray-400 dark:border-gray-600 text-lg font-mono select-none touch-manipulation text-gray-900 dark:text-gray-100
         ${cell.isRevealed
                     ? "bg-gray-100 dark:bg-gray-800 dark:text-gray-200"
                     : isPressed

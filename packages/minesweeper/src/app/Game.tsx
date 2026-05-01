@@ -236,7 +236,7 @@ export default function Game(props: {
   //#endregion
 
   return (
-    <div className="flex h-screen w-screen max-w-screen max-h-screen justify-center items-start lg:gap-8 gap-4 p-4 bg-white dark:bg-gray-900">
+    <div className="flex h-dvh w-dvw max-w-dvw max-h-dvh justify-center items-start lg:gap-8 gap-4 p-4 bg-white dark:bg-gray-900">
       {/* Left side: Title, controls, board */}
       <GameCoreArea
         title="MineSweeper"

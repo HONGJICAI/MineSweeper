@@ -41,15 +41,14 @@ const GameCoreArea = React.memo(function GameCoreArea({
     seed,
     lastStepOnMine
 }: GameCoreAreaProps) {
-    // Calculate minimum dimensions based on board size
-    // Cell size is 8 (assuming w-8 h-8 which is 32px)
-    // Add padding for controls and margins
+    // Min width only applied above the difficulty's "full" breakpoint —
+    // below it, the column shrinks to viewport and the board scrolls inside its wrapper.
     const minWidthClass =
         difficulty === "easy"
-            ? "min-w-[320px]"
+            ? "easyFull:min-w-[320px]"
             : difficulty === "medium"
-                ? "min-w-[512px]"
-                : "min-w-[896px]";
+                ? "mediumFull:min-w-[512px]"
+                : "hardFull:min-w-[896px]";
 
     //   const handleCopySeed = () => {
     //     if (seed) {
@@ -59,7 +58,7 @@ const GameCoreArea = React.memo(function GameCoreArea({
 
     return (
         <div
-            className={`flex flex-col items-center flex-1 ${minWidthClass} min-h-[480px]`}
+            className={`flex flex-col items-center flex-1 min-w-0 ${minWidthClass} min-h-[480px] h-full`}
         >
             <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">
                 {title}
@@ -88,13 +87,16 @@ const GameCoreArea = React.memo(function GameCoreArea({
           </button> */}
                 </div>
             }
-            <Board
-                board={board}
-                gameStatus={gameStatus}
-                highlightedCell={highlightedCell}
-                lastStepOnMine={lastStepOnMine}
-                onCellAction={onCellAction}
-            />
+            <div className="flex-1 min-h-0 max-w-full w-fit overflow-auto">
+                <Board
+                    board={board}
+                    gameStatus={gameStatus}
+                    highlightedCell={highlightedCell}
+                    lastStepOnMine={lastStepOnMine}
+                    onCellAction={onCellAction}
+                    mobileAction={mobileAction}
+                />
+            </div>
         </div>
     );
 });

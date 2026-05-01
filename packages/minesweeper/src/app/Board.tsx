@@ -3,6 +3,7 @@ import Cell from "./Cell";
 import { CellType } from "./Cell";
 import { GameStatus, Position, UserAction } from "./Game.types";
 import { useDesktopMouse } from "./hooks/useDesktopMouse";
+import { useMobileTouch } from "./hooks/useMobileTouch";
 
 type BoardProps = {
     board: CellType[][];
@@ -10,6 +11,7 @@ type BoardProps = {
     highlightedCell?: Position;
     lastStepOnMine?: Position;
     onCellAction: (action: UserAction) => void;
+    mobileAction: "reveal" | "flag";
 };
 const Board = React.memo(function Board({
     board,
@@ -17,6 +19,7 @@ const Board = React.memo(function Board({
     highlightedCell,
     lastStepOnMine,
     onCellAction,
+    mobileAction,
 }: BoardProps) {
     const {
         mouseAction,
@@ -26,6 +29,17 @@ const Board = React.memo(function Board({
     } = useDesktopMouse({
         gameStatus,
         onCellAction
+    });
+    const {
+        handleTouchStart,
+        handleTouchMove,
+        handleTouchEnd,
+        handleTouchCancel,
+    } = useMobileTouch({
+        gameStatus,
+        onCellAction,
+        mobileAction,
+        board,
     });
     const onLeaveBoard = useCallback(() => {
         if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
@@ -70,13 +84,13 @@ const Board = React.memo(function Board({
                         lastStepOnMine={lastStepOnMine?.r === r && lastStepOnMine?.c === c}
                         onMouseDown={handleMouseDown}
                         onMouseUp={handleMouseUp}
-                    // onTouchStart={(e) => handleTouchStart?.(e, r, c)}
-                    // onTouchEnd={(e) => handleTouchEnd?.(e, r, c)}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
                     />
                 );
             });
         });
-    }, [board, gameStatus, mouseAction, highlightedCell, handleMouseDown, handleMouseUp, lastStepOnMine]);
+    }, [board, gameStatus, mouseAction, highlightedCell, handleMouseDown, handleMouseUp, handleTouchStart, handleTouchEnd, lastStepOnMine]);
 
     return (
         <div
@@ -88,6 +102,8 @@ const Board = React.memo(function Board({
             }}
             onMouseLeave={onLeaveBoard}
             onMouseUp={onMouseUpOnBoard}
+            onTouchMove={handleTouchMove}
+            onTouchCancel={handleTouchCancel}
         >
             {cells}
         </div>

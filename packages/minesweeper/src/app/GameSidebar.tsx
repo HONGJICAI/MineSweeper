@@ -52,11 +52,11 @@ const GameSidebar = React.memo(function GameSidebar({
     const layoutClass = useMemo(() => {
         switch (difficulty) {
             case "easy":
-                return "easyFull:relative easyFull:right-auto easyFull:top-auto easyFull:z-auto easyFull:translate-x-0 easyFull:shadow-none easyFull:h-[calc(100vh-2rem)]";
+                return "easyFull:relative easyFull:right-auto easyFull:top-auto easyFull:z-auto easyFull:translate-x-0 easyFull:shadow-none easyFull:h-[calc(100dvh-2rem)]";
             case "medium":
-                return "mediumFull:relative mediumFull:right-auto mediumFull:top-auto mediumFull:z-auto mediumFull:translate-x-0 mediumFull:shadow-none mediumFull:h-[calc(100vh-2rem)]";
+                return "mediumFull:relative mediumFull:right-auto mediumFull:top-auto mediumFull:z-auto mediumFull:translate-x-0 mediumFull:shadow-none mediumFull:h-[calc(100dvh-2rem)]";
             case "hard":
-                return "hardFull:relative hardFull:right-auto hardFull:top-auto hardFull:z-auto hardFull:translate-x-0 hardFull:shadow-none hardFull:h-[calc(100vh-2rem)]";
+                return "hardFull:relative hardFull:right-auto hardFull:top-auto hardFull:z-auto hardFull:translate-x-0 hardFull:shadow-none hardFull:h-[calc(100dvh-2rem)]";
         }
     }, [difficulty]);
 
@@ -129,7 +129,7 @@ const GameSidebar = React.memo(function GameSidebar({
             {/* Sidebar - responsive positioning */}
             <div
                 className={`
-                    fixed right-0 top-0 z-50 h-screen w-[250px]
+                    fixed right-0 top-0 z-50 h-dvh w-[250px]
                     bg-white dark:bg-gray-800
                     shadow-2xl
                     transform transition-transform duration-300 
