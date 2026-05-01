@@ -19,18 +19,6 @@ const Achievement = {
     completeEasyModeWithoutFlag: "completeEasyModeWithoutFlag",
     completeMediumModeWithoutFlag: "completeMediumModeWithoutFlag",
     completeHardModeWithoutFlag: "completeHardModeWithoutFlag",
-    // retry
-    completeAfterRetry: "completeAfterRetry",
-    fasterAfterRetry: "fasterAfterRetry",
-    failedAfterRetry: "failedAfterRetry",
-    retryAfterRetry: "retryAfterRetry"
 } as const;
 
-function activateAchievement(
-    achievement: keyof typeof Achievement,
-): boolean {
-    console.log(`Achievement activated: ${achievement}`);
-    return true;
-}
-
-export { Achievement, activateAchievement };
+export { Achievement };

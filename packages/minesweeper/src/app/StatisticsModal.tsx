@@ -5,35 +5,6 @@ const stopPropagation = (e: React.MouseEvent) => {
     e.stopPropagation();
 }
 
-// Helper function to calculate localStorage size
-const getLocalStorageSize = (): { used: number; percentage: number; formatted: string } => {
-    let totalSize = 0;
-    try {
-        for (const key in localStorage) {
-            if (localStorage.hasOwnProperty(key)) {
-                totalSize += localStorage[key].length + key.length;
-            }
-        }
-    } catch (e) {
-        console.error('Error calculating localStorage size:', e);
-    }
-
-    // Convert to KB/MB
-    const sizeInKB = totalSize / 1024;
-    const sizeInMB = sizeInKB / 1024;
-    const maxSizeMB = 5; // 5MB max for most browsers
-    const percentage = Math.round((sizeInMB / maxSizeMB) * 100);
-
-    let formatted = '';
-    if (sizeInMB >= 1) {
-        formatted = `${sizeInMB.toFixed(2)} MB`;
-    } else {
-        formatted = `${sizeInKB.toFixed(2)} KB`;
-    }
-
-    return { used: sizeInMB, percentage, formatted };
-};
-
 const StatisticsModal = React.memo(function StatisticsModal({
     show,
     onClose,
@@ -101,9 +72,6 @@ const StatisticsModal = React.memo(function StatisticsModal({
         return stats;
     }, [playHistoryMap]);
 
-    // Calculate storage usage
-    const storageInfo = getLocalStorageSize();
-
     if (!show) return null;
 
     return (
@@ -119,8 +87,10 @@ const StatisticsModal = React.memo(function StatisticsModal({
                     className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
                     onClick={onClose}
                     aria-label="Close"
-                >
-                    ✖️
+                >                    
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                 </button>
                 <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Game Statistics</h2>
 
@@ -142,7 +112,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
                 </div>
 
                 {/* Storage Usage */}
-                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                {/* <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                     <div className="flex justify-between items-center mb-1">
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Storage Usage</span>
                         <span className="text-sm text-gray-600 dark:text-gray-400">{storageInfo.formatted} / 5 MB</span>
@@ -159,7 +129,7 @@ const StatisticsModal = React.memo(function StatisticsModal({
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {storageInfo.percentage}% of available storage used
                     </p>
-                </div>
+                </div> */}
 
                 {/* Clear Buttons */}
                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-2 flex-wrap">

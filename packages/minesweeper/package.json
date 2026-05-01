@@ -11,6 +11,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "tauri": "tauri",
     "tauri:icons": "tauri icon public/128x128@2x.png",
+    "tauri:steam": "pnpm tauri build --config src-tauri/tauri.steam.conf.json && node packSteam.cjs",
     "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
     "build:web": "cross-env VITE_PLATFORM=web vite build",
     "build:desktop": "cross-env VITE_PLATFORM=desktop vite build",
@@ -31,8 +32,10 @@
     "@typescript-eslint/eslint-plugin": "^7.13.1",
     "@typescript-eslint/parser": "^7.13.1",
     "@vitejs/plugin-react": "^4.3.1",
+    "archiver": "^7.0.1",
     "cross-env": "^7.0.3",
     "eslint": "^9",
+    "fs-extra": "^11.3.1",
     "tailwindcss": "^4",
     "typescript": "^5.2.2",
     "vite": "^5.3.1"

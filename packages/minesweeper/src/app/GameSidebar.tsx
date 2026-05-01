@@ -42,6 +42,23 @@ const GameSidebar = React.memo(function GameSidebar({
         setIsOpen(false);
         setActiveTab("actions");
     }, [onReplay]);
+    const hiddenClass = useMemo(() => {
+        switch(difficulty) {
+            case "easy": return "easyFull:hidden";
+            case "medium": return "mediumFull:hidden";
+            case "hard": return "hardFull:hidden";
+        }
+    }, [difficulty])
+    const layoutClass = useMemo(() => {
+        switch (difficulty) {
+            case "easy":
+                return "easyFull:relative easyFull:right-auto easyFull:top-auto easyFull:z-auto easyFull:translate-x-0 easyFull:shadow-none easyFull:h-[calc(100vh-2rem)]";
+            case "medium":
+                return "mediumFull:relative mediumFull:right-auto mediumFull:top-auto mediumFull:z-auto mediumFull:translate-x-0 mediumFull:shadow-none mediumFull:h-[calc(100vh-2rem)]";
+            case "hard":
+                return "hardFull:relative hardFull:right-auto hardFull:top-auto hardFull:z-auto hardFull:translate-x-0 hardFull:shadow-none hardFull:h-[calc(100vh-2rem)]";
+        }
+    }, [difficulty]);
 
     const sidebarContent = useMemo(() =>
         <>
@@ -90,7 +107,7 @@ const GameSidebar = React.memo(function GameSidebar({
             {/* Mobile floating button - only visible on small screens */}
             <button
                 onClick={handleOpenSidebar}
-                className="lg:hidden fixed top-4 right-4 z-50 p-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200 shadow-lg"
+                className={`${hiddenClass} fixed top-4 right-4 z-50 p-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200 shadow-lg`}
                 aria-label="Open sidebar"
             >
                 <div className="relative w-6 h-6 overflow-hidden">
@@ -104,7 +121,7 @@ const GameSidebar = React.memo(function GameSidebar({
             {/* Mobile overlay */}
             {isOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50"
+                    className={`${hiddenClass} fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50`}
                     onClick={handleCloseSidebar}
                 />
             )}
@@ -112,27 +129,19 @@ const GameSidebar = React.memo(function GameSidebar({
             {/* Sidebar - responsive positioning */}
             <div
                 className={`
-                    /* Mobile styles */
-                    fixed lg:relative
-                    right-0 lg:right-auto
-                    top-0 lg:top-auto
-                    h-screen lg:h-[calc(100vh-2rem)]
-                    w-[280px] lg:w-[250px]
+                    fixed right-0 top-0 z-50 h-screen w-[250px]
                     bg-white dark:bg-gray-800
-                    shadow-2xl lg:shadow-none
-                    z-50 lg:z-auto
+                    shadow-2xl
                     transform transition-transform duration-300 
                     ${isOpen ? "translate-x-0" : "translate-x-full"}
-                    lg:translate-x-0
-                    
-                    /* Desktop styles */
-                    p-4 lg:p-0
+                    p-4
+                    ${layoutClass}
                 `}
             >
                 {/* Close button - only visible on mobile */}
                 <button
                     onClick={handleCloseSidebar}
-                    className="lg:hidden absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    className={`${hiddenClass} absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200`}
                     aria-label="Close sidebar"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

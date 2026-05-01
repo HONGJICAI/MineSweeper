@@ -1,0 +1,25 @@
+{
+  "productName": "Minesweeper",
+  "version": "0.1.0",
+  "identifier": "dev.caiji.minesweeper",
+  "build": {
+    "features": [
+      "steam"
+    ]
+  },
+  "bundle": {
+    "active": false,
+    "targets": [
+      "nsis"
+    ],
+    "resources": [
+      "steam_api64.dll"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "skip"
+      }
+    },
+    "publisher": "Cai Ji"
+  }
+}
