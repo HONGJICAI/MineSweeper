@@ -70,7 +70,7 @@ export function mineSweeper(ROWS: number, COLS: number, MINES: number) {
         } else if (!replay) {
             const parts = seedStr.split("-");
             if (parts.length < 2 || isNaN(parseInt(parts[1]))) {
-                console.warn("Invalid seed format, generating a new seed.");
+                // Invalid seed format → silently fall back to a fresh seed.
                 seedStr = generateSeed();
             } else {
                 const iteration = parseInt(parts[1]) + 1;
