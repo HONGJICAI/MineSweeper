@@ -13,7 +13,8 @@
     "tauri": "tauri",
     "tauri:icons": "tauri icon public/128x128@2x.png",
     "tauri:steam": "pnpm tauri build --config src-tauri/tauri.steam.conf.json && node packSteam.cjs",
-    "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json"
+    "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
+    "postinstall": "pnpm run tauri:icons"
   },
   "dependencies": {
     "@caiji-games/minesweeper-core": "workspace:*",

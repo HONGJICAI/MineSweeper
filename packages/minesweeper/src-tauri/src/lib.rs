@@ -1,3 +1,4 @@
+#[cfg(feature = "steam")]
 use tauri::Manager;
 
 mod achievements;
