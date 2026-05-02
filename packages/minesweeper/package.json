@@ -5,44 +5,32 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5173",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "serve": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "test": "vitest",
-    "test:run": "vitest run",
+    "build": "svelte-check --tsconfig ./tsconfig.json && vite build",
+    "preview": "vite preview --port 5174",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "build:web": "cross-env VITE_PLATFORM=web vite build",
+    "build:desktop": "cross-env VITE_PLATFORM=desktop vite build",
     "tauri": "tauri",
     "tauri:icons": "tauri icon public/128x128@2x.png",
     "tauri:steam": "pnpm tauri build --config src-tauri/tauri.steam.conf.json && node packSteam.cjs",
-    "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
-    "build:web": "cross-env VITE_PLATFORM=web vite build",
-    "build:desktop": "cross-env VITE_PLATFORM=desktop vite build",
-    "postinstall": "pnpm run tauri:icons"
+    "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json"
   },
   "dependencies": {
-    "@caiji-games/shared-ui": "workspace:*",
-    "@tauri-apps/api": "^2.5.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@caiji-games/minesweeper-core": "workspace:*",
+    "@tauri-apps/api": "^2.5.0"
   },
   "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@tailwindcss/vite": "^4.1.11",
     "@tauri-apps/cli": "^2.5.0",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@typescript-eslint/eslint-plugin": "^7.13.1",
-    "@typescript-eslint/parser": "^7.13.1",
-    "@vitejs/plugin-react": "^4.3.1",
     "archiver": "^7.0.1",
     "cross-env": "^7.0.3",
-    "eslint": "^9",
     "fs-extra": "^11.3.1",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
     "tailwindcss": "^4",
     "typescript": "^5.2.2",
     "vite": "^5.3.1",
-    "vite-plugin-pwa": "^1.2.0",
-    "vitest": "^2.1.9"
-  },
-  "packageManager": "pnpm@10.13.0"
+    "vite-plugin-pwa": "^1.2.0"
+  }
 }
