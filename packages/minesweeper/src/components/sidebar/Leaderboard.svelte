@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { Difficulty, PlayHistory, Position, UserActionDetail } from "@caiji-games/minesweeper-core";
+    import Button from "../ui/Button.svelte";
     import { DifficultyText } from "../../types";
 
     let {
@@ -42,7 +43,13 @@
     </h2>
     <ol class="rounded">
         {#if entries.length === 0}
-            <li class="text-gray-500">No entries yet.</li>
+            <li class="flex items-center justify-center">
+                <div class="text-center p-6">
+                    <div class="text-6xl mb-4 opacity-20">🏆</div>
+                    <p class="text-gray-600 dark:text-gray-400 font-medium mb-2">No entries yet</p>
+                    <p class="text-gray-400 dark:text-gray-500 text-sm">Your first win lands here</p>
+                </div>
+            </li>
         {:else}
             {#each entries as entry, idx (idx)}
                 <li class="border border-transparent hover:border-gray-300 dark:hover:border-gray-600 rounded transition-all">
@@ -50,7 +57,7 @@
                     <!-- svelte-ignore a11y_no_static_element_interactions -->
                     <div
                         onclick={() => toggle(idx)}
-                        class="flex justify-between dark:text-gray-300 p-2 cursor-pointer dark:hover:bg-gray-800 rounded transition-colors"
+                        class="flex justify-between text-gray-900 dark:text-gray-100 p-2 cursor-pointer rounded transition-colors"
                     >
                         <span class="font-medium font-mono">{entry.time}s</span>
                         <span class="text-xs text-gray-400 ml-2">{entry.date}</span>
@@ -61,18 +68,8 @@
                                 Seed: {entry.seed || "N/A"}
                             </div>
                             <div class="flex gap-2 justify-center">
-                                <button
-                                    type="button"
-                                    class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                                    title="Retry game"
-                                    onclick={() => retry(entry)}
-                                >🔄</button>
-                                <button
-                                    type="button"
-                                    class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                                    title="Replay"
-                                    onclick={() => replay(entry)}
-                                >▶️</button>
+                                <Button variant="ghost" title="Retry game" onclick={() => retry(entry)}>🔄</Button>
+                                <Button variant="ghost" title="Replay" onclick={() => replay(entry)}>▶️</Button>
                             </div>
                         </div>
                     {/if}

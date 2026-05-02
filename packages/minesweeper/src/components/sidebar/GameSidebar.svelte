@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Difficulty, PlayHistory, Position, UserActionDetail } from "@caiji-games/minesweeper-core";
     import type { Leaderboards } from "../../state/leaderboard.svelte";
+    import Button from "../ui/Button.svelte";
     import Leaderboard from "./Leaderboard.svelte";
     import ActionList from "./ActionList.svelte";
     import PlayHistoryList from "./PlayHistoryList.svelte";
@@ -60,11 +61,11 @@
 </script>
 
 <!-- Mobile floating button -->
-<button
-    type="button"
+<Button
+    variant="icon"
     onclick={() => (isOpen = true)}
-    class="{hiddenClass} fixed top-4 right-4 z-50 p-2 rounded-md bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200 shadow-lg"
-    aria-label="Open sidebar"
+    class="{hiddenClass} fixed top-4 right-4 z-50 shadow-lg"
+    ariaLabel="Open sidebar"
 >
     <div class="relative w-6 h-6 overflow-hidden">
         <div class="animate-slide-emoji absolute inset-0 flex flex-col">
@@ -72,7 +73,7 @@
             <span class="h-6 flex items-center justify-center">📋</span>
         </div>
     </div>
-</button>
+</Button>
 
 <!-- Mobile backdrop -->
 {#if isOpen}
@@ -88,7 +89,7 @@
 <div
     class="
         fixed right-0 top-0 z-50 h-dvh w-[250px]
-        bg-white dark:bg-gray-800
+        bg-gray-50 dark:bg-gray-800
         shadow-2xl
         transform transition-transform duration-300
         {isOpen ? 'translate-x-0' : 'translate-x-full'}
@@ -97,16 +98,17 @@
     "
 >
     <!-- Mobile close button -->
-    <button
-        type="button"
+    <Button
+        variant="ghost"
+        size="sm"
         onclick={close}
-        class="{hiddenClass} absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        aria-label="Close sidebar"
+        class="{hiddenClass} absolute top-2 right-2"
+        ariaLabel="Close sidebar"
     >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
-    </button>
+    </Button>
 
     <div class="grid grid-rows-[max-content_1fr] gap-0 h-full">
         <Leaderboard

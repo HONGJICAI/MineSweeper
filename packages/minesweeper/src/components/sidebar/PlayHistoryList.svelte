@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { PlayHistory, Position, UserActionDetail } from "@caiji-games/minesweeper-core";
+    import Button from "../ui/Button.svelte";
 
     let {
         playHistory,
@@ -66,18 +67,8 @@
                             Seed: {entry.seed || "N/A"}
                         </div>
                         <div class="flex gap-2 justify-center">
-                            <button
-                                type="button"
-                                class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                                title="Retry game"
-                                onclick={() => retry(entry)}
-                            >🔄</button>
-                            <button
-                                type="button"
-                                class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                                title="Replay your actions"
-                                onclick={() => replay(entry)}
-                            >▶️</button>
+                            <Button variant="ghost" title="Retry game" onclick={() => retry(entry)}>🔄</Button>
+                            <Button variant="ghost" title="Replay your actions" onclick={() => replay(entry)}>▶️</Button>
                         </div>
                     </div>
                 {/if}

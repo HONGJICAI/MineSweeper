@@ -24,7 +24,7 @@
     let reversed = $derived([...actions].reverse());
 </script>
 
-<ul class="bg-gray-50 dark:bg-gray-800 rounded overflow-y-auto p-1 h-full scrollbar-hide">
+<ul class="space-y-1 overflow-y-auto rounded h-full scrollbar-hide">
     {#if actions.length === 0}
         <li class="flex items-center justify-center h-full">
             <div class="text-center p-8">
@@ -41,11 +41,11 @@
             <li
                 onmouseenter={() => setHighlightedCell(action.position)}
                 onmouseleave={() => setHighlightedCell(undefined)}
-                class="animate-slide-down {colorFor(action.score)} rounded mb-1 px-2 py-1 cursor-pointer hover:scale-105 transition-transform flex items-center gap-2"
+                class="animate-slide-down {colorFor(action.score)} border border-transparent hover:border-gray-300 dark:hover:border-gray-600 rounded p-2 cursor-pointer transition-all flex items-center gap-2"
             >
                 <span class="text-gray-600 dark:text-gray-400 font-mono text-xs min-w-[4ch] text-right">{idx}.</span>
                 <span>{actionEmoji[action.type]}</span>
-                <b>{action.position.r}</b>, <b>{action.position.c}</b>
+                <span class="font-mono"><b>{action.position.r}</b>, <b>{action.position.c}</b></span>
             </li>
         {/each}
     {/if}
