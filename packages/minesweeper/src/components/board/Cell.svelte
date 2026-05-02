@@ -43,6 +43,7 @@
 
 <button
     type="button"
+    id="cell-{r}-{c}"
     onmousedown={(e) => onMouseDown(e, r, c)}
     onmouseup={(e) => onMouseUp(e, r, c)}
     ontouchstart={(e) => onTouchStart(e, r, c)}

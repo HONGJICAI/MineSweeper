@@ -2,6 +2,7 @@
     import {
         GameStatus,
         type ActionType,
+        type Difficulty,
         type PlayHistory,
         type Position,
         type UserActionDetail,
@@ -11,6 +12,8 @@
     import GameSidebar from "./components/sidebar/GameSidebar.svelte";
     import StatisticsModal from "./components/dialogs/StatisticsModal.svelte";
     import AutoGamingOverlay from "./components/dialogs/AutoGamingOverlay.svelte";
+    import LobbyScreen from "./components/LobbyScreen.svelte";
+    import Button from "./components/ui/Button.svelte";
     import DarkModeToggle from "./components/ui/DarkModeToggle.svelte";
     import { createGameState } from "./state/game.svelte";
     import { createDesktopMouseState } from "./state/desktopMouse.svelte";
@@ -31,6 +34,27 @@
     let mobileMode = $state<MobileMode>("reveal");
     let showStats = $state(false);
     let skipHistory = false;
+
+    // Touch-primary devices (phones, tablets) start in a lobby with big difficulty cards
+    // and return to it after each game. Devices with a fine primary pointer (mouse) stay
+    // in the inline game layout. Hybrid devices (Surface) follow whichever is currently
+    // primary — switches mid-session if the user docks/undocks.
+    const initialTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+    let isPrimaryTouch = $state<boolean>(initialTouch);
+    let view = $state<"lobby" | "game">(initialTouch ? "lobby" : "game");
+
+    $effect(() => {
+        if (typeof window === "undefined") return;
+        const mq = window.matchMedia("(pointer: coarse)");
+        const handler = (e: MediaQueryListEvent) => (isPrimaryTouch = e.matches);
+        mq.addEventListener("change", handler);
+        return () => mq.removeEventListener("change", handler);
+    });
+
+    // Desktop never sees lobby; if input switches to fine while in lobby, advance to game.
+    $effect(() => {
+        if (!isPrimaryTouch && view === "lobby") view = "game";
+    });
 
     // Wraps a game action so the result is recorded as a user action.
     function performAction(type: ActionType, r: number, c: number) {
@@ -68,6 +92,16 @@
         timer.reset();
         userActions.reset();
         highlightedCell = undefined;
+    }
+
+    function pickDifficulty(d: Difficulty) {
+        game.setDifficulty(d);
+        view = "game";
+    }
+
+    function backToLobby() {
+        view = "lobby";
+        handleReset(true);
     }
 
     const replay = createReplayState({
@@ -171,56 +205,79 @@
 
 <svelte:window oncontextmenu={preventCtx} />
 
-<DarkModeToggle />
+{#if isPrimaryTouch && view === "game"}
+    <!-- On touch in-game: replace dark mode toggle with a back button. -->
+    <Button
+        variant="icon"
+        onclick={backToLobby}
+        class="fixed top-4 left-4 z-50 shadow-lg"
+        ariaLabel="Back to lobby"
+    >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width={2} d="M15 19l-7-7 7-7" />
+        </svg>
+    </Button>
+{:else}
+    <DarkModeToggle />
+{/if}
 
-<main class="flex h-dvh w-dvw max-w-dvw max-h-dvh justify-center items-start lg:gap-8 gap-4 p-4 bg-white dark:bg-gray-900">
-    <div class="flex flex-col items-center flex-1 min-w-0 {minWidthClass} min-h-[480px] h-full">
-        <h1 class="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">MineSweeper</h1>
-
-        <GameControls
-            difficulty={game.difficulty}
-            setDifficulty={game.setDifficulty}
-            {mobileMode}
-            setMobileMode={(m) => (mobileMode = m)}
-            timer={timer.seconds}
-            minesLeft={game.minesLeft}
-            {faceEmoji}
-            seed={game.seed}
-            onReset={() => handleReset(true)}
-            onShowStats={() => (showStats = true)}
-        />
-
-        <div class="flex-1 min-h-0 max-w-full w-fit overflow-auto">
-            <Board {game} {mouse} {touch} {highlightedCell} />
-        </div>
-    </div>
-
-    <GameSidebar
+{#if isPrimaryTouch && view === "lobby"}
+    <LobbyScreen
         leaderboards={leaderboard.boards}
-        difficulty={game.difficulty}
-        userActions={userActions.actions}
-        playHistory={history.map[game.difficulty] ?? []}
-        setHighlightedCell={(c) => (highlightedCell = c)}
-        {onRetry}
-        onReplay={replay.open}
+        history={history.map}
+        onPick={pickDifficulty}
+        onShowStats={() => (showStats = true)}
     />
+{:else}
+    <main class="flex h-dvh w-dvw max-w-dvw max-h-dvh justify-center items-start lg:gap-8 gap-4 p-2 md:p-4 bg-white dark:bg-gray-900">
+        <div class="flex flex-col items-center flex-1 min-w-0 {minWidthClass} min-h-[480px] h-full">
+            <h1 class="hidden pointer-fine:block text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">MineSweeper</h1>
 
-    {#if showStats}
-        <StatisticsModal
-            show={showStats}
-            onClose={() => (showStats = false)}
-            playHistoryMap={history.map}
-            onClearHistory={history.clear}
-            onClearLeaderboard={leaderboard.clear}
-        />
-    {/if}
+            <GameControls
+                difficulty={game.difficulty}
+                setDifficulty={game.setDifficulty}
+                {mobileMode}
+                setMobileMode={(m) => (mobileMode = m)}
+                timer={timer.seconds}
+                minesLeft={game.minesLeft}
+                {faceEmoji}
+                seed={game.seed}
+                onReset={() => handleReset(true)}
+                onShowStats={() => (showStats = true)}
+            />
 
-    {#if replay.showOverlay}
-        <AutoGamingOverlay
-            isAutoPlaying={replay.autoPlaying}
-            title={replay.title}
-            onCancel={replay.cancel}
-            onStart={replay.start}
+            <div class="flex-1 min-h-0 max-w-full w-fit overflow-auto">
+                <Board {game} {mouse} {touch} {highlightedCell} />
+            </div>
+        </div>
+
+        <GameSidebar
+            leaderboards={leaderboard.boards}
+            difficulty={game.difficulty}
+            userActions={userActions.actions}
+            playHistory={history.map[game.difficulty] ?? []}
+            setHighlightedCell={(c) => (highlightedCell = c)}
+            {onRetry}
+            onReplay={replay.open}
         />
-    {/if}
-</main>
+    </main>
+{/if}
+
+{#if showStats}
+    <StatisticsModal
+        show={showStats}
+        onClose={() => (showStats = false)}
+        playHistoryMap={history.map}
+        onClearHistory={history.clear}
+        onClearLeaderboard={leaderboard.clear}
+    />
+{/if}
+
+{#if replay.showOverlay}
+    <AutoGamingOverlay
+        isAutoPlaying={replay.autoPlaying}
+        title={replay.title}
+        onCancel={replay.cancel}
+        onStart={replay.start}
+    />
+{/if}

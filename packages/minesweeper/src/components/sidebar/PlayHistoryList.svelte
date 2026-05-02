@@ -56,9 +56,9 @@
                     >
                         {entry.result}
                     </span>
-                    <span class="text-right break-words font-mono">
+                    <span class="text-right break-words font-medium font-mono">
                         {entry.time}s
-                        {#if entry.date}<span class="text-gray-500 dark:text-gray-400">({entry.date})</span>{/if}
+                        {#if entry.date}<span class="font-normal text-gray-500 dark:text-gray-400">({entry.date})</span>{/if}
                     </span>
                 </div>
                 {#if expandedIndex === idx}

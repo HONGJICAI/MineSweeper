@@ -39,46 +39,35 @@
         await setWindowSize(1140, 750);
         setDifficulty("hard");
     }
-
-    let mobileToggleHidden = $derived(
-        difficulty === "easy"
-            ? "easyFull:hidden"
-            : difficulty === "medium"
-                ? "mediumFull:hidden"
-                : "hardFull:hidden"
-    );
 </script>
 
-<!-- Difficulty + stats -->
-<div class="flex gap-2 mb-2">
+<!-- Difficulty + stats — hidden when primary input is touch (lobby owns this row). -->
+<div class="hidden pointer-fine:flex gap-2 mb-2">
     <Button onclick={pickEasy} active={difficulty === "easy"}>🥉</Button>
     <Button onclick={pickMedium} active={difficulty === "medium"}>🥈</Button>
     <Button onclick={pickHard} active={difficulty === "hard"}>🥇</Button>
     <Button onclick={onShowStats}>📊</Button>
 </div>
 
-<!-- Mobile mode toggle -->
-<div class="{mobileToggleHidden} mb-2 flex gap-2 justify-center">
+<!-- Touch-only: mode toggle for tap-to-flag (right-click isn't available on touch) -->
+<div class="hidden any-pointer-coarse:flex mb-2 gap-2 justify-center">
     <Button onclick={() => setMobileMode("reveal")} active={mobileMode === "reveal"}>⛏️</Button>
     <Button onclick={() => setMobileMode("flag")} active={mobileMode === "flag"}>🚩</Button>
 </div>
 
-<!-- Timer / face / mines -->
+<!-- Timer / face / mines: emojis anchor near the face button, numbers expand outward
+     so the emojis don't drift when digit count changes. -->
 <div class="flex gap-4 items-center mb-2">
-    <div class="flex items-center gap-2 min-w-[80px]">
-        <span class="text-gray-800 dark:text-gray-200 font-semibold">⏰</span>
-        <span class="text-gray-800 dark:text-gray-200 font-semibold font-mono w-12 text-right">
-            {timer}s
-        </span>
+    <div class="flex items-center gap-1 min-w-[80px] justify-end text-gray-800 dark:text-gray-200">
+        <span class="font-medium font-mono">{timer}s</span>
+        <span>⏰</span>
     </div>
     <Button onclick={onReset} class="px-2 py-2">
         {faceEmoji}
     </Button>
-    <div class="flex items-center gap-2 min-w-[80px]">
-        <span class="text-gray-800 dark:text-gray-200 font-semibold">💣</span>
-        <span class="text-gray-800 dark:text-gray-200 font-semibold font-mono w-12">
-            {minesLeft}
-        </span>
+    <div class="flex items-center gap-1 min-w-[80px] justify-start text-gray-800 dark:text-gray-200">
+        <span>💣</span>
+        <span class="font-medium font-mono">{minesLeft}</span>
     </div>
 </div>
 

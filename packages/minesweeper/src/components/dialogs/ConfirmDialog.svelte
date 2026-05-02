@@ -19,7 +19,7 @@
 </script>
 
 <div class="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm shadow-xl">
+    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 max-w-sm shadow-xl">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
         <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">{message}</p>
         <div class="flex gap-2 justify-end">
