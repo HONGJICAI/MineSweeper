@@ -10,6 +10,10 @@
   --breakpoint-easyFull: 670px;
   --breakpoint-mediumFull: 900px;
   --breakpoint-hardFull: 1400px;
+
+  --animate-fade-in: fadeIn 0.3s ease-in-out;
+  --animate-blink: blink 1.5s infinite;
+  --animate-slide-emoji: slideEmoji 4s infinite;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -42,4 +46,20 @@ body {
 .scrollbar-hide {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes slideEmoji {
+  0%, 45% { transform: translateY(0%); }
+  50%, 95% { transform: translateY(-100%); }
+  100% { transform: translateY(0%); }
 }

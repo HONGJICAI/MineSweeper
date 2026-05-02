@@ -4,7 +4,6 @@ import ActionList from "./ActionList";
 import PlayHistoryList from "./PlayHistoryList";
 import { PlayHistory, Position, UserActionDetail } from "./Game.types";
 import { Leaderboards } from "./hooks/useLeaderboard";
-import styles from "./GameSidebar.module.css";
 
 type GameSidebarProps = {
     leaderboards: Leaderboards | null;
@@ -89,7 +88,7 @@ const GameSidebar = React.memo(function GameSidebar({
 
                 {/* Tab Content */}
                 <div
-                    className={`flex-1 overflow-y-auto overflow-x-hidden ${styles.scrollbarHidden}`}
+                    className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
                 >
                     {activeTab === "actions" ? (
                         <ActionList userActions={userActions} setHoveredCell={setHighlightedCell} />
@@ -111,7 +110,7 @@ const GameSidebar = React.memo(function GameSidebar({
                 aria-label="Open sidebar"
             >
                 <div className="relative w-6 h-6 overflow-hidden">
-                    <div className={`${styles.emojiSlider} absolute inset-0 flex flex-col`}>
+                    <div className="animate-slide-emoji absolute inset-0 flex flex-col">
                         <span className="h-6 flex items-center justify-center">🏆</span>
                         <span className="h-6 flex items-center justify-center">📋</span>
                     </div>

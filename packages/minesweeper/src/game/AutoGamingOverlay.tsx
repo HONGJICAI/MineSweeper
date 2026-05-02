@@ -1,5 +1,4 @@
 import React, { useCallback, useState } from 'react';
-import './AutoGamingOverlay.css';
 import { Modal } from '@caiji-games/shared-ui';
 
 interface AutoGamingOverlayProps {
@@ -8,6 +7,8 @@ interface AutoGamingOverlayProps {
   onStartAutoPlay?: (speed: number) => void;
   title?: string;
 }
+
+const cornerBase = "absolute w-[60px] h-[60px] border-[3px] border-red-500 pointer-events-none";
 
 const AutoGamingOverlay: React.FC<AutoGamingOverlayProps> = ({
   isAutoPlaying,
@@ -32,16 +33,25 @@ const AutoGamingOverlay: React.FC<AutoGamingOverlayProps> = ({
   }, []);
 
   return (
-    <div className="auto-gaming-overlay">
-      <div className="replay-indicator">
-        <div className="replay-dot"></div>
-        <span className="replay-text">{title || 'REPLAY'}</span>
+    <div className="absolute inset-0 z-[1000] animate-fade-in">
+      {/* Four L-shaped corner brackets */}
+      <div className={`${cornerBase} top-5 left-5 border-r-0 border-b-0`} />
+      <div className={`${cornerBase} top-5 right-5 border-l-0 border-b-0`} />
+      <div className={`${cornerBase} bottom-5 left-5 border-r-0 border-t-0`} />
+      <div className={`${cornerBase} bottom-5 right-5 border-l-0 border-t-0`} />
+
+      <div className="absolute top-[30px] left-[90px] flex items-center gap-[10px] pointer-events-none">
+        <div className="w-3 h-3 bg-red-500 rounded-full animate-blink" />
+        <span className="text-red-500 text-lg font-bold font-mono tracking-[2px] [text-shadow:0_0_4px_rgba(255,0,0,0.5)]">
+          {title || 'REPLAY'}
+        </span>
       </div>
-      <div className="overlay-content">
+
+      <div className="absolute inset-0 flex items-center justify-center">
         <Modal show={!isAutoPlaying} onClose={onCancelAutoPlay} title="Replaying Options">
           <div className="flex gap-6">
             {/* Left side - Options */}
-            <div className="flex-1 speed-options dark:text-gray-100">
+            <div className="flex-1 dark:text-gray-100">
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">Playing Speed</h3>
               <div className="space-y-3">
                 <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 p-3 rounded-lg transition-colors">
@@ -73,7 +83,7 @@ const AutoGamingOverlay: React.FC<AutoGamingOverlayProps> = ({
                     value={customSpeed}
                     onChange={handleCustomSpeedChange}
                     disabled={speedOption !== 'custom'}
-                    className="speed-input w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-gray-800 dark:bg-gray-700 dark:text-white transition-all text-sm"
+                    className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-100 dark:disabled:bg-gray-800 dark:bg-gray-700 dark:text-white transition-all text-sm"
                     placeholder="ms"
                   />
                   <span className="text-sm text-gray-500 dark:text-gray-400">ms</span>
@@ -84,7 +94,7 @@ const AutoGamingOverlay: React.FC<AutoGamingOverlayProps> = ({
             {/* Right side - Go button */}
             <div className="flex items-center">
               <button
-                className="play-button px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 onClick={handlePlay}
               >
                 Go
