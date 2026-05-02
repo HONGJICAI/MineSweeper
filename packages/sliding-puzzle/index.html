@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/128x128@2x.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <title>Sliding Puzzle</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+      // Tauri webview: suppress the OS-level right-click menu so the game
+      // doesn't expose Inspect Element, etc.
+      document.addEventListener('contextmenu', (e) => e.preventDefault());
+    </script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { PlayHistory, Position, UserActionDetail } from "@caiji-games/minesweeper-core";
-    import Button from "../ui/Button.svelte";
+    import { Button } from "@caiji-games/shared-ui";
 
     let {
         playHistory,

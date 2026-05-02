@@ -1,7 +1,6 @@
 <script lang="ts">
     import type { Difficulty } from "@caiji-games/minesweeper-core";
-    import Button from "../ui/Button.svelte";
-    import Modal from "../ui/Modal.svelte";
+    import { Button, Modal } from "@caiji-games/shared-ui";
     import ConfirmDialog from "./ConfirmDialog.svelte";
     import { DifficultyText } from "../../types";
     import type { PlayHistoryMap } from "../../state/playHistory.svelte";

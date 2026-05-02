@@ -1,4 +1,4 @@
-import { GameState, Position } from '../types/game';
+import type { GameState, Position } from '../types/game';
 
 export class GameEngine {
   static createBoard(size: number): (number | null)[] {

@@ -13,8 +13,7 @@
     import StatisticsModal from "./components/dialogs/StatisticsModal.svelte";
     import AutoGamingOverlay from "./components/dialogs/AutoGamingOverlay.svelte";
     import LobbyScreen from "./components/LobbyScreen.svelte";
-    import Button from "./components/ui/Button.svelte";
-    import DarkModeToggle from "./components/ui/DarkModeToggle.svelte";
+    import { Button, DarkModeToggle } from "@caiji-games/shared-ui";
     import { createGameState } from "./state/game.svelte";
     import { createDesktopMouseState } from "./state/desktopMouse.svelte";
     import { createMobileTouchState, type MobileMode } from "./state/mobileTouch.svelte";
