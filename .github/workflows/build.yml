@@ -111,16 +111,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build desktop apps
-        run: |
-          if [ "${{ matrix.platform }}" = "ubuntu-22.04" ]; then
-            # Sequential build for Linux to avoid linuxdeploy race condition
-            echo "Building apps sequentially on Linux..."
-            pnpm run tauri:seq build
-          else
-            # Parallel build for other platforms
-            echo "Building apps in parallel..."
-            pnpm run tauri build
-          fi
+        # `pnpm tauri` runs each package's tauri build sequentially —
+        # required because Windows NSIS and Linux linuxdeploy share global
+        # caches that can't tolerate concurrent writes from two packages.
+        run: pnpm run tauri build
         shell: bash
 
       - name: Upload desktop build artifacts
