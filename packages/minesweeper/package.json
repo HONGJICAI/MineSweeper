@@ -9,6 +9,8 @@
     "preview": "vite preview",
     "serve": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest",
+    "test:run": "vitest run",
     "tauri": "tauri",
     "tauri:icons": "tauri icon public/128x128@2x.png",
     "tauri:steam": "pnpm tauri build --config src-tauri/tauri.steam.conf.json && node packSteam.cjs",
@@ -39,7 +41,8 @@
     "tailwindcss": "^4",
     "typescript": "^5.2.2",
     "vite": "^5.3.1",
-    "vite-plugin-pwa": "^1.2.0"
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^2.1.9"
   },
   "packageManager": "pnpm@10.13.0"
 }

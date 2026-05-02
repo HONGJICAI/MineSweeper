@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import Game from "./app/Game";
+import Game from "./game/Game";
 import { DarkModeToggle } from "@caiji-games/shared-ui";
 
 function App() {

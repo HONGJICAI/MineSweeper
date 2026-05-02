@@ -21,10 +21,16 @@ export function useDesktopMouse({
         rightDown: false,
         position: { r: -1, c: -1 },
     });
-    
-    // Use ref to always have the latest mouseAction without causing re-renders
+
+    // Latest-ref pattern: handlers below have empty deps so they stay referentially
+    // stable, which lets React.memo on Cell actually skip re-renders for cells that
+    // didn't change.
     const mouseActionRef = useRef(mouseAction);
     mouseActionRef.current = mouseAction;
+    const gameStatusRef = useRef(gameStatus);
+    gameStatusRef.current = gameStatus;
+    const onCellActionRef = useRef(onCellAction);
+    onCellActionRef.current = onCellAction;
 
     const resetMouseAction = useCallback(() => {
         setMouseAction({
@@ -32,12 +38,13 @@ export function useDesktopMouse({
             rightDown: false,
             position: { r: -1, c: -1 },
         });
-    } , []);
+    }, []);
 
     const handleMouseDown = useCallback(
         (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => {
-            if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
-            if (gameStatus === GameStatus.Init && e.button === 2) return;
+            const status = gameStatusRef.current;
+            if (status === GameStatus.GameOver || status === GameStatus.Win) return;
+            if (status === GameStatus.Init && e.button === 2) return;
             if (e.button === 0)
                 setMouseAction(prev => ({
                     ...prev,
@@ -52,29 +59,28 @@ export function useDesktopMouse({
                 }));
             e.stopPropagation();
         },
-        [gameStatus]
+        []
     );
 
     const handleMouseUp = useCallback(
         (e: React.MouseEvent<HTMLButtonElement>, r: number, c: number) => {
-            if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
-            
-            // Use ref to get the current mouseAction
-            const currentMouseAction = mouseActionRef.current;
-            
-            if (currentMouseAction.position.r === r && currentMouseAction.position.c === c) {
-                if (currentMouseAction.leftDown && currentMouseAction.rightDown) {
-                    onCellAction({ type: "chord", position: { r, c } });
-                } else if (currentMouseAction.leftDown && e.button === 0) {
-                    onCellAction({ type: "reveal", position: { r, c } });
-                } else if (currentMouseAction.rightDown && e.button === 2) {
-                    onCellAction({ type: "flag", position: { r, c } });
+            const status = gameStatusRef.current;
+            if (status === GameStatus.GameOver || status === GameStatus.Win) return;
+
+            const current = mouseActionRef.current;
+            if (current.position.r === r && current.position.c === c) {
+                if (current.leftDown && current.rightDown) {
+                    onCellActionRef.current({ type: "chord", position: { r, c } });
+                } else if (current.leftDown && e.button === 0) {
+                    onCellActionRef.current({ type: "reveal", position: { r, c } });
+                } else if (current.rightDown && e.button === 2) {
+                    onCellActionRef.current({ type: "flag", position: { r, c } });
                 }
             }
             resetMouseAction();
             e.stopPropagation();
         },
-        [gameStatus, onCellAction, resetMouseAction] // No mouseAction dependency!
+        [resetMouseAction]
     );
 
     return {

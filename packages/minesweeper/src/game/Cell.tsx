@@ -1,12 +1,7 @@
 import React, { useCallback } from "react";
-import { GameStatus } from "./Game.types";
+import { CellType, GameStatus } from "./Game.types";
 
-export type CellType = {
-    isMine: boolean;
-    isRevealed: boolean;
-    isFlagged: boolean;
-    adjacentMines: number;
-};
+export type { CellType };
 
 interface CellProps {
     cell: CellType;

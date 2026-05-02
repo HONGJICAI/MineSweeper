@@ -27,9 +27,21 @@ export function useMobileTouch({
 }: UseMobileTouchProps) {
     const startRef = useRef<TouchStart | null>(null);
 
+    // Latest-ref pattern keeps the touch handlers referentially stable so Cell.memo
+    // doesn't get invalidated on every board update.
+    const gameStatusRef = useRef(gameStatus);
+    gameStatusRef.current = gameStatus;
+    const onCellActionRef = useRef(onCellAction);
+    onCellActionRef.current = onCellAction;
+    const mobileActionRef = useRef(mobileAction);
+    mobileActionRef.current = mobileAction;
+    const boardRef = useRef(board);
+    boardRef.current = board;
+
     const handleTouchStart = useCallback(
         (e: React.TouchEvent<HTMLButtonElement>, r: number, c: number) => {
-            if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
+            const status = gameStatusRef.current;
+            if (status === GameStatus.GameOver || status === GameStatus.Win) return;
             const t = e.touches[0];
             startRef.current = {
                 r,
@@ -39,7 +51,7 @@ export function useMobileTouch({
                 cancelled: false,
             };
         },
-        [gameStatus]
+        []
     );
 
     const handleTouchMove = useCallback((e: React.TouchEvent) => {
@@ -58,7 +70,8 @@ export function useMobileTouch({
         (e: React.TouchEvent<HTMLButtonElement>, r: number, c: number) => {
             const start = startRef.current;
             startRef.current = null;
-            if (gameStatus === GameStatus.GameOver || gameStatus === GameStatus.Win) return;
+            const status = gameStatusRef.current;
+            if (status === GameStatus.GameOver || status === GameStatus.Win) return;
             if (!start || start.cancelled) return;
             if (start.r !== r || start.c !== c) return;
 
@@ -66,15 +79,17 @@ export function useMobileTouch({
             // touch devices, otherwise the desktop mouse hook would double-trigger.
             e.preventDefault();
 
-            if (mobileAction === "flag") {
-                onCellAction({ type: "flag", position: { r, c } });
-            } else if (board[r][c].isRevealed) {
-                onCellAction({ type: "chord", position: { r, c } });
+            const currentBoard = boardRef.current;
+            const action = mobileActionRef.current;
+            if (action === "flag") {
+                onCellActionRef.current({ type: "flag", position: { r, c } });
+            } else if (currentBoard[r][c].isRevealed) {
+                onCellActionRef.current({ type: "chord", position: { r, c } });
             } else {
-                onCellAction({ type: "reveal", position: { r, c } });
+                onCellActionRef.current({ type: "reveal", position: { r, c } });
             }
         },
-        [gameStatus, mobileAction, board, onCellAction]
+        []
     );
 
     const handleTouchCancel = useCallback(() => {

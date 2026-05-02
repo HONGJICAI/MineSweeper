@@ -5,6 +5,13 @@ export enum GameStatus {
   Win = 3
 }
 
+export type CellType = {
+    isMine: boolean;
+    isRevealed: boolean;
+    isFlagged: boolean;
+    adjacentMines: number;
+};
+
 const Difficulty = {
   Easy: "easy",
   Medium: "medium",
