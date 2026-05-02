@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { Button } from "./components/Button";
+import { Button } from "@caiji-games/shared-ui";
 import { Difficulty } from "./Game.types";
 import { setWindowSize } from "./utils/platform";
 

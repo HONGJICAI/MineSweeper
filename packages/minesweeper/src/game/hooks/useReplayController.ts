@@ -94,7 +94,10 @@ export function useReplayController({
         setAutoPlaying(false);
         setPendingReplay(null);
         lastPlayedStepRef.current = null;
-    }, []);
+        setHighlightedCell(undefined);
+        // Reset the board so the user lands on a fresh init state instead of a half-played one.
+        handleReset();
+    }, [handleReset, setHighlightedCell]);
 
     return {
         replayTitle,

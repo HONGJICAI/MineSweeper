@@ -4,6 +4,7 @@ import ActionList from "./ActionList";
 import PlayHistoryList from "./PlayHistoryList";
 import { PlayHistory, Position, UserActionDetail } from "./Game.types";
 import { Leaderboards } from "./hooks/useLeaderboard";
+import { Button } from "@caiji-games/shared-ui";
 
 type GameSidebarProps = {
     leaderboards: Leaderboards | null;
@@ -104,9 +105,10 @@ const GameSidebar = React.memo(function GameSidebar({
         <>
 
             {/* Mobile floating button - only visible on small screens */}
-            <button
+            <Button
+                variant="icon"
                 onClick={handleOpenSidebar}
-                className={`${hiddenClass} fixed top-4 right-4 z-50 p-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200 shadow-lg`}
+                className={`${hiddenClass} fixed top-4 right-4 z-50 shadow-lg`}
                 aria-label="Open sidebar"
             >
                 <div className="relative w-6 h-6 overflow-hidden">
@@ -115,7 +117,7 @@ const GameSidebar = React.memo(function GameSidebar({
                         <span className="h-6 flex items-center justify-center">📋</span>
                     </div>
                 </div>
-            </button>
+            </Button>
 
             {/* Mobile overlay */}
             {isOpen && (
@@ -138,15 +140,17 @@ const GameSidebar = React.memo(function GameSidebar({
                 `}
             >
                 {/* Close button - only visible on mobile */}
-                <button
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={handleCloseSidebar}
-                    className={`${hiddenClass} absolute top-2 right-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200`}
+                    className={`${hiddenClass} absolute top-2 right-2`}
                     aria-label="Close sidebar"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                </button>
+                </Button>
 
                 <div className="grid grid-rows-[max-content_1fr] gap-0 h-full">
                     {sidebarContent}

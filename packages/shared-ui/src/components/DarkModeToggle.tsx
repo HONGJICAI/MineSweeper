@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
+import { Button } from "./Button";
 
 export default function DarkModeToggle() {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    // Check for saved preference or system preference
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-    
+
     setDarkMode(isDark);
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -18,7 +18,7 @@ export default function DarkModeToggle() {
   const toggleDarkMode = useCallback(() => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
-    
+
     if (newDarkMode) {
       document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
@@ -29,9 +29,10 @@ export default function DarkModeToggle() {
   }, [darkMode]);
 
   return (
-    <button
+    <Button
+      variant="icon"
       onClick={toggleDarkMode}
-      className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200 shadow-lg"
+      className="fixed top-4 left-4 z-50 shadow-lg"
       aria-label="Toggle dark mode"
     >
       {darkMode ? (
@@ -43,6 +44,6 @@ export default function DarkModeToggle() {
           <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
         </svg>
       )}
-    </button>
+    </Button>
   );
 }
