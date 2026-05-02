@@ -21,7 +21,7 @@
     }
 
     function retry(entry: PlayHistory) {
-        const firstStep = entry.actions.at(0)?.position;
+        const firstStep = entry.actions[0]?.position;
         if (!firstStep) {
             console.warn("No first step available for retry.");
             return;
