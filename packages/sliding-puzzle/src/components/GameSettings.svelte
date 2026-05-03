@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Modal } from "@caiji-games/shared-ui";
     import { getDefaultImageUrl } from "../utils/defaultImages";
-    import type { GameMode } from "../types/game";
+    import type { GameMode } from "@caiji-games/sliding-puzzle-core";
 
     let {
         mode,

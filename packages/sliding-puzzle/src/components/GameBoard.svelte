@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { GameState, GameMode } from "../types/game";
+    import type { GameState, GameMode } from "@caiji-games/sliding-puzzle-core";
 
     let {
         gameState,

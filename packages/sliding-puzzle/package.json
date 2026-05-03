@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@caiji-games/shared-ui": "workspace:*",
+    "@caiji-games/sliding-puzzle-core": "workspace:*",
     "@tauri-apps/api": "^2.5.0"
   },
   "devDependencies": {

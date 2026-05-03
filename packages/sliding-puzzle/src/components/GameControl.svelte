@@ -1,6 +1,6 @@
 <script lang="ts">
     import { EmojiBtn } from "@caiji-games/shared-ui";
-    import type { GameMode } from "../types/game";
+    import type { GameMode } from "@caiji-games/sliding-puzzle-core";
     import GameSettings from "./GameSettings.svelte";
 
     let {

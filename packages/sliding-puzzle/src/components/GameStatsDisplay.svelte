@@ -1,6 +1,6 @@
 <script lang="ts">
     import { EmojiBtn } from "@caiji-games/shared-ui";
-    import type { GameStats } from "../types/game";
+    import type { GameStats } from "@caiji-games/sliding-puzzle-core";
 
     let {
         stats,

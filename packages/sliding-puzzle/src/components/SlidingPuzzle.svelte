@@ -1,6 +1,12 @@
 <script lang="ts">
-    import type { GameMode, GameState, GameStats } from "../types/game";
-    import { GameEngine } from "../utils/gameEngine";
+    import {
+        createBoard,
+        createSolvedBoard,
+        moveTile,
+        type GameMode,
+        type GameState,
+        type GameStats,
+    } from "@caiji-games/sliding-puzzle-core";
     import { getDefaultImageUrl } from "../utils/defaultImages";
     import GameBoard from "./GameBoard.svelte";
     import GameStatsDisplay from "./GameStatsDisplay.svelte";
@@ -15,7 +21,7 @@
     } = $props();
 
     function solvedState(size: number): GameState {
-        const board = GameEngine.createSolvedBoard(size);
+        const board = createSolvedBoard(size);
         return {
             board,
             size,
@@ -47,11 +53,11 @@
 
     function handleTileClick(index: number) {
         if (gameState.isCompleted) return;
-        gameState = GameEngine.moveTile(gameState, index);
+        gameState = moveTile(gameState, index);
     }
 
     function startNewGame() {
-        const board = GameEngine.createBoard(gameState.size);
+        const board = createBoard(gameState.size);
         gameState = {
             board,
             size: gameState.size,

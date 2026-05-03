@@ -1,7 +1,7 @@
 <script lang="ts">
     import { DarkModeToggle } from "@caiji-games/shared-ui";
     import SlidingPuzzle from "./components/SlidingPuzzle.svelte";
-    import type { GameMode } from "./types/game";
+    import type { GameMode } from "@caiji-games/sliding-puzzle-core";
 
     let mode = $state<GameMode>("number");
 </script>
