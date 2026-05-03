@@ -1,9 +1,8 @@
 <script lang="ts">
     import { T } from "@threlte/core";
-    import { Text } from "@threlte/extras";
     import type { CubeCell, CubePosition } from "@caiji-games/minesweeper-cube-core";
     import { GameStatus } from "@caiji-games/minesweeper-cube-core";
-    import { getEmojiTexture } from "./emojiTexture.ts";
+    import { getEmojiTexture, getNumberTexture } from "./glyphTexture.ts";
 
     type Props = {
         cell: CubeCell;
@@ -121,24 +120,24 @@
     <T.PlaneGeometry args={[edgeSize, edgeSize]} />
     <T.MeshStandardMaterial {color} roughness={0.7} metalness={0.05} />
 
-    <!-- Glyph priority (matches the 2D Cell):
-         1. Revealed safe with count → colored number (Text — numbers render fine in default SDF font)
-         2. Revealed mine that was correctly flagged → keep 🚩 (you got this one right)
+    <!-- Glyph priority (matches the 2D Cell). All glyphs render via canvas-textured planes so
+         we drop troika-three-text from the bundle (~200KB savings) and get OS-native color
+         emojis for free.
+         1. Revealed safe with count → colored number
+         2. Revealed mine that was correctly flagged → 🚩
          3. Revealed mine → 💣
          4. Unrevealed flag on a non-mine after game over → ❌ (wrong flag)
          5. Unrevealed flag → 🚩
-         Emoji glyphs go through a canvas-textured plane so we get OS color emojis
-         (troika-three-text's default font is monochrome).
     -->
     {#if cell.isRevealed && !cell.isMine && cell.adjacentMines > 0}
-        <Text
-            text={String(cell.adjacentMines)}
-            fontSize={size * 0.55}
-            color={NUMBER_COLORS[cell.adjacentMines] ?? "#0f172a"}
-            anchorX="center"
-            anchorY="middle"
-            position={[0, 0, 0.001]}
-        />
+        <T.Mesh position={[0, 0, 0.001]}>
+            <T.PlaneGeometry args={[size * 0.7, size * 0.7]} />
+            <T.MeshBasicMaterial
+                map={getNumberTexture(cell.adjacentMines, NUMBER_COLORS[cell.adjacentMines] ?? "#0f172a")}
+                transparent
+                depthWrite={false}
+            />
+        </T.Mesh>
     {:else if cell.isRevealed && cell.isMine && cell.isFlagged}
         <T.Mesh position={[0, 0, 0.001]}>
             <T.PlaneGeometry args={[size * 0.7, size * 0.7]} />

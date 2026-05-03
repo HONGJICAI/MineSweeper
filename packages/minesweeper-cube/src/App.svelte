@@ -8,6 +8,7 @@
     import { createGameState } from "./state/game.svelte.ts";
     import { createLeaderboardState } from "./state/leaderboard.svelte.ts";
     import { createPlayHistoryState } from "./state/playHistory.svelte.ts";
+    import { celebrate } from "./lib/celebrate.ts";
     import type { MobileMode } from "./state/mobileMode.ts";
 
     const game = createGameState("easy");
@@ -69,7 +70,10 @@
                 time: timer.seconds,
                 date: new Date().toISOString(),
             };
-            if (s === GameStatus.Win) leaderboard.add(game.difficulty, entry);
+            if (s === GameStatus.Win) {
+                leaderboard.add(game.difficulty, entry);
+                celebrate();
+            }
             history.addEntry(game.difficulty, entry);
         }
 

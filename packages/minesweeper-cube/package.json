@@ -15,11 +15,13 @@
     "@caiji-games/shared-ui": "workspace:*",
     "@threlte/core": "^8.0.0",
     "@threlte/extras": "^9.0.0",
+    "canvas-confetti": "^1.9.3",
     "three": "^0.184.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@tailwindcss/vite": "^4.1.11",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/three": "^0.184.0",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
