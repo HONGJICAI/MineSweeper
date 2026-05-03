@@ -30,7 +30,10 @@ jobs:
       #   run: pnpm lint
 
       - name: Type check
-        run: pnpm --filter minesweeper run tsc --noEmit
+        run: pnpm -r run check
+
+      - name: Run unit tests
+        run: pnpm -r run test:run
 
   build-web:
     runs-on: ubuntu-latest

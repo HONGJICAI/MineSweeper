@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@caiji-games/minesweeper-core": "workspace:*",
+    "@caiji-games/shared-state": "workspace:*",
     "@caiji-games/shared-ui": "workspace:*",
     "@tauri-apps/api": "^2.5.0"
   },

@@ -20,7 +20,7 @@
     import { createUserActionsState } from "./state/userActions.svelte";
     import { createLeaderboardState } from "./state/leaderboard.svelte";
     import { createPlayHistoryState } from "./state/playHistory.svelte";
-    import { createTimerState } from "./state/timer.svelte";
+    import { createTimerState } from "@caiji-games/shared-state";
     import { createReplayState } from "./state/replay.svelte";
 
     const game = createGameState("easy");
