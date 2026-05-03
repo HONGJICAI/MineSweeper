@@ -1,6 +1,5 @@
 <script lang="ts">
-    import Button from "../ui/Button.svelte";
-    import Modal from "../ui/Modal.svelte";
+    import { Button, Modal } from "@caiji-games/shared-ui";
 
     let {
         isAutoPlaying,

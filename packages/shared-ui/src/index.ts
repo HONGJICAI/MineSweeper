@@ -1,4 +1,3 @@
-export { Button } from './components/Button';
-export { default as DarkModeToggle } from './components/DarkModeToggle';
-export { default as EmojiBtn } from './components/EmojiBtn';
-export { default as Modal } from './components/Modal';
+export { default as Button } from './components/Button.svelte';
+export { default as DarkModeToggle } from './components/DarkModeToggle.svelte';
+export { default as Modal } from './components/Modal.svelte';

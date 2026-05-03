@@ -1,41 +1,36 @@
 {
-  "name": "sliding_puzzle",
+  "name": "sliding-puzzle",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc && vite build",
+    "build": "svelte-check --tsconfig ./tsconfig.json && vite build",
     "preview": "vite preview",
-    "serve": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "build:web": "cross-env VITE_PLATFORM=web vite build",
+    "build:desktop": "cross-env VITE_PLATFORM=desktop vite build",
     "tauri": "tauri",
     "tauri:icons": "tauri icon public/128x128@2x.png",
     "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
-    "build:web": "cross-env VITE_PLATFORM=web vite build",
-    "build:desktop": "cross-env VITE_PLATFORM=desktop vite build",
-    "postinstall": "pnpm run tauri:icons",
     "tauri:android:init": "npx tauri android init",
     "tauri:android:dev": "npx tauri android dev",
-    "build:android": "cross-env VITE_PLATFORM=mobile vite build && npx tauri android build --apk"
+    "build:android": "cross-env VITE_PLATFORM=mobile vite build && npx tauri android build --apk",
+    "postinstall": "pnpm run tauri:icons"
   },
   "dependencies": {
     "@caiji-games/shared-ui": "workspace:*",
-    "@tauri-apps/api": "^2.5.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@caiji-games/sliding-puzzle-core": "workspace:*",
+    "@tauri-apps/api": "^2.5.0"
   },
   "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@tailwindcss/vite": "^4.1.11",
     "@tauri-apps/cli": "^2.5.0",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@typescript-eslint/eslint-plugin": "^7.13.1",
-    "@typescript-eslint/parser": "^7.13.1",
-    "@vitejs/plugin-react": "^4.3.1",
     "cross-env": "^7.0.3",
-    "eslint": "^9",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
     "tailwindcss": "^4",
     "typescript": "^5.2.2",
     "vite": "^5.3.1"
