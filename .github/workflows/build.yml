@@ -29,6 +29,10 @@ jobs:
       # - name: Lint
       #   run: pnpm lint
 
+      # Cores publish via dist/ — build them first so consumers' svelte-check can resolve types.
+      - name: Build shared packages
+        run: pnpm build:shared
+
       - name: Type check
         run: pnpm -r run check
 
