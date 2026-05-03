@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { EmojiBtn } from "@caiji-games/shared-ui";
+    import { Button } from "@caiji-games/shared-ui";
     import type { GameMode } from "@caiji-games/sliding-puzzle-core";
     import GameSettings from "./GameSettings.svelte";
 
@@ -28,18 +28,20 @@
 
 <div class="flex items-center gap-4">
     <div class="flex gap-2">
-        <EmojiBtn
-            emoji="🔢"
+        <Button
             onclick={() => onModeChange("number")}
             title="数字模式"
             ariaLabel="切换到数字模式"
-        />
-        <EmojiBtn
-            emoji="🖼️"
+        >
+            🔢
+        </Button>
+        <Button
             onclick={() => onModeChange("image")}
             title="图片模式"
             ariaLabel="切换到图片模式"
-        />
+        >
+            🖼️
+        </Button>
     </div>
 
     <GameSettings

@@ -5,7 +5,6 @@ Shared Svelte 5 UI components for Caiji Games workspace.
 ## Components
 
 - `Button` — variant/size aware button
-- `EmojiBtn` — emoji-only button (light wrapper around the gray secondary style)
 - `Modal` — overlay dialog with optional title
 - `DarkModeToggle` — system-aware light/dark switch (persists to localStorage, toggles `.dark` on `<html>`)
 

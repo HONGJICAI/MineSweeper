@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { EmojiBtn } from "@caiji-games/shared-ui";
+    import { Button } from "@caiji-games/shared-ui";
     import type { GameStats } from "@caiji-games/sliding-puzzle-core";
 
     let {
@@ -19,19 +19,17 @@
         <div class="font-medium text-gray-600 dark:text-gray-400">👣</div>
     </div>
     <div class="flex gap-2 items-center">
-        <EmojiBtn
-            emoji={stats.isCompleted ? "▶️" : "🔄"}
-            onclick={onNewGame}
-            title="Start"
-            ariaLabel="Start"
-        />
-        <EmojiBtn
-            emoji="⏹️"
+        <Button onclick={onNewGame} title="Start" ariaLabel="Start">
+            {stats.isCompleted ? "▶️" : "🔄"}
+        </Button>
+        <Button
             onclick={onResetGame}
             title="Reset"
             ariaLabel="Reset"
             disabled={stats.isCompleted}
-        />
+        >
+            ⏹️
+        </Button>
     </div>
     <div class="flex justify-between items-center">
         <div class="font-medium text-gray-600 dark:text-gray-400">⏰</div>
