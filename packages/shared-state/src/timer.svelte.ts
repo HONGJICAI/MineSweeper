@@ -1,3 +1,7 @@
+// Reactive seconds counter that ticks at 1Hz while running. Idempotent start/stop, auto-stops
+// on unmount of the calling component (the inner $effect's teardown handles that).
+//
+// Must be called from a reactive context (component setup or another factory called from one).
 export function createTimerState() {
     let seconds = $state(0);
     let intervalId: ReturnType<typeof setInterval> | null = null;

@@ -2,7 +2,7 @@ import type { Difficulty, PlayHistory } from "@caiji-games/minesweeper-core";
 import { untrack } from "svelte";
 import { Achievement, type AchievementKey } from "../lib/achievement";
 import { setAchievements } from "../lib/platform";
-import { persistedState } from "./storage.svelte";
+import { persistedState } from "./persisted";
 
 export type PlayHistoryMap = {
     easy: PlayHistory[];

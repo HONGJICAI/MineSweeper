@@ -1,0 +1,33 @@
+{
+  "name": "minesweeper-cube",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5182",
+    "build": "svelte-check --tsconfig ./tsconfig.json && vite build",
+    "preview": "vite preview --port 5182",
+    "check": "svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@caiji-games/minesweeper-cube-core": "workspace:*",
+    "@caiji-games/shared-state": "workspace:*",
+    "@caiji-games/shared-ui": "workspace:*",
+    "@threlte/core": "^8.0.0",
+    "@threlte/extras": "^9.0.0",
+    "canvas-confetti": "^1.9.3",
+    "three": "^0.184.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/three": "^0.184.0",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "tailwindcss": "^4",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1",
+    "vite-plugin-pwa": "^1.2.0"
+  }
+}

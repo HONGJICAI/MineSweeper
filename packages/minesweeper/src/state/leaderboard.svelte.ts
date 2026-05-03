@@ -1,6 +1,6 @@
 import type { Difficulty, PlayHistory } from "@caiji-games/minesweeper-core";
 import { untrack } from "svelte";
-import { persistedState } from "./storage.svelte";
+import { persistedState } from "./persisted";
 
 export type Leaderboards = {
     easy: PlayHistory[];
