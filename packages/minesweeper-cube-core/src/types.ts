@@ -25,3 +25,5 @@ export type CubePosition = { face: Face; r: number; c: number };
 export type ActionType = "reveal" | "flag" | "chord";
 
 export type Difficulty = "easy" | "medium" | "hard";
+
+export type Mode = "classic" | "endless";

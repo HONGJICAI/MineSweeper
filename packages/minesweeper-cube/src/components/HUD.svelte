@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { GameStatus, type Difficulty } from "@caiji-games/minesweeper-cube-core";
+    import { GameStatus, type Difficulty, type Mode } from "@caiji-games/minesweeper-cube-core";
     import type { GameState } from "../state/game.svelte.ts";
     import type { TimerState } from "@caiji-games/shared-state";
     import type { MobileMode } from "../state/mobileMode.ts";
@@ -26,12 +26,25 @@
         { key: "hard",   emoji: "💀", label: "Hard",   spec: "9×9×6, 97 mines" },
     ];
 
+    const MODES: Array<{ key: Mode; emoji: string; label: string }> = [
+        { key: "classic", emoji: "🎯", label: "Classic" },
+        { key: "endless", emoji: "♾️", label: "Endless" },
+    ];
+
     const statusText = $derived.by(() => {
+        if (game.mode === "endless") {
+            switch (game.status) {
+                case GameStatus.Init:    return `Round ${game.level - 6} · ${game.N}×${game.N}×6, ${game.totalMines} mines`;
+                case GameStatus.Gaming:  return `Round ${game.level - 6} · ${game.N}×${game.N}×6, ${game.totalMines} mines`;
+                case GameStatus.GameOver: return `💥 Reached round ${game.level - 6} (N=${game.level})`;
+                case GameStatus.Win:     return "🎉";
+            }
+        }
         switch (game.status) {
-            case GameStatus.Init: return isPrimaryTouch ? "Tap any cell to start" : "Click any cell to start";
-            case GameStatus.Gaming: return "In progress";
+            case GameStatus.Init:    return isPrimaryTouch ? "Tap any cell to start" : "Click any cell to start";
+            case GameStatus.Gaming:  return "In progress";
             case GameStatus.GameOver: return "💥 Game over";
-            case GameStatus.Win: return "🎉 You win";
+            case GameStatus.Win:     return "🎉 You win";
         }
     });
 
@@ -46,18 +59,39 @@
     <h1 class="text-lg font-semibold tracking-wide text-slate-100 drop-shadow sm:text-xl">Minesweeper Cube</h1>
 
     <div class="pointer-events-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-2xl bg-slate-800/70 px-3 py-1.5 backdrop-blur-md sm:rounded-full">
-        {#each DIFFICULTIES as d}
+        {#each MODES as m}
             <button
                 type="button"
-                class="flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-colors {game.difficulty === d.key ? 'bg-sky-500 text-white' : 'text-slate-200 hover:bg-slate-700/70'}"
-                title="{d.label} — {d.spec}"
-                aria-label={d.label}
-                onclick={() => game.setDifficulty(d.key)}
+                class="flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-colors {game.mode === m.key ? 'bg-violet-500 text-white' : 'text-slate-200 hover:bg-slate-700/70'}"
+                aria-label={m.label}
+                onclick={() => game.setMode(m.key)}
             >
-                <span aria-hidden="true">{d.emoji}</span>
-                <span class="hidden sm:inline">{d.label}</span>
+                <span aria-hidden="true">{m.emoji}</span>
+                <span class="hidden sm:inline">{m.label}</span>
             </button>
         {/each}
+
+        <div class="hidden h-5 w-px bg-slate-600 sm:block"></div>
+
+        {#if game.mode === "classic"}
+            {#each DIFFICULTIES as d}
+                <button
+                    type="button"
+                    class="flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-colors {game.difficulty === d.key ? 'bg-sky-500 text-white' : 'text-slate-200 hover:bg-slate-700/70'}"
+                    title="{d.label} — {d.spec}"
+                    aria-label={d.label}
+                    onclick={() => game.setDifficulty(d.key)}
+                >
+                    <span aria-hidden="true">{d.emoji}</span>
+                    <span class="hidden sm:inline">{d.label}</span>
+                </button>
+            {/each}
+        {:else}
+            <div class="flex items-center gap-1 px-1 text-sm text-slate-200" title="Current round">
+                <span>♾️</span>
+                <span class="tabular-nums">Lv {game.level}</span>
+            </div>
+        {/if}
 
         <div class="hidden h-5 w-px bg-slate-600 sm:block"></div>
 

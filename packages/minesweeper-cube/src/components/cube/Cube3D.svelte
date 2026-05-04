@@ -1,6 +1,8 @@
 <script lang="ts">
     import { T } from "@threlte/core";
     import { interactivity } from "@threlte/extras";
+    import { tweened } from "svelte/motion";
+    import { cubicInOut } from "svelte/easing";
     import { FACES, type CubePosition } from "@caiji-games/minesweeper-cube-core";
     import CubeFace from "./CubeFace.svelte";
     import CubeControls from "./CubeControls.svelte";
@@ -16,6 +18,23 @@
     let { game, forceFlag, pressedKeys, onChordPressStart, onChordPressEnd }: Props = $props();
 
     interactivity();
+
+    // Level-bump scale animation. svelte/motion's tweened handles the rAF loop + interruption
+    // semantics for us — each .set() smoothly retargets from the current value, so back-to-back
+    // phase changes (e.g. spamming the cheat code) don't cause stutter.
+    const scaleTween = tweened(1, { duration: 250, easing: cubicInOut });
+    let cubeScale = $state(1);
+
+    // Mirror the store value into a $state so we can read it in the threlte template (T.Group's
+    // scale prop wants a number, not a Writable).
+    $effect(() => scaleTween.subscribe((v) => (cubeScale = v)));
+
+    $effect(() => {
+        const phase = game.transitionPhase;
+        if (phase === "shrinking") scaleTween.set(0);
+        else if (phase === "growing") scaleTween.set(1);
+        // idle: leave whatever the last animation produced (should be 1).
+    });
 </script>
 
 <T.PerspectiveCamera makeDefault position={[3, 3, 3]} fov={50} />
@@ -24,7 +43,7 @@
     rotateSpeed={1.0}
     zoomSpeed={1.0}
     dampingFactor={0.08}
-    minDistance={2.5}
+    minDistance={1.5}
     maxDistance={8}
 />
 
@@ -32,19 +51,21 @@
 <T.DirectionalLight position={[5, 8, 5]} intensity={1.2} color="#ffffff" />
 <T.DirectionalLight position={[-5, -3, -5]} intensity={0.5} color="#cbd5ff" />
 
-{#each FACES as face}
-    <CubeFace
-        {face}
-        grid={game.cube[face]}
-        N={game.N}
-        status={game.status}
-        lastStep={game.lastStep && game.lastStep.face === face ? game.lastStep : null}
-        {forceFlag}
-        {pressedKeys}
-        {onChordPressStart}
-        {onChordPressEnd}
-        onReveal={(p: CubePosition) => game.reveal(p)}
-        onFlag={(p: CubePosition) => game.toggleFlag(p)}
-        onChord={(p: CubePosition) => game.chord(p)}
-    />
-{/each}
+<T.Group scale={[cubeScale, cubeScale, cubeScale]}>
+    {#each FACES as face}
+        <CubeFace
+            {face}
+            grid={game.cube[face]}
+            N={game.N}
+            status={game.status}
+            lastStep={game.lastStep && game.lastStep.face === face ? game.lastStep : null}
+            {forceFlag}
+            {pressedKeys}
+            {onChordPressStart}
+            {onChordPressEnd}
+            onReveal={(p: CubePosition) => game.reveal(p)}
+            onFlag={(p: CubePosition) => game.toggleFlag(p)}
+            onChord={(p: CubePosition) => game.chord(p)}
+        />
+    {/each}
+</T.Group>
