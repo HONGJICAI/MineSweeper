@@ -53,6 +53,33 @@
             ? "Drag to rotate · Pinch to zoom · Tap a number to chord"
             : "Drag to rotate · Click to reveal · Right-click or Shift+Click to flag · Click a number to chord"
     );
+
+    // Mobile-friendly cheat trigger: 7 taps on the ♾️ Endless button within a 5-second window
+    // fires the same skip-level cheat as the desktop Konami code. Tapping the button still
+    // works normally (switches to endless mode); the counter just runs in parallel.
+    const CHEAT_TAP_THRESHOLD = 7;
+    const CHEAT_TAP_WINDOW_MS = 5000;
+    let cheatTapCount = 0;
+    let cheatFirstTapAt = 0;
+
+    function handleModeClick(m: Mode) {
+        game.setMode(m);
+        if (m !== "endless") {
+            cheatTapCount = 0;
+            return;
+        }
+        const now = Date.now();
+        if (now - cheatFirstTapAt > CHEAT_TAP_WINDOW_MS) {
+            cheatTapCount = 1;
+            cheatFirstTapAt = now;
+        } else {
+            cheatTapCount += 1;
+        }
+        if (cheatTapCount >= CHEAT_TAP_THRESHOLD) {
+            cheatTapCount = 0;
+            game.cheatAdvanceLevel();
+        }
+    }
 </script>
 
 <div class="pointer-events-none fixed inset-x-0 top-0 z-10 flex flex-col items-center gap-2 p-3">
@@ -64,7 +91,7 @@
                 type="button"
                 class="flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-colors {game.mode === m.key ? 'bg-violet-500 text-white' : 'text-slate-200 hover:bg-slate-700/70'}"
                 aria-label={m.label}
-                onclick={() => game.setMode(m.key)}
+                onclick={() => handleModeClick(m.key)}
             >
                 <span aria-hidden="true">{m.emoji}</span>
                 <span class="hidden sm:inline">{m.label}</span>

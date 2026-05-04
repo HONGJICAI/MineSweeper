@@ -12,7 +12,7 @@
     import { celebrate } from "./lib/celebrate.ts";
     import type { MobileMode } from "./state/mobileMode.ts";
 
-    const game = createGameState("easy");
+    const game = createGameState("easy", { onEndlessClear: () => celebrate() });
     const timer = createTimerState();
     const leaderboard = createLeaderboardState();
     const history = createPlayHistoryState();
@@ -72,11 +72,9 @@
         else timer.stop();
         if (s === GameStatus.Init && r !== prevRunId) timer.reset();
 
-        // Endless: a level bump means the player just cleared a cube. Tiny celebration, no
-        // history record (the run only ends on a mine).
-        if (game.mode === "endless" && lvl !== prevLevel && r === prevRunId) {
-            celebrate();
-        }
+        // Endless: confetti is fired by game state's onEndlessClear callback at the start of
+        // the shrink animation (so the celebration overlaps with the cube shrinking out, not
+        // after it). Nothing extra to do here.
 
         // Record on Win/GameOver only when *transitioning into* that state (skip mount echo).
         // Win never fires in endless mode (the state silently advances), so this branch only

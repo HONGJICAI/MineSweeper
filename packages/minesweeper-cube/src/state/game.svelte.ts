@@ -10,7 +10,14 @@ import {
     type Mode,
 } from "@caiji-games/minesweeper-cube-core";
 
-export function createGameState(initial: Difficulty = "easy") {
+export type GameStateOptions = {
+    // Fired at the start of an endless level-bump (synchronous with the shrink animation start).
+    // Lets the UI play a celebration that overlaps with shrink → swap → grow rather than
+    // popping in mid-transition. Classic-mode wins are signaled separately via status === Win.
+    onEndlessClear?: () => void;
+};
+
+export function createGameState(initial: Difficulty = "easy", opts: GameStateOptions = {}) {
     const initialSweeper = sweeperForDifficulty(initial);
     let mode = $state<Mode>("classic");
     let difficulty = $state<Difficulty>(initial);
@@ -48,19 +55,36 @@ export function createGameState(initial: Difficulty = "easy") {
         return mode === "endless" ? cubeMineSweeperForLevel(level) : sweeperForDifficulty(difficulty);
     }
 
+    // Reset wrapped in the same shrink/grow transition that endless level-bumps use. The heavy
+    // work (cube swap → ~hundreds of three.js Mesh/Material disposals + recreations) happens
+    // at the midpoint when scale is 0, so the mesh churn is visually invisible — what the user
+    // sees is a smooth shrink → grow, not a freeze. Side benefit: INP stays low because the
+    // click handler returns immediately with only synchronous state changes (mode/difficulty
+    // flip, transitionPhase flip), and the browser paints those before the deferred mid-point
+    // setTimeout fires.
     function reset() {
-        if (mode === "endless") level = ENDLESS_START_LEVEL;
-        sweeper = makeSweeper();
-        cube = sweeper.emptyCube();
-        status = GameStatus.Init;
-        seed = "";
-        flagsPlaced = 0;
-        lastStep = null;
-        runCheated = false;
-        // Cancel any in-flight transition.
-        transitionGen++;
-        transitionPhase = "idle";
-        runId += 1;
+        const gen = ++transitionGen;
+        transitionPhase = "shrinking";
+
+        setTimeout(() => {
+            if (gen !== transitionGen) return;
+            // Midpoint: scale ≈ 0, do the heavy data swap.
+            if (mode === "endless") level = ENDLESS_START_LEVEL;
+            sweeper = makeSweeper();
+            cube = sweeper.emptyCube();
+            status = GameStatus.Init;
+            seed = "";
+            flagsPlaced = 0;
+            lastStep = null;
+            runCheated = false;
+            runId += 1;
+            transitionPhase = "growing";
+        }, TRANSITION_HALF_MS);
+
+        setTimeout(() => {
+            if (gen !== transitionGen) return;
+            transitionPhase = "idle";
+        }, TRANSITION_HALF_MS * 2);
     }
 
     function setDifficulty(d: Difficulty) {
@@ -82,6 +106,10 @@ export function createGameState(initial: Difficulty = "easy") {
     function advanceEndlessLevel() {
         const gen = ++transitionGen;
         transitionPhase = "shrinking";
+        // Celebration fires NOW (start of shrink), not at the midpoint. Otherwise confetti
+        // would only appear after the cube has already shrunk to invisible — completely missing
+        // the moment the player actually cleared the round.
+        opts.onEndlessClear?.();
 
         setTimeout(() => {
             if (gen !== transitionGen) return;
