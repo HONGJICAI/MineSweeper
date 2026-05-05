@@ -14,6 +14,10 @@
     "tauri:icons": "tauri icon public/128x128@2x.png",
     "tauri:steam": "pnpm tauri build --config src-tauri/tauri.steam.conf.json && node packSteam.cjs",
     "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
+    "tauri:android:init": "npx tauri android init",
+    "tauri:android:dev": "npx tauri android dev",
+    "build:android": "cross-env VITE_PLATFORM=mobile vite build && npx tauri android build --aab",
+    "build:android:apk": "cross-env VITE_PLATFORM=mobile vite build && npx tauri android build --apk",
     "postinstall": "pnpm run tauri:icons"
   },
   "dependencies": {
