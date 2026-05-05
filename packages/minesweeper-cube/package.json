@@ -7,7 +7,9 @@
     "dev": "vite --host 0.0.0.0 --port 5182",
     "build": "svelte-check --tsconfig ./tsconfig.json && vite build",
     "preview": "vite preview --port 5182",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@caiji-games/minesweeper-cube-core": "workspace:*",
@@ -23,11 +25,13 @@
     "@tailwindcss/vite": "catalog:",
     "@types/canvas-confetti": "^1.9.0",
     "@types/three": "^0.184.0",
+    "happy-dom": "^15.11.7",
     "svelte": "catalog:",
     "svelte-check": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vite-plugin-pwa": "catalog:"
+    "vite-plugin-pwa": "catalog:",
+    "vitest": "catalog:"
   }
 }
