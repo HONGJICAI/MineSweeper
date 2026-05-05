@@ -204,3 +204,23 @@ export function sweeperForDifficulty(d: Difficulty): CubeSweeper {
         case "hard": return hardCubeSweeper();
     }
 }
+
+// Endless mode: density is stepped to match the three classic tiers, mines scale with N². Above
+// N=9 we just keep the hard-tier density — the increasing N already supplies the difficulty
+// curve, raising density too would push expert games into unsolvable territory.
+export function densityForLevel(N: number): number {
+    if (N <= 6) return 22 / 150;       // easy:   ~14.67%
+    if (N <= 8) return 47 / 294;       // medium: ~15.99%
+    return 97 / 486;                    // hard:   ~19.96%
+}
+
+export function minesForLevel(N: number): number {
+    return Math.round(6 * N * N * densityForLevel(N));
+}
+
+export function cubeMineSweeperForLevel(N: number): CubeSweeper {
+    return cubeMineSweeper(N, minesForLevel(N));
+}
+
+// Where endless mode starts.
+export const ENDLESS_START_LEVEL = 7;

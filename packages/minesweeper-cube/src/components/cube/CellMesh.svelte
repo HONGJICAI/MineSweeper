@@ -47,6 +47,8 @@
         // so the player can tell which one ended the game (matches the 2D version).
         if (cell.isRevealed && cell.isMine && isLastStep) return "#ef4444"; // red-500
         if (cell.isRevealed) return "#e2e8f0"; // revealed safe (or revealed-but-not-stepped mine)
+        // Wrong flag at game over: drop the amber so the X glyph reads as "this flag was a mistake".
+        if (cell.isFlagged && status === GameStatus.GameOver && !cell.isMine) return "#475569";
         if (cell.isFlagged) return "#fbbf24"; // amber for flag
         if (isPressed) return "#94a3b8"; // chord preview — slate-400, lighter than hover
         return hovered && interactive ? "#64748b" : "#475569"; // unrevealed slate

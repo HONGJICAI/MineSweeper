@@ -1,0 +1,19 @@
+[package]
+name = "minesweeper_cube"
+version = "0.1.0"
+description = "Minesweeper on a 3D cube — sweep all six faces."
+authors = ["caiji"]
+edition = "2021"
+
+[lib]
+# The `_lib` suffix avoids a Windows lib/bin name conflict (cargo issue #8519).
+name = "minesweeper_cube_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2.11", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

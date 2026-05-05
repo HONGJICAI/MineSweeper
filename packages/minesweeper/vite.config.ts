@@ -44,6 +44,18 @@ export default defineConfig({
         port: 5173,
         strictPort: true,
         host: host || false,
+        // For `tauri android dev`, HMR has to point back at the LAN IP tauri injects via
+        // TAURI_DEV_HOST (the device can't reach localhost on the dev machine).
+        hmr: host
+            ? {
+                  protocol: "ws",
+                  host,
+                  port: 5174,
+              }
+            : undefined,
+        watch: {
+            ignored: ["**/src-tauri/**"],
+        },
         open: false,
     },
     envPrefix: ["VITE_", "TAURI_ENV_*"],
