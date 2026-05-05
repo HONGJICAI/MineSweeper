@@ -125,6 +125,9 @@ importers:
       '@caiji-games/shared-ui':
         specifier: workspace:*
         version: link:../shared-ui
+      '@tauri-apps/api':
+        specifier: 'catalog:'
+        version: 2.11.0
       '@threlte/core':
         specifier: ^8.0.0
         version: 8.5.11(svelte@5.55.5)(three@0.184.0)
@@ -144,12 +147,21 @@ importers:
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.1.11(vite@7.3.2(@types/node@20.19.7)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.46.2))
+      '@tauri-apps/cli':
+        specifier: 'catalog:'
+        version: 2.11.0
       '@types/canvas-confetti':
         specifier: ^1.9.0
         version: 1.9.0
+      '@types/node':
+        specifier: ^20
+        version: 20.19.7
       '@types/three':
         specifier: ^0.184.0
         version: 0.184.0
+      cross-env:
+        specifier: 'catalog:'
+        version: 10.1.0
       happy-dom:
         specifier: ^15.11.7
         version: 15.11.7
