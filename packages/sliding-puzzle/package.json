@@ -21,19 +21,19 @@
   "dependencies": {
     "@caiji-games/shared-ui": "workspace:*",
     "@caiji-games/sliding-puzzle-core": "workspace:*",
-    "@tauri-apps/api": "^2.5.0"
+    "@tauri-apps/api": "catalog:"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^4.0.0",
-    "@tailwindcss/vite": "^4.1.11",
-    "@tauri-apps/cli": "^2.5.0",
+    "@sveltejs/vite-plugin-svelte": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@tauri-apps/cli": "catalog:",
     "@types/node": "^20",
-    "cross-env": "^7.0.3",
-    "svelte": "^5.0.0",
-    "svelte-check": "^4.0.0",
-    "tailwindcss": "^4",
-    "typescript": "^5.2.2",
-    "vite": "^5.3.1"
+    "cross-env": "catalog:",
+    "svelte": "catalog:",
+    "svelte-check": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
   },
   "packageManager": "pnpm@10.13.0"
 }

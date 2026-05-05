@@ -20,20 +20,20 @@
     "@caiji-games/minesweeper-core": "workspace:*",
     "@caiji-games/shared-state": "workspace:*",
     "@caiji-games/shared-ui": "workspace:*",
-    "@tauri-apps/api": "^2.5.0"
+    "@tauri-apps/api": "catalog:"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^4.0.0",
-    "@tailwindcss/vite": "^4.1.11",
-    "@tauri-apps/cli": "^2.5.0",
+    "@sveltejs/vite-plugin-svelte": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@tauri-apps/cli": "catalog:",
     "archiver": "^7.0.1",
-    "cross-env": "^7.0.3",
+    "cross-env": "catalog:",
     "fs-extra": "^11.3.1",
-    "svelte": "^5.0.0",
-    "svelte-check": "^4.0.0",
-    "tailwindcss": "^4",
-    "typescript": "^5.2.2",
-    "vite": "^5.3.1",
-    "vite-plugin-pwa": "^1.2.0"
+    "svelte": "catalog:",
+    "svelte-check": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-pwa": "catalog:"
   }
 }
