@@ -1,6 +1,14 @@
 <script lang="ts">
     import { Canvas } from "@threlte/core";
-    import { GameStatus, getNeighbors, type CubePosition } from "@caiji-games/minesweeper-cube-core";
+    import {
+        GameStatus,
+        getNeighbors,
+        getSurfaceVoxelNeighbors,
+        type Cube,
+        type CubePosition,
+        type VoxelCube,
+        type VoxelPos,
+    } from "@caiji-games/minesweeper-cube-core";
     import Cube3D from "./components/cube/Cube3D.svelte";
     import HUD from "./components/HUD.svelte";
     import StatsModal from "./components/StatsModal.svelte";
@@ -9,6 +17,7 @@
     import { createLeaderboardState } from "./state/leaderboard.svelte.ts";
     import { createPlayHistoryState } from "./state/playHistory.svelte.ts";
     import { createEndlessHistoryState } from "./state/endlessHistory.svelte.ts";
+    import { createUnlockState } from "./state/unlocks.svelte.ts";
     import { celebrate } from "./lib/celebrate.ts";
     import type { MobileMode } from "./state/mobileMode.ts";
 
@@ -16,7 +25,20 @@
     const timer = createTimerState();
     const leaderboard = createLeaderboardState();
     const history = createPlayHistoryState();
-    const endlessHistory = createEndlessHistoryState();
+    const endlessHistory = {
+        normal: createEndlessHistoryState("normal"),
+        voxel:  createEndlessHistoryState("voxel"),
+    };
+    const unlocks = createUnlockState();
+
+    // Progression unlocks: winning a tier grants the next. Implemented as a leaderboard-driven
+    // effect so it covers both live wins (leaderboard.add re-triggers this) and migration for
+    // returning players who already have wins from before the unlock system shipped. Easy is
+    // always initial:true so we only need to handle medium/hard here.
+    $effect(() => {
+        if (leaderboard.boards.easy.length > 0) unlocks.unlock("medium");
+        if (leaderboard.boards.medium.length > 0) unlocks.unlock("hard");
+    });
 
     let showStats = $state(false);
 
@@ -35,16 +57,30 @@
     });
 
     // Chord-press preview: while pointer is held on a revealed numbered cell, lighten the
-    // unrevealed neighbors that the chord *would* reveal — same UX as a desktop 2D minesweeper.
-    // Pointer-leave or pointer-up clears it. Drag cancels because the leave fires first.
-    let chordCenter = $state<CubePosition | null>(null);
+    // unrevealed neighbors that the chord *would* reveal. Works for both modes — the key format
+    // matches what the renderer (CubeFace / VoxelGrid) builds when looking up cells.
+    let chordCenter = $state<CubePosition | VoxelPos | null>(null);
     const pressedKeys = $derived.by((): Set<string> => {
         if (!chordCenter) return new Set();
-        const c = game.cube[chordCenter.face][chordCenter.r][chordCenter.c];
+        if (game.cubeKind === "voxel") {
+            const cc = chordCenter as VoxelPos;
+            const voxelCube = game.cube as VoxelCube;
+            const c = voxelCube[cc.x][cc.y][cc.z];
+            if (!c.isRevealed || c.adjacentMines === 0) return new Set();
+            const set = new Set<string>();
+            for (const n of getSurfaceVoxelNeighbors(cc.x, cc.y, cc.z, game.N)) {
+                const nb = voxelCube[n.x][n.y][n.z];
+                if (!nb.isRevealed && !nb.isFlagged) set.add(`${n.x},${n.y},${n.z}`);
+            }
+            return set;
+        }
+        const cc = chordCenter as CubePosition;
+        const hollowCube = game.cube as Cube;
+        const c = hollowCube[cc.face][cc.r][cc.c];
         if (!c.isRevealed || c.adjacentMines === 0) return new Set();
         const set = new Set<string>();
-        for (const n of getNeighbors(chordCenter.face, chordCenter.r, chordCenter.c, game.N)) {
-            const nb = game.cube[n.face][n.r][n.c];
+        for (const n of getNeighbors(cc.face, cc.r, cc.c, game.N)) {
+            const nb = hollowCube[n.face][n.r][n.c];
             if (!nb.isRevealed && !nb.isFlagged) set.add(`${n.face}:${n.r},${n.c}`);
         }
         return set;
@@ -55,7 +91,6 @@
     // would otherwise re-trigger the effect. Nothing outside needs to observe them.
     let prevStatus: GameStatus = game.status;
     let prevRunId: number = game.runId;
-    let prevLevel: number = game.level;
     $effect(() => {
         const s = game.status;
         const r = game.runId;
@@ -88,13 +123,14 @@
                 };
                 if (s === GameStatus.Win) {
                     leaderboard.add(game.difficulty, entry);
+                    // Unlock progression is handled by the leaderboard-driven effect above.
                     celebrate();
                 }
                 history.addEntry(game.difficulty, entry);
             } else if (s === GameStatus.GameOver && !game.runCheated) {
-                // Endless run ended on a mine. lvl is the level the player was on when they died,
-                // so that's their max-reached. Cheated runs (Konami code used) are excluded.
-                endlessHistory.addRun({
+                // Endless run ended on a mine. Sub-mode picks which leaderboard to record into;
+                // cheated runs (Konami code) are excluded.
+                endlessHistory[game.endlessMode].addRun({
                     maxLevel: lvl,
                     time: timer.seconds,
                     date: new Date().toISOString(),
@@ -104,7 +140,6 @@
 
         prevStatus = s;
         prevRunId = r;
-        prevLevel = lvl;
     });
 
     function preventCtx(e: MouseEvent) {
@@ -149,13 +184,14 @@
             {game}
             forceFlag={isPrimaryTouch && mobileMode === "flag" && game.status === GameStatus.Gaming}
             {pressedKeys}
-            onChordPressStart={(p: CubePosition) => (chordCenter = p)}
+            onChordPressStart={(p: CubePosition | VoxelPos) => (chordCenter = p)}
             onChordPressEnd={() => (chordCenter = null)}
         />
     </Canvas>
     <HUD
         {game}
         {timer}
+        {unlocks}
         {isPrimaryTouch}
         {mobileMode}
         setMobileMode={(m) => (mobileMode = m)}

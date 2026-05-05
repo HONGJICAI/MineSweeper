@@ -3,11 +3,17 @@ import {
     ENDLESS_START_LEVEL,
     GameStatus,
     sweeperForDifficulty,
+    voxelCubeMineSweeperForLevel,
+    VOXEL_START_LEVEL,
     type Cube,
     type CubePosition,
     type CubeSweeper,
     type Difficulty,
+    type EndlessMode,
     type Mode,
+    type VoxelCube,
+    type VoxelPos,
+    type VoxelSweeper,
 } from "@caiji-games/minesweeper-cube-core";
 
 export type GameStateOptions = {
@@ -17,61 +23,91 @@ export type GameStateOptions = {
     onEndlessClear?: () => void;
 };
 
+// Position type used by the active board. Renderer creates positions in the right shape based
+// on cubeKind; methods that take positions cast internally per `kind`.
+export type AnyPos = CubePosition | VoxelPos;
+
 export function createGameState(initial: Difficulty = "easy", opts: GameStateOptions = {}) {
     const initialSweeper = sweeperForDifficulty(initial);
     let mode = $state<Mode>("classic");
+    let endlessMode = $state<EndlessMode>("normal");
     let difficulty = $state<Difficulty>(initial);
     // Endless: current level (=N). Only meaningful when mode === "endless".
     let level = $state<number>(ENDLESS_START_LEVEL);
-    // Sweeper bundles the pure logic; recreated on difficulty/level change.
-    let sweeper: CubeSweeper = $state.raw(initialSweeper);
-    let cube = $state<Cube>(initialSweeper.emptyCube());
+    // The active board is one of two shapes. `kind` is the discriminator for downstream branches.
+    // Voxel mode (endless + voxel sub-mode) uses a 3D Rubik-style data model; everything else
+    // uses the original 6-face hollow surface.
+    let kind = $state<"hollow" | "voxel">("hollow");
+    let sweeper: CubeSweeper | VoxelSweeper = $state.raw(initialSweeper);
+    let cube = $state<Cube | VoxelCube>(initialSweeper.emptyCube());
     let status = $state<GameStatus>(GameStatus.Init);
     let seed = $state<string>("");
     let flagsPlaced = $state<number>(0);
-    // The mine the player actually stepped on (vs. mines auto-revealed alongside it).
-    // Mirrors the 2D core's `lastStepOnMine` state — used to highlight that one cell red.
-    let lastStep = $state<CubePosition | null>(null);
-    // Bumps on every fresh-start (reset, mode/difficulty change). Does NOT bump when an endless
-    // run advances levels — that lets consumers (timer) tell "new run" from "same run, next cube".
+    // The mine the player actually stepped on. Type matches `kind`.
+    let lastStep = $state<AnyPos | null>(null);
     let runId = $state<number>(0);
-    // Set when the player invokes the dev cheat code to skip levels. Used to keep cheated runs
-    // out of the leaderboard. Cleared on reset.
     let runCheated = $state<boolean>(false);
-    // Level-bump animation phase. "shrinking" plays right after a clear (data still on the old
-    // cube), then we swap to the new cube and play "growing" back to full size. UI uses this to
-    // drive the scale tween and to lock input.
     let transitionPhase = $state<"idle" | "shrinking" | "growing">("idle");
-    // Generation counter to invalidate in-flight setTimeout callbacks when the run gets reset
-    // mid-transition (mode change, manual reset, etc.).
     let transitionGen = 0;
-    // Half-duration of the level-bump transition (one for shrinking the old cube, one for growing
-    // the new one). PURELY VISUAL — the timer is paused while transitionPhase !== "idle" (see
-    // App.svelte's effect), so changing this does NOT affect leaderboard fairness across versions.
-    // Free to tune for future animations.
     const TRANSITION_HALF_MS = 250;
 
-    function makeSweeper(): CubeSweeper {
-        return mode === "endless" ? cubeMineSweeperForLevel(level) : sweeperForDifficulty(difficulty);
+    // Sub-modes have different starting Ns: scaling endless begins at 7 (matches existing
+    // gameplay), voxel endless begins at 5 (easier to read in 3D).
+    function endlessStartLevel(): number {
+        return endlessMode === "voxel" ? VOXEL_START_LEVEL : ENDLESS_START_LEVEL;
     }
 
-    // Reset wrapped in the same shrink/grow transition that endless level-bumps use. The heavy
-    // work (cube swap → ~hundreds of three.js Mesh/Material disposals + recreations) happens
-    // at the midpoint when scale is 0, so the mesh churn is visually invisible — what the user
-    // sees is a smooth shrink → grow, not a freeze. Side benefit: INP stays low because the
-    // click handler returns immediately with only synchronous state changes (mode/difficulty
-    // flip, transitionPhase flip), and the browser paints those before the deferred mid-point
-    // setTimeout fires.
+    function makeBoard(): { kind: "hollow" | "voxel"; sweeper: CubeSweeper | VoxelSweeper } {
+        if (mode === "classic") return { kind: "hollow", sweeper: sweeperForDifficulty(difficulty) };
+        if (endlessMode === "voxel") return { kind: "voxel", sweeper: voxelCubeMineSweeperForLevel(level) };
+        return { kind: "hollow", sweeper: cubeMineSweeperForLevel(level) };
+    }
+
+    // --- generic sweeper calls (cast inside, callers don't worry about types) -----------------
+    // The two sweepers share method names; only their position/cube argument types differ.
+    // Casting through `any` keeps reveal/chord/toggleFlag mode-agnostic at the top level.
+    function activeGenerate(safe: AnyPos, s: string): string {
+        return (sweeper as any).generateBoardInPlace(cube, safe, s);
+    }
+    function activeRevealCell(pos: AnyPos): number {
+        return (sweeper as any).revealCellInPlace(cube, pos);
+    }
+    function activeRevealAround(pos: AnyPos): { count: number; minePos?: AnyPos } {
+        return (sweeper as any).revealAroundInPlace(cube, pos);
+    }
+    function activeCountFlagged(pos: AnyPos): number {
+        return (sweeper as any).countFlaggedAround(cube, pos);
+    }
+    function activeToggleFlag(pos: AnyPos): boolean {
+        return (sweeper as any).toggleFlagInPlace(cube, pos);
+    }
+    function activeRevealAllMines(): void {
+        (sweeper as any).revealAllMinesInPlace(cube);
+    }
+    function activeIsWin(): boolean {
+        return (sweeper as any).isWin(cube);
+    }
+    function activeGetCell(pos: AnyPos) {
+        if (kind === "voxel") {
+            const p = pos as VoxelPos;
+            return (cube as VoxelCube)[p.x][p.y][p.z];
+        }
+        const p = pos as CubePosition;
+        return (cube as Cube)[p.face][p.r][p.c];
+    }
+
+    // --- lifecycle ----------------------------------------------------------------------------
     function reset() {
         const gen = ++transitionGen;
         transitionPhase = "shrinking";
 
         setTimeout(() => {
             if (gen !== transitionGen) return;
-            // Midpoint: scale ≈ 0, do the heavy data swap.
-            if (mode === "endless") level = ENDLESS_START_LEVEL;
-            sweeper = makeSweeper();
-            cube = sweeper.emptyCube();
+            if (mode === "endless") level = endlessStartLevel();
+            const board = makeBoard();
+            kind = board.kind;
+            sweeper = board.sweeper;
+            cube = (sweeper as any).emptyCube();
             status = GameStatus.Init;
             seed = "";
             flagsPlaced = 0;
@@ -100,23 +136,24 @@ export function createGameState(initial: Difficulty = "easy", opts: GameStateOpt
         reset();
     }
 
-    // Endless: split into two phases so the UI can play a "shrink old cube, grow new cube"
-    // animation. Generation counter guards against setTimeout firing after a reset. Input is
-    // locked while transitionPhase !== "idle" via the guards in reveal/chord/toggleFlag.
+    function setEndlessMode(em: EndlessMode) {
+        if (em === endlessMode) return;
+        endlessMode = em;
+        if (mode === "endless") reset();
+    }
+
     function advanceEndlessLevel() {
         const gen = ++transitionGen;
         transitionPhase = "shrinking";
-        // Celebration fires NOW (start of shrink), not at the midpoint. Otherwise confetti
-        // would only appear after the cube has already shrunk to invisible — completely missing
-        // the moment the player actually cleared the round.
         opts.onEndlessClear?.();
 
         setTimeout(() => {
             if (gen !== transitionGen) return;
-            // Animation midpoint: swap board data, then start growing back.
             level += 1;
-            sweeper = cubeMineSweeperForLevel(level);
-            cube = sweeper.emptyCube();
+            const board = makeBoard();
+            kind = board.kind;
+            sweeper = board.sweeper;
+            cube = (sweeper as any).emptyCube();
             status = GameStatus.Init;
             seed = "";
             flagsPlaced = 0;
@@ -130,8 +167,6 @@ export function createGameState(initial: Difficulty = "easy", opts: GameStateOpt
         }, TRANSITION_HALF_MS * 2);
     }
 
-    // Dev cheat: jump to the next level without solving the cube. Marks the run cheated so the
-    // result doesn't end up on the leaderboard. No-op outside endless / mid-run states.
     function cheatAdvanceLevel() {
         if (mode !== "endless") return;
         if (status === GameStatus.GameOver) return;
@@ -139,55 +174,53 @@ export function createGameState(initial: Difficulty = "easy", opts: GameStateOpt
         advanceEndlessLevel();
     }
 
-    function reveal(pos: CubePosition): void {
+    // --- player actions -----------------------------------------------------------------------
+    function reveal(pos: AnyPos): void {
         if (transitionPhase !== "idle") return;
         if (status === GameStatus.GameOver || status === GameStatus.Win) return;
         if (status === GameStatus.Init) {
-            seed = sweeper.generateBoardInPlace(cube, pos, seed);
+            seed = activeGenerate(pos, seed);
             status = GameStatus.Gaming;
         }
-        const cell = cube[pos.face][pos.r][pos.c];
+        const cell = activeGetCell(pos);
         if (cell.isFlagged || cell.isRevealed) return;
         if (cell.isMine) {
             cell.isRevealed = true;
-            sweeper.revealAllMinesInPlace(cube);
+            activeRevealAllMines();
             lastStep = pos;
             status = GameStatus.GameOver;
             return;
         }
-        sweeper.revealCellInPlace(cube, pos);
-        if (sweeper.isWin(cube)) onWin();
+        activeRevealCell(pos);
+        if (activeIsWin()) onWin();
     }
 
-    function toggleFlag(pos: CubePosition): void {
+    function toggleFlag(pos: AnyPos): void {
         if (transitionPhase !== "idle") return;
-        // Only allowed during active play. In Init the board hasn't been generated yet, so
-        // flagging is meaningless (and confusing on touch where Flag mode might be on).
         if (status !== GameStatus.Gaming) return;
-        const cell = cube[pos.face][pos.r][pos.c];
+        const cell = activeGetCell(pos);
         if (cell.isRevealed) return;
         const before = cell.isFlagged;
-        if (sweeper.toggleFlagInPlace(cube, pos)) {
+        if (activeToggleFlag(pos)) {
             flagsPlaced += before ? -1 : 1;
         }
     }
 
-    function chord(pos: CubePosition): void {
+    function chord(pos: AnyPos): void {
         if (transitionPhase !== "idle") return;
         if (status !== GameStatus.Gaming) return;
-        const cell = cube[pos.face][pos.r][pos.c];
+        const cell = activeGetCell(pos);
         if (!cell.isRevealed || cell.adjacentMines === 0) return;
-        if (sweeper.countFlaggedAround(cube, pos) !== cell.adjacentMines) return;
-        const result = sweeper.revealAroundInPlace(cube, pos);
+        if (activeCountFlagged(pos) !== cell.adjacentMines) return;
+        const result = activeRevealAround(pos);
         if (result.minePos) {
             lastStep = result.minePos;
             status = GameStatus.GameOver;
-        } else if (sweeper.isWin(cube)) {
+        } else if (activeIsWin()) {
             onWin();
         }
     }
 
-    // Endless: don't show a Win state — immediately advance. Classic: terminate normally.
     function onWin() {
         if (mode === "endless") advanceEndlessLevel();
         else status = GameStatus.Win;
@@ -195,19 +228,22 @@ export function createGameState(initial: Difficulty = "easy", opts: GameStateOpt
 
     return {
         get mode() { return mode; },
+        get endlessMode() { return endlessMode; },
         get difficulty() { return difficulty; },
         get level() { return level; },
+        get cubeKind() { return kind; },
         get cube() { return cube; },
         get status() { return status; },
         get seed() { return seed; },
-        get N() { return sweeper.N; },
-        get totalMines() { return sweeper.mines; },
-        get minesLeft() { return sweeper.mines - flagsPlaced; },
+        get N() { return (sweeper as any).N as number; },
+        get totalMines() { return (sweeper as any).mines as number; },
+        get minesLeft() { return ((sweeper as any).mines as number) - flagsPlaced; },
         get lastStep() { return lastStep; },
         get runId() { return runId; },
         get runCheated() { return runCheated; },
         get transitionPhase() { return transitionPhase; },
         setMode,
+        setEndlessMode,
         setDifficulty,
         reset,
         reveal,

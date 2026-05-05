@@ -3,16 +3,23 @@
     import { interactivity } from "@threlte/extras";
     import { tweened } from "svelte/motion";
     import { cubicInOut } from "svelte/easing";
-    import { FACES, type CubePosition } from "@caiji-games/minesweeper-cube-core";
+    import {
+        FACES,
+        type Cube,
+        type CubePosition,
+        type VoxelCube,
+        type VoxelPos,
+    } from "@caiji-games/minesweeper-cube-core";
     import CubeFace from "./CubeFace.svelte";
     import CubeControls from "./CubeControls.svelte";
+    import VoxelGrid from "./VoxelGrid.svelte";
     import type { GameState } from "../../state/game.svelte.ts";
 
     type Props = {
         game: GameState;
         forceFlag: boolean;
         pressedKeys: Set<string>;
-        onChordPressStart: (pos: CubePosition) => void;
+        onChordPressStart: (pos: CubePosition | VoxelPos) => void;
         onChordPressEnd: () => void;
     };
     let { game, forceFlag, pressedKeys, onChordPressStart, onChordPressEnd }: Props = $props();
@@ -64,20 +71,38 @@
 <T.DirectionalLight position={[-5, -3, -5]} intensity={0.5} color="#cbd5ff" />
 
 <T.Group scale={[cubeScale, cubeScale, cubeScale]}>
-    {#each FACES as face}
-        <CubeFace
-            {face}
-            grid={game.cube[face]}
+    {#if game.cubeKind === "voxel"}
+        <VoxelGrid
+            cube={game.cube as VoxelCube}
             N={game.N}
             status={game.status}
-            lastStep={game.lastStep && game.lastStep.face === face ? game.lastStep : null}
+            lastStep={game.lastStep as VoxelPos | null}
             {forceFlag}
             {pressedKeys}
             {onChordPressStart}
             {onChordPressEnd}
-            onReveal={(p: CubePosition) => game.reveal(p)}
-            onFlag={(p: CubePosition) => game.toggleFlag(p)}
-            onChord={(p: CubePosition) => game.chord(p)}
+            onReveal={(p: VoxelPos) => game.reveal(p)}
+            onFlag={(p: VoxelPos) => game.toggleFlag(p)}
+            onChord={(p: VoxelPos) => game.chord(p)}
         />
-    {/each}
+    {:else}
+        {@const hollowCube = game.cube as Cube}
+        {@const hollowLastStep = game.lastStep as CubePosition | null}
+        {#each FACES as face}
+            <CubeFace
+                {face}
+                grid={hollowCube[face]}
+                N={game.N}
+                status={game.status}
+                lastStep={hollowLastStep && hollowLastStep.face === face ? hollowLastStep : null}
+                {forceFlag}
+                {pressedKeys}
+                {onChordPressStart}
+                {onChordPressEnd}
+                onReveal={(p: CubePosition) => game.reveal(p)}
+                onFlag={(p: CubePosition) => game.toggleFlag(p)}
+                onChord={(p: CubePosition) => game.chord(p)}
+            />
+        {/each}
+    {/if}
 </T.Group>
