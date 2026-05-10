@@ -74,12 +74,13 @@ jobs:
         run: pnpm build:shared
 
       - name: Init Android Project
-        # Same partial-state dance as the smoke workflow — wipe gen/, regenerate, restore our
-        # custom build.gradle.kts (signing block) from git.
+        # Same partial-state dance as the smoke workflow — wipe gen/, regenerate, restore every
+        # file under gen/ that we hand-edit and commit (build.gradle.kts, AndroidManifest.xml,
+        # plus anything force-added later).
         run: |
           rm -rf packages/${{ inputs.package }}/src-tauri/gen
           pnpm --filter ${{ inputs.package }} run tauri:android:init
-          git checkout -- packages/${{ inputs.package }}/src-tauri/gen/android/app/build.gradle.kts
+          git checkout -- $(git ls-files packages/${{ inputs.package }}/src-tauri/gen/)
 
       - name: Decode keystore + write keystore.properties
         env:

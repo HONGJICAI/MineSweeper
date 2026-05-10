@@ -4,17 +4,28 @@
     import type { TimerState } from "@caiji-games/shared-state";
     import type { MobileMode } from "../state/mobileMode.ts";
     import type { UnlockState } from "../state/unlocks.svelte.ts";
+    import type { AdsState } from "../state/ads.svelte.ts";
 
     type Props = {
         game: GameState;
         timer: TimerState;
         unlocks: UnlockState;
+        ads: AdsState;
         isPrimaryTouch: boolean;
         mobileMode: MobileMode;
         setMobileMode: (m: MobileMode) => void;
         onShowStats: () => void;
     };
-    let { game, timer, unlocks, isPrimaryTouch, mobileMode, setMobileMode, onShowStats }: Props = $props();
+    let { game, timer, unlocks, ads, isPrimaryTouch, mobileMode, setMobileMode, onShowStats }: Props = $props();
+
+    // AdMob policy: interstitials must trigger from a user-initiated transition (e.g. tapping
+    // restart), not auto-fire on the win/lose moment. Wraps `game.reset()`. The ad show races
+    // ahead of the reset; reset happens "behind" the ad so when the user dismisses it the next
+    // run is already set up.
+    function handleReset() {
+        ads.maybeShowInterstitial();
+        game.reset();
+    }
 
     // Unlock prerequisites for the locked tooltips. Easy is always unlocked.
     const UNLOCK_HINT: Record<Difficulty | "endless", string> = {
@@ -181,7 +192,7 @@
         <button
             type="button"
             class="rounded-full bg-slate-700/80 px-2 py-0.5 text-lg leading-none text-slate-100 hover:bg-slate-600"
-            onclick={() => game.reset()}
+            onclick={handleReset}
             title="Restart"
             aria-label="Restart"
         >

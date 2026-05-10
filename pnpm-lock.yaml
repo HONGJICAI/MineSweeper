@@ -137,6 +137,9 @@ importers:
       canvas-confetti:
         specifier: ^1.9.3
         version: 1.9.4
+      tauri-plugin-admob-android-api:
+        specifier: ^0.1.12
+        version: 0.1.12
       three:
         specifier: ^0.184.0
         version: 0.184.0
@@ -2694,6 +2697,9 @@ packages:
     resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
     engines: {node: '>=18'}
     deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+
+  tauri-plugin-admob-android-api@0.1.12:
+    resolution: {integrity: sha512-0ydQc05EEw6q7s4ImFOqhXsikLgEHH+RhoKCC1sGSlF9KCLw3wo0l8Wj48w0pc+faMG5tOYR2nCfZH3IEF9SXA==}
 
   temp-dir@2.0.0:
     resolution: {integrity: sha512-aoBAniQmmwtcKp/7BzsH8Cxzv8OL736p7v1ihGb5e9DJ9kTwGWHrQrVB5+lfVDzfGrdRzXch+ig7LHaY1JTOrg==}
@@ -5699,6 +5705,10 @@ snapshots:
       minizlib: 3.0.2
       mkdirp: 3.0.1
       yallist: 5.0.0
+
+  tauri-plugin-admob-android-api@0.1.12:
+    dependencies:
+      '@tauri-apps/api': 2.11.0
 
   temp-dir@2.0.0: {}
 

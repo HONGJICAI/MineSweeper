@@ -18,6 +18,7 @@
     import { createPlayHistoryState } from "./state/playHistory.svelte.ts";
     import { createEndlessHistoryState } from "./state/endlessHistory.svelte.ts";
     import { createUnlockState } from "./state/unlocks.svelte.ts";
+    import { createAdsState } from "./state/ads.svelte.ts";
     import { celebrate } from "./lib/celebrate.ts";
     import type { MobileMode } from "./state/mobileMode.ts";
 
@@ -30,6 +31,13 @@
         voxel:  createEndlessHistoryState("voxel"),
     };
     const unlocks = createUnlockState();
+    const ads = createAdsState();
+
+    // Init AdMob on mount (Android only — silently no-ops elsewhere). Banner is shown after
+    // init resolves; interstitials trigger from the Win/GameOver transition below.
+    $effect(() => {
+        ads.init().then(() => ads.showBanner());
+    });
 
     // Progression unlocks: winning a tier grants the next. Implemented as a leaderboard-driven
     // effect so it covers both live wins (leaderboard.add re-triggers this) and migration for
@@ -136,6 +144,9 @@
                     date: new Date().toISOString(),
                 });
             }
+            // Note: interstitial is NOT triggered here. AdMob policy requires user-initiated
+            // ad surfaces — we fire it from HUD's restart button instead so the ad is a clear
+            // consequence of the player's tap, not the loss/win moment.
         }
 
         prevStatus = s;
@@ -192,6 +203,7 @@
         {game}
         {timer}
         {unlocks}
+        {ads}
         {isPrimaryTouch}
         {mobileMode}
         setMobileMode={(m) => (mobileMode = m)}

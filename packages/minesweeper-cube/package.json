@@ -28,6 +28,7 @@
     "@threlte/core": "^8.0.0",
     "@threlte/extras": "^9.0.0",
     "canvas-confetti": "^1.9.3",
+    "tauri-plugin-admob-android-api": "^0.1.12",
     "three": "^0.184.0"
   },
   "devDependencies": {
