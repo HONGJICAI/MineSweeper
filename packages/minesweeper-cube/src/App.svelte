@@ -18,7 +18,7 @@
     import { createPlayHistoryState } from "./state/playHistory.svelte.ts";
     import { createEndlessHistoryState } from "./state/endlessHistory.svelte.ts";
     import { createUnlockState } from "./state/unlocks.svelte.ts";
-    import { createAdsState } from "./state/ads.svelte.ts";
+    import { createAdsState } from "$ads";
     import { celebrate } from "./lib/celebrate.ts";
     import type { MobileMode } from "./state/mobileMode.ts";
 
@@ -49,6 +49,27 @@
     });
 
     let showStats = $state(false);
+    // Lifted out of HUD so the Android back-button handler below can close the sheet without
+    // the press bubbling up to "exit app".
+    let showSettings = $state(false);
+
+    // Android back-button: by default WebView has 1 history entry → pressing back exits the
+    // whole app, which is jarring when a modal is open. We prime the history with a sentinel
+    // on mount, then on each `popstate` decide what the back press should dismiss. After
+    // dismissing we re-prime, so the *next* back press has somewhere to "go back to".
+    // No router needed — straight history API, works on Android WebView, iOS WKWebView, and
+    // desktop browsers.
+    $effect(() => {
+        if (typeof window === "undefined") return;
+        window.history.pushState({ sentinel: true }, "");
+        const onPop = () => {
+            if (showStats)    { showStats    = false; window.history.pushState({ sentinel: true }, ""); return; }
+            if (showSettings) { showSettings = false; window.history.pushState({ sentinel: true }, ""); return; }
+            // Nothing to dismiss — let the back press exit the app (don't re-push).
+        };
+        window.addEventListener("popstate", onPop);
+        return () => window.removeEventListener("popstate", onPop);
+    });
 
     // Touch-primary detection: phones/tablets get a Reveal/Flag mode toggle since they have
     // no right-click. Updates if the user docks/undocks a hybrid device mid-session.
@@ -189,27 +210,44 @@
 
 <svelte:window oncontextmenu={preventCtx} />
 
-<main class="relative h-dvh w-dvw bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
-    <Canvas>
-        <Cube3D
+<!--
+    Layout: WebView fills the activity edge-to-edge; the AdMob banner is a native Android view
+    layered ON TOP of the WebView at screen bottom (Activity.addContentView + Gravity.BOTTOM).
+    To keep the banner from covering game pixels, we reserve a sibling spacer at the bottom of
+    the page that matches the banner footprint (50dp standard banner + safe-area-inset-bottom).
+    The flex column makes <main> shrink to fill the remaining height; threlte's Canvas auto-fits.
+-->
+<div class="flex h-dvh w-dvw flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
+    <main class="relative min-h-0 flex-1">
+        <Canvas>
+            <Cube3D
+                {game}
+                forceFlag={isPrimaryTouch && mobileMode === "flag" && game.status === GameStatus.Gaming}
+                {pressedKeys}
+                onChordPressStart={(p: CubePosition | VoxelPos) => (chordCenter = p)}
+                onChordPressEnd={() => (chordCenter = null)}
+            />
+        </Canvas>
+        <HUD
             {game}
-            forceFlag={isPrimaryTouch && mobileMode === "flag" && game.status === GameStatus.Gaming}
-            {pressedKeys}
-            onChordPressStart={(p: CubePosition | VoxelPos) => (chordCenter = p)}
-            onChordPressEnd={() => (chordCenter = null)}
+            {timer}
+            {unlocks}
+            {ads}
+            {isPrimaryTouch}
+            {mobileMode}
+            setMobileMode={(m) => (mobileMode = m)}
+            onShowStats={() => (showStats = true)}
+            {showSettings}
+            setShowSettings={(v) => (showSettings = v)}
         />
-    </Canvas>
-    <HUD
-        {game}
-        {timer}
-        {unlocks}
-        {ads}
-        {isPrimaryTouch}
-        {mobileMode}
-        setMobileMode={(m) => (mobileMode = m)}
-        onShowStats={() => (showStats = true)}
-    />
-</main>
+    </main>
+    {#if ads.bannerShown}
+        <!-- Reserved area for the AdMob banner overlay. 50px matches AdSize.BANNER on phones;
+             the safe-area-inset-bottom term adds room for gesture-nav strip on full-screen
+             devices so the banner doesn't sit on top of it. -->
+        <div class="shrink-0" style:height="calc(50px + env(safe-area-inset-bottom))"></div>
+    {/if}
+</div>
 
 {#if showStats}
     <StatsModal

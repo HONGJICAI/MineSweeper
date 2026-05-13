@@ -4,7 +4,7 @@
     import type { TimerState } from "@caiji-games/shared-state";
     import type { MobileMode } from "../state/mobileMode.ts";
     import type { UnlockState } from "../state/unlocks.svelte.ts";
-    import type { AdsState } from "../state/ads.svelte.ts";
+    import type { AdsState } from "$ads";
 
     type Props = {
         game: GameState;
@@ -15,15 +15,20 @@
         mobileMode: MobileMode;
         setMobileMode: (m: MobileMode) => void;
         onShowStats: () => void;
+        // Settings sheet visibility is lifted to App.svelte so the Android back-button handler
+        // there can close it before letting the press bubble out to "exit app".
+        showSettings: boolean;
+        setShowSettings: (v: boolean) => void;
     };
-    let { game, timer, unlocks, ads, isPrimaryTouch, mobileMode, setMobileMode, onShowStats }: Props = $props();
+    let {
+        game, timer, unlocks, ads, isPrimaryTouch, mobileMode,
+        setMobileMode, onShowStats, showSettings, setShowSettings,
+    }: Props = $props();
 
-    // AdMob policy: interstitials must trigger from a user-initiated transition (e.g. tapping
-    // restart), not auto-fire on the win/lose moment. Wraps `game.reset()`. The ad show races
-    // ahead of the reset; reset happens "behind" the ad so when the user dismisses it the next
-    // run is already set up.
+    // Interstitial trigger disabled for v1 — too intrusive while the rest of the ad UX still
+    // shakes out. The function `ads.maybeShowInterstitial()` is still exported so it can be
+    // re-enabled here in one line later, or moved to a different trigger point.
     function handleReset() {
-        ads.maybeShowInterstitial();
         game.reset();
     }
 
@@ -131,14 +136,12 @@
         }
     }
 
-    let showSettings = $state(false);
-
     function handleSettingsBackdrop(e: MouseEvent) {
-        if (e.target === e.currentTarget) showSettings = false;
+        if (e.target === e.currentTarget) setShowSettings(false);
     }
 
     function handleSettingsKeydown(e: KeyboardEvent) {
-        if (e.key === "Escape" && showSettings) showSettings = false;
+        if (e.key === "Escape" && showSettings) setShowSettings(false);
     }
 
     // Picking a difficulty / sub-mode / tap-mode auto-closes the sheet — feels confident, the
@@ -146,11 +149,11 @@
     function pickDifficulty(d: Difficulty) {
         if (!unlocks.isUnlocked(d)) return;
         game.setDifficulty(d);
-        showSettings = false;
+        setShowSettings(false);
     }
     function pickEndlessMode(em: EndlessMode) {
         game.setEndlessMode(em);
-        showSettings = false;
+        setShowSettings(false);
     }
     function toggleTapMode() {
         setMobileMode(mobileMode === "reveal" ? "flag" : "reveal");
@@ -159,7 +162,10 @@
 
 <svelte:window onkeydown={handleSettingsKeydown} />
 
-<div class="pointer-events-none fixed inset-x-0 top-0 z-10 flex flex-col items-center gap-2 p-3">
+<!-- Absolute (not fixed) so the HUD lives inside <main>, which shrinks above the banner spacer.
+     pt uses max(safe-area, 0.75rem) so notch/punch-hole devices push the title down past the
+     cutout while normal devices still get the regular 12px padding. -->
+<div class="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col items-center gap-2 px-3 pb-3 pt-[max(env(safe-area-inset-top),0.75rem)]">
     <h1 class="text-lg font-semibold tracking-wide text-slate-100 drop-shadow sm:text-xl">Minesweeper Cube</h1>
 
     <!-- Slim main bar: only the "during play" essentials. Mode/difficulty/sub-mode selection
@@ -168,7 +174,7 @@
         <button
             type="button"
             class="flex items-center gap-1 rounded-full bg-slate-700/80 px-3 py-1 text-sm text-slate-100 hover:bg-slate-600"
-            onclick={() => (showSettings = true)}
+            onclick={() => setShowSettings(true)}
             title="Mode / difficulty"
             aria-label="Open settings"
         >
@@ -198,16 +204,6 @@
         >
             {faceEmoji}
         </button>
-
-        <button
-            type="button"
-            class="rounded-full bg-slate-700/80 px-3 py-1 text-sm text-slate-100 hover:bg-slate-600"
-            onclick={onShowStats}
-            title="Best times and recent games"
-            aria-label="Show stats"
-        >
-            📊
-        </button>
     </div>
 
     {#if statusText}
@@ -217,7 +213,21 @@
     {/if}
 </div>
 
-<div class="pointer-events-none fixed inset-x-0 bottom-3 z-10 flex justify-center px-3">
+<!-- Stats button: corner-pinned so it never competes for HUD-bar width. Without this, endless
+     runs whose level + timer + mine count grow past the screen width force the main bar to
+     wrap onto two lines. top/right use max(safe-area-inset, 0.75rem) so the button avoids
+     notch/punch-hole/curved-edge regions on devices that report them. -->
+<button
+    type="button"
+    class="pointer-events-auto absolute z-20 rounded-full bg-slate-700/80 px-3 py-1 text-sm text-slate-100 shadow hover:bg-slate-600 top-[max(env(safe-area-inset-top),0.75rem)] right-[max(env(safe-area-inset-right),0.75rem)]"
+    onclick={onShowStats}
+    title="Best times and recent games"
+    aria-label="Show stats"
+>
+    📊
+</button>
+
+<div class="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center px-3">
     <div class="max-w-full rounded-full bg-slate-900/50 px-3 py-1 text-center text-xs text-slate-400 backdrop-blur">
         {hintText}
     </div>
@@ -226,7 +236,7 @@
 <!-- Settings sheet: mode + difficulty/sub-mode + (touch) tap mode. Picking auto-closes. -->
 {#if showSettings}
     <div
-        class="fixed inset-0 z-40 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+        class="absolute inset-0 z-40 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
         onclick={handleSettingsBackdrop}
         role="presentation"
     >
@@ -236,7 +246,7 @@
                 <button
                     type="button"
                     class="rounded-full p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
-                    onclick={() => (showSettings = false)}
+                    onclick={() => setShowSettings(false)}
                     aria-label="Close"
                 >
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -319,7 +329,7 @@
 {#if isPrimaryTouch}
     <button
         type="button"
-        class="pointer-events-auto fixed bottom-16 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-xl ring-2 transition-colors {mobileMode === 'reveal' ? 'bg-sky-500 ring-sky-300/50 text-white' : 'bg-amber-500 ring-amber-300/50 text-white'}"
+        class="pointer-events-auto absolute bottom-16 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-xl ring-2 transition-colors {mobileMode === 'reveal' ? 'bg-sky-500 ring-sky-300/50 text-white' : 'bg-amber-500 ring-amber-300/50 text-white'}"
         onclick={toggleTapMode}
         title={mobileMode === "reveal" ? "Tap mode: Reveal — switch to Flag" : "Tap mode: Flag — switch to Reveal"}
         aria-label={mobileMode === "reveal" ? "Switch to flag mode" : "Switch to reveal mode"}

@@ -31,31 +31,40 @@ export function createAdsState() {
         try {
             await initialize();
             available = true;
-        } catch {
-            // Non-Android platforms (desktop / web). Silently disable.
+            console.log("[ads] initialize() OK");
+        } catch (e) {
             available = false;
+            console.warn("[ads] initialize() failed — assuming non-Android platform:", e);
             return;
         }
         try {
             consentStatus = await getConsentStatus();
-            if (consentStatus === "REQUIRED") {
+            console.log("[ads] consent status (initial):", consentStatus);
+            // UNKNOWN = SDK hasn't queried the consent server yet. Always call requestConsent to
+            // trigger that query; the status then settles to NOT_REQUIRED (non-EU) or REQUIRED
+            // (EU). Without this, canRequestAds() returns false and ads never load.
+            if (consentStatus === "UNKNOWN" || consentStatus === "REQUIRED") {
                 await requestConsent();
                 consentStatus = await getConsentStatus();
+                console.log("[ads] consent status (after request):", consentStatus);
             }
-        } catch {
-            // Consent flow failure is recoverable — canRequestAds() handles fallback.
+        } catch (e) {
+            console.warn("[ads] consent flow failed (recoverable):", e);
         }
     }
 
     async function showBanner() {
-        if (!available || bannerShown) return;
+        if (!available) { console.log("[ads] showBanner skip: not available"); return; }
+        if (bannerShown) { console.log("[ads] showBanner skip: already shown"); return; }
         try {
             const ok = await canRequestAds();
+            console.log("[ads] canRequestAds (banner):", ok);
             if (!ok.value) return;
-            await loadBanner({ position: "bottom", adUnitId: TEST_BANNER });
+            const r = await loadBanner({ position: "bottom", adUnitId: TEST_BANNER });
+            console.log("[ads] loadBanner result:", r);
             bannerShown = true;
-        } catch {
-            // Network / inventory miss — banner just doesn't appear, game continues.
+        } catch (e) {
+            console.warn("[ads] loadBanner failed:", e);
         }
     }
 
@@ -63,16 +72,19 @@ export function createAdsState() {
     // INTERSTITIAL_FREQUENCY games. The plugin's loadInterstitial() loads AND shows in a single
     // call, so there's a small (~0.5-2s) latency the player sees as a brief pause before the ad.
     async function maybeShowInterstitial() {
-        if (!available) return;
+        if (!available) { console.log("[ads] interstitial skip: not available"); return; }
         gamesSinceLastInterstitial++;
+        console.log("[ads] games since last interstitial:", gamesSinceLastInterstitial, "/", INTERSTITIAL_FREQUENCY);
         if (gamesSinceLastInterstitial < INTERSTITIAL_FREQUENCY) return;
         try {
             const ok = await canRequestAds();
+            console.log("[ads] canRequestAds (interstitial):", ok);
             if (!ok.value) return;
-            await loadInterstitial({ adUnitId: TEST_INTERSTITIAL });
+            const r = await loadInterstitial({ adUnitId: TEST_INTERSTITIAL });
+            console.log("[ads] loadInterstitial result:", r);
             gamesSinceLastInterstitial = 0;
-        } catch {
-            // Same as banner: silent fail, retry on next eligible game.
+        } catch (e) {
+            console.warn("[ads] loadInterstitial failed:", e);
         }
     }
 
