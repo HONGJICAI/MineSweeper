@@ -1,3 +1,5 @@
+import type { Board } from "@caiji-games/minesweeper-core";
+
 type MouseAction = {
     leftDown: boolean;
     rightDown: boolean;
@@ -8,6 +10,8 @@ type Options = {
     onReveal: (r: number, c: number) => void;
     onFlag: (r: number, c: number) => void;
     onChord: (r: number, c: number) => void;
+    /** Board snapshot used to decide single-key chord on revealed numbers. */
+    getBoard: () => Board;
     /** Whether mouse interactions are currently allowed (typically false during win/gameover). */
     isInteractive: () => boolean;
 };
@@ -37,6 +41,24 @@ export function createDesktopMouseState(opts: Options) {
         e.stopPropagation();
     }
 
+    // Drag-aim: while any button is held, moving the cursor onto a new cell
+    // updates the press target so the visual preview and the eventual action
+    // follow the cursor (classic Minesweeper behavior).
+    function onMouseEnter(_e: MouseEvent, r: number, c: number) {
+        if (!opts.isInteractive()) return;
+        if (!action.leftDown && !action.rightDown) return;
+        action.position = { r, c };
+    }
+
+    // True iff a left-only press on a revealed number should chord (i.e. the
+    // source cell is a revealed numbered cell — adjacent flags decide whether
+    // the chord actually opens anything; that's the logic layer's call).
+    function isChordSource(r: number, c: number): boolean {
+        const board = opts.getBoard();
+        const cell = board[r]?.[c];
+        return !!cell && cell.isRevealed && !cell.isMine && cell.adjacentMines > 0;
+    }
+
     function onMouseUp(e: MouseEvent, r: number, c: number) {
         if (!opts.isInteractive()) {
             reset();
@@ -46,7 +68,8 @@ export function createDesktopMouseState(opts: Options) {
             if (action.leftDown && action.rightDown) {
                 opts.onChord(r, c);
             } else if (action.leftDown && e.button === 0) {
-                opts.onReveal(r, c);
+                if (isChordSource(r, c)) opts.onChord(r, c);
+                else opts.onReveal(r, c);
             } else if (action.rightDown && e.button === 2) {
                 opts.onFlag(r, c);
             }
@@ -57,27 +80,28 @@ export function createDesktopMouseState(opts: Options) {
 
     /**
      * Visual "pressed" state for a cell. Triggers when:
-     * - User is left-pressing this exact cell, OR
-     * - User is left+right-pressing this cell's neighbor (chord preview).
+     * - User is left-pressing this exact (unrevealed) cell, OR
+     * - User is left+right-pressing this cell's neighbor (two-button chord preview), OR
+     * - User is left-pressing this cell's neighbor that is a revealed number (single-key chord preview).
      */
     function isPressed(r: number, c: number, cellCanPress: boolean): boolean {
         if (!cellCanPress) return false;
         if (!action.leftDown) return false;
         if (action.position.r === r && action.position.c === c) return true;
-        if (
-            action.rightDown &&
-            Math.abs(action.position.r - r) <= 1 &&
-            Math.abs(action.position.c - c) <= 1
-        ) {
-            return true;
-        }
+        const dr = Math.abs(action.position.r - r);
+        const dc = Math.abs(action.position.c - c);
+        if (dr > 1 || dc > 1) return false;
+        if (action.rightDown) return true;
+        if (isChordSource(action.position.r, action.position.c)) return true;
         return false;
     }
 
     return {
         get action() { return action; },
+        get isPressing() { return action.leftDown; },
         onMouseDown,
         onMouseUp,
+        onMouseEnter,
         onLeave: reset,
         isPressed,
     };

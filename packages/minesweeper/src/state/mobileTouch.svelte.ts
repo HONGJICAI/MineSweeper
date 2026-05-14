@@ -22,7 +22,7 @@ type Options = {
 };
 
 export function createMobileTouchState(opts: Options) {
-    let start: TouchStart | null = null;
+    let start = $state<TouchStart | null>(null);
 
     function onTouchStart(e: TouchEvent, r: number, c: number) {
         if (!opts.isInteractive()) return;
@@ -72,7 +72,13 @@ export function createMobileTouchState(opts: Options) {
         start = null;
     }
 
-    return { onTouchStart, onTouchMove, onTouchEnd, onTouchCancel };
+    return {
+        get isPressing() { return start !== null && !start.cancelled; },
+        onTouchStart,
+        onTouchMove,
+        onTouchEnd,
+        onTouchCancel,
+    };
 }
 
 export type MobileTouchState = ReturnType<typeof createMobileTouchState>;
