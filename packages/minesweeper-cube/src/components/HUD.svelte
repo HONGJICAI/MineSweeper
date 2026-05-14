@@ -19,10 +19,13 @@
         // there can close it before letting the press bubble out to "exit app".
         showSettings: boolean;
         setShowSettings: (v: boolean) => void;
+        // True while the player's pointer is held down on any cell. Drives the classic
+        // minesweeper "O-mouth" face state.
+        isPressing: boolean;
     };
     let {
         game, timer, unlocks, ads, isPrimaryTouch, mobileMode,
-        setMobileMode, onShowStats, showSettings, setShowSettings,
+        setMobileMode, onShowStats, showSettings, setShowSettings, isPressing,
     }: Props = $props();
 
     // Interstitial trigger disabled for v1 — too intrusive while the rest of the ad UX still
@@ -94,10 +97,13 @@
     });
 
     const faceEmoji = $derived.by(() => {
+        // Win/Lose lock the face to the result — clicks during those states don't flip to
+        // O-mouth (classic Windows minesweeper behavior; the player needs to hit the smiley
+        // itself to reset).
         switch (game.status) {
             case GameStatus.GameOver: return "😢";
-            case GameStatus.Win:     return "😎";
-            default:                 return "😊";
+            case GameStatus.Win:      return "😎";
+            default:                  return isPressing ? "😮" : "😊";
         }
     });
 

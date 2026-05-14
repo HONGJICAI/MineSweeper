@@ -85,10 +85,12 @@
         return () => mq.removeEventListener("change", handler);
     });
 
-    // Chord-press preview: while pointer is held on a revealed numbered cell, lighten the
-    // unrevealed neighbors that the chord *would* reveal. Works for both modes — the key format
-    // matches what the renderer (CubeFace / VoxelGrid) builds when looking up cells.
+    // chordCenter does double duty: drives the chord-preview highlight (next derivation) AND
+    // serves as the "is the player pressing any cell" signal for the HUD smiley face's O-mouth
+    // state. CellMesh fires the press for every cell now; the highlight just self-gates to
+    // revealed-numbered ones.
     let chordCenter = $state<CubePosition | VoxelPos | null>(null);
+    const isPressing = $derived(chordCenter !== null);
     const pressedKeys = $derived.by((): Set<string> => {
         if (!chordCenter) return new Set();
         if (game.cubeKind === "voxel") {
@@ -239,6 +241,7 @@
             onShowStats={() => (showStats = true)}
             {showSettings}
             setShowSettings={(v) => (showSettings = v)}
+            {isPressing}
         />
     </main>
     {#if ads.bannerShown}
