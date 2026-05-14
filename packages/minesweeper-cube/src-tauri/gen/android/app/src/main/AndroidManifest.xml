@@ -9,16 +9,21 @@
     <!-- AndroidTV support -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
 
+    <!-- hapticFeedbackEnabled=false suppresses Android's automatic long-press buzz on every
+         WebView interaction. We re-add a manual buzz from JS only on flag toggle (see game.svelte.ts)
+         so chord previews and accidental long-presses on HUD elements stay silent. -->
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.minesweeper_cube"
-        android:usesCleartextTraffic="${usesCleartextTraffic}">
-        <!-- AdMob App ID. Google's universal TEST App ID — never charges advertisers, never pays
-             you, never gets your account flagged. Replace with your real ID before Play upload. -->
+        android:usesCleartextTraffic="${usesCleartextTraffic}"
+        android:hapticFeedbackEnabled="false">
+        <!-- AdMob App ID is filled in by gradle's manifestPlaceholder; default is Google's
+             universal TEST App ID, real value comes from the ADMOB_APP_ID env var (CI secret).
+             See app/build.gradle.kts. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="${admobAppId}" />
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:launchMode="singleTask"

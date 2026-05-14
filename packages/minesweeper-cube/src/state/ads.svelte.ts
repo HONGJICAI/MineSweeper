@@ -8,10 +8,18 @@ import {
 } from "tauri-plugin-admob-android-api";
 
 // Google's universal test ad units. They never charge advertisers and never pay you, but always
-// fill — perfect for development and CI. Real units replace these per-platform via env vars or a
-// build-time substitution before Play upload.
+// fill — used as the default so local dev and PR-smoke CI never accidentally hit real inventory
+// (clicks on your own ads = AdMob policy violation = account ban).
+//
+// Real units are opt-in via env at build time:
+//   VITE_ADMOB_BANNER       — your real banner ad unit id
+//   VITE_ADMOB_INTERSTITIAL — your real interstitial ad unit id
+// In CI these come from GitHub Secrets (see release-android.yml). When unset, the build falls
+// back to test units and the resulting AAB still works for testing — just no revenue.
 const TEST_BANNER       = "ca-app-pub-3940256099942544/6300978111";
 const TEST_INTERSTITIAL = "ca-app-pub-3940256099942544/1033173712";
+const BANNER_AD_UNIT       = import.meta.env.VITE_ADMOB_BANNER       || TEST_BANNER;
+const INTERSTITIAL_AD_UNIT = import.meta.env.VITE_ADMOB_INTERSTITIAL || TEST_INTERSTITIAL;
 
 // Show an interstitial every Nth completed game (Win or GameOver). Tuned conservatively — too
 // frequent kills retention; too rare leaves money on the table. Revisit once we have install
@@ -60,7 +68,7 @@ export function createAdsState() {
             const ok = await canRequestAds();
             console.log("[ads] canRequestAds (banner):", ok);
             if (!ok.value) return;
-            const r = await loadBanner({ position: "bottom", adUnitId: TEST_BANNER });
+            const r = await loadBanner({ position: "bottom", adUnitId: BANNER_AD_UNIT });
             console.log("[ads] loadBanner result:", r);
             bannerShown = true;
         } catch (e) {
@@ -80,7 +88,7 @@ export function createAdsState() {
             const ok = await canRequestAds();
             console.log("[ads] canRequestAds (interstitial):", ok);
             if (!ok.value) return;
-            const r = await loadInterstitial({ adUnitId: TEST_INTERSTITIAL });
+            const r = await loadInterstitial({ adUnitId: INTERSTITIAL_AD_UNIT });
             console.log("[ads] loadInterstitial result:", r);
             gamesSinceLastInterstitial = 0;
         } catch (e) {

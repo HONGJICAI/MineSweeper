@@ -101,9 +101,18 @@ jobs:
           } > "$PROPS"
 
       - name: Build signed release AAB
+        # ADMOB_* secrets are read here:
+        #   ADMOB_APP_ID         → manifestPlaceholder, lands in AndroidManifest.xml
+        #   ADMOB_BANNER_ID      → vite env var, lands in JS bundle as banner adUnitId
+        #   ADMOB_INTERSTITIAL_ID → same, interstitial adUnitId
+        # If any of these secrets aren't set, the respective fallback (Google test ID) is used —
+        # the build succeeds but the artifact serves test ads. Safe default for CI smoke.
         env:
           GRADLE_OPTS: "-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
           _JAVA_OPTIONS: "-Xmx6g"
+          ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+          VITE_ADMOB_BANNER: ${{ secrets.ADMOB_BANNER_ID }}
+          VITE_ADMOB_INTERSTITIAL: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
         run: pnpm --filter ${{ inputs.package }} run build:android
 
       - name: Build signed release APK (optional)
@@ -111,6 +120,9 @@ jobs:
         env:
           GRADLE_OPTS: "-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
           _JAVA_OPTIONS: "-Xmx6g"
+          ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
+          VITE_ADMOB_BANNER: ${{ secrets.ADMOB_BANNER_ID }}
+          VITE_ADMOB_INTERSTITIAL: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
         run: pnpm --filter ${{ inputs.package }} run build:android:apk
 
       - name: Verify the AAB is actually signed
