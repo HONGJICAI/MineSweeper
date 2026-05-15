@@ -30,6 +30,11 @@ android {
     namespace = "dev.caiji.minesweepercube"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
+        // AdMob App ID — read from ADMOB_APP_ID env at build time, fall back to Google's universal
+        // test App ID. CI release pipeline pulls the real value from a GitHub secret. Local dev /
+        // PR-smoke builds use the test ID so we never accidentally fingerprint our own devices.
+        manifestPlaceholders["admobAppId"] = (System.getenv("ADMOB_APP_ID")
+            ?: "ca-app-pub-3940256099942544~3347511713")
         applicationId = "dev.caiji.minesweepercube"
         minSdk = 24
         targetSdk = 36

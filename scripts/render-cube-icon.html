@@ -1,0 +1,271 @@
+<!doctype html>
+<!--
+    Renders the cube app icon with Three.js (same rendering family as the game itself).
+    Open in any modern browser, see the preview, click Download to save 512x512 PNG.
+    Drop that PNG into packages/minesweeper-cube/public/pwa-512x512.png then run
+    `pnpm --filter minesweeper-cube run tauri:icons` to regenerate all platform sizes.
+
+    Tweak the constants at the top of the <script> block to iterate on the design — no
+    build step, just refresh.
+-->
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Cube icon renderer</title>
+    <style>
+        body {
+            margin: 0; padding: 24px;
+            background: linear-gradient(135deg, #0f172a, #334155);
+            color: #f1f5f9;
+            font-family: system-ui, sans-serif;
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+            min-height: 100vh; box-sizing: border-box;
+        }
+        h1 { margin: 0; font-size: 18px; font-weight: 500; color: #cbd5e1; }
+        .preview { background: #1e293b; padding: 24px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+        canvas { display: block; width: 256px; height: 256px; image-rendering: -webkit-optimize-contrast; }
+        .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        button {
+            padding: 10px 20px; font-size: 14px; font-weight: 500;
+            background: #2563eb; color: white; border: 0; border-radius: 8px; cursor: pointer;
+        }
+        button:hover { background: #1d4ed8; }
+        .hint { color: #94a3b8; font-size: 12px; max-width: 480px; text-align: center; line-height: 1.5; }
+        .swatches { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .swatches label { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #cbd5e1; }
+        .swatches input { width: 40px; height: 32px; padding: 0; border: 1px solid #475569; border-radius: 4px; background: transparent; }
+    </style>
+</head>
+<body>
+    <h1>Minesweeper Cube — icon preview</h1>
+
+    <div class="preview">
+        <canvas id="c" width="1024" height="1024"></canvas>
+    </div>
+
+    <div class="row">
+        <button id="download">Download 512×512 PNG</button>
+        <button id="downloadHi">Download 1024×1024 (Play store)</button>
+    </div>
+
+    <div class="swatches">
+        <label>Mine cell <input type="color" id="mineBg" value="#ef4444"></label>
+        <label>Revealed <input type="color" id="revealedBg" value="#e2e8f0"></label>
+        <label>Unrevealed <input type="color" id="unrevealedBg" value="#475569"></label>
+        <label>Edge <input type="color" id="edge" value="#0f172a"></label>
+        <label>Backdrop <input type="color" id="backdrop" value="#0f172a"></label>
+        <label><input type="checkbox" id="transparent" checked> Transparent backdrop</label>
+    </div>
+
+    <div class="row" style="gap: 24px;">
+        <label><input type="radio" name="mode" value="grid" checked> Hollow normal (3×3 per face) — Android</label>
+        <label><input type="radio" name="mode" value="single"> Mini cube (1 glyph per face) — Web / favicon</label>
+    </div>
+
+    <p class="hint">
+        Two presets: <b>3×3 grid</b> matches the hollow-cube normal-mode look (mine cluster on
+        left, sparse number hints on the other two visible faces) — works well at Android-icon
+        sizes (192px+). <b>Single glyph</b> is the bolder "mine + two 1s" reading — cleaner at
+        web PWA / favicon-adjacent sizes where 3×3 grid lines turn to mush.
+    </p>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.184.0/build/three.module.js" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from "three";
+
+        // ───────────────────────────────────────────────────────────────────────
+        // Edit these to iterate without touching the rendering plumbing.
+        const CONFIG = {
+            cubeSize:    0.78,                   // 1.0 = fills frustum; lower = more icon padding
+            cameraTilt:  [1.6, 1.1, 1.6],        // higher Y reveals more of the top face
+        };
+
+        // Two design presets. Cell format: "?" = unrevealed, "1".."8" = revealed number, "*" = mine.
+        // Visible faces from the chosen camera tilt: top (+Y), left (+Z), right (+X).
+        const PRESETS = {
+            // 3×3 hollow normal-mode aesthetic. Mine cluster on the left, sparse hints on
+            // top/right. Reads as "I just stepped on a mine in the middle of play".
+            grid: {
+                gridN: 3,
+                faces: {
+                    left:  ["1","1","1", "1","*","1", "1","1","1"],
+                    top:   ["?","?","?", "?","2","?", "?","?","?"],
+                    right: ["?","?","?", "?","1","?", "?","?","?"],
+                },
+            },
+            // 1×1 single-glyph variant. Bigger, bolder, no grid lines — survives downscaling to
+            // small sizes (favicon adjacent, web PWA icons). Each visible face is one big stamp.
+            single: {
+                gridN: 1,
+                faces: {
+                    left:  ["*"],
+                    top:   ["1"],
+                    right: ["1"],
+                },
+            },
+        };
+
+        function activePreset() {
+            const sel = document.querySelector('input[name="mode"]:checked');
+            return PRESETS[sel?.value ?? "grid"];
+        }
+
+        // Classic minesweeper number colors — same palette the game uses for revealed digits.
+        const NUMBER_COLORS = {
+            "1": "#2563eb", "2": "#16a34a", "3": "#dc2626", "4": "#7e22ce",
+            "5": "#a16207", "6": "#0891b2", "7": "#0f172a", "8": "#64748b",
+        };
+        // ───────────────────────────────────────────────────────────────────────
+
+        const canvas = document.getElementById("c");
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(1);
+        renderer.setSize(1024, 1024, false);
+        renderer.setClearColor(0x000000, 0);
+
+        const scene = new THREE.Scene();
+
+        const f = 0.7;
+        const camera = new THREE.OrthographicCamera(-f, f, f, -f, 0.1, 100);
+        camera.position.set(...CONFIG.cameraTilt);
+        camera.lookAt(0, 0, 0);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const dir = new THREE.DirectionalLight(0xffffff, 0.6);
+        dir.position.set(5, 8, 5);
+        scene.add(dir);
+
+        let cube = null;
+
+        // Draw one face as a grid of cells. Mirrors the in-game CubeFace look: small gap between
+        // cells, dark edge color, classic number palette on revealed cells. N=1 collapses the
+        // grid into a single stamp — used by the "Mini cube" preset.
+        function makeFaceTexture(cells, palette, N) {
+            const c = document.createElement("canvas");
+            c.width = c.height = 512;
+            const ctx = c.getContext("2d");
+            const padding = 14;
+            const cellGap = 6;
+            const cellArea = (512 - 2 * padding) / N;
+            const cellInner = cellArea - cellGap;
+
+            // Fill whole face with edge color — gaps between cells will show through.
+            ctx.fillStyle = palette.edge;
+            ctx.fillRect(0, 0, 512, 512);
+
+            for (let i = 0; i < N * N; i++) {
+                const row = Math.floor(i / N);
+                const col = i % N;
+                const x = padding + col * cellArea + cellGap / 2;
+                const y = padding + row * cellArea + cellGap / 2;
+                const ch = cells[i];
+
+                // Cell background by state
+                ctx.fillStyle =
+                    ch === "*" ? palette.mineBg :
+                    ch === "?" ? palette.unrevealedBg :
+                                 palette.revealedBg;
+                ctx.fillRect(x, y, cellInner, cellInner);
+
+                // Glyph
+                if (ch === "*") {
+                    ctx.font = `${cellInner * 0.7}px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif`;
+                    ctx.fillStyle = "#0f172a";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("💣", x + cellInner / 2, y + cellInner / 2 + cellInner * 0.05);
+                } else if (ch >= "1" && ch <= "8") {
+                    ctx.font = `900 ${cellInner * 0.7}px system-ui, sans-serif`;
+                    ctx.fillStyle = NUMBER_COLORS[ch] ?? "#0f172a";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(ch, x + cellInner / 2, y + cellInner / 2 + cellInner * 0.06);
+                }
+                // ch === "?" : no glyph, just the dark cell
+            }
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            return tex;
+        }
+
+        function buildCube() {
+            const palette = {
+                mineBg:       document.getElementById("mineBg").value,
+                revealedBg:   document.getElementById("revealedBg").value,
+                unrevealedBg: document.getElementById("unrevealedBg").value,
+                edge:         document.getElementById("edge").value,
+            };
+
+            // Backdrop: tauri's generated adaptive-icon XML hardcodes a white background layer
+            // (values/ic_launcher_background.xml = #fff). If you leave this transparent, that
+            // white shows through on Android 8+. Tick off "Transparent" to bake a backdrop into
+            // the PNG itself — that's the cleanest way to override without forking tauri's icon
+            // pipeline.
+            const transparent = document.getElementById("transparent").checked;
+            const backdrop = document.getElementById("backdrop").value;
+            renderer.setClearColor(
+                transparent ? 0x000000 : new THREE.Color(backdrop).getHex(),
+                transparent ? 0 : 1,
+            );
+
+            // BoxGeometry face order: +X, -X, +Y (top), -Y, +Z (front), -Z.
+            // Camera tilt (+,+,+) → visible faces are +X (right-of-screen), +Y (top), +Z (left-of-screen).
+            // Hidden faces use a dark dummy so any z-fighting / edge artifact stays slate-toned.
+            const hidden = new THREE.MeshStandardMaterial({ color: palette.edge });
+
+            const preset = activePreset();
+            const N = preset.gridN;
+            const materials = [
+                new THREE.MeshStandardMaterial({ map: makeFaceTexture(preset.faces.right, palette, N) }), // +X
+                hidden,
+                new THREE.MeshStandardMaterial({ map: makeFaceTexture(preset.faces.top,   palette, N) }), // +Y
+                hidden,
+                new THREE.MeshStandardMaterial({ map: makeFaceTexture(preset.faces.left,  palette, N) }), // +Z = LEFT in screen
+                hidden,
+            ];
+
+            if (cube) scene.remove(cube);
+            cube = new THREE.Mesh(
+                new THREE.BoxGeometry(CONFIG.cubeSize, CONFIG.cubeSize, CONFIG.cubeSize),
+                materials,
+            );
+            scene.add(cube);
+            renderer.render(scene, camera);
+        }
+
+        buildCube();
+        for (const id of ["mineBg", "revealedBg", "unrevealedBg", "edge", "backdrop"]) {
+            document.getElementById(id).addEventListener("input", buildCube);
+        }
+        document.getElementById("transparent").addEventListener("change", buildCube);
+        for (const r of document.querySelectorAll('input[name="mode"]')) {
+            r.addEventListener("change", buildCube);
+        }
+
+        function downloadAt(size, filename) {
+            renderer.setSize(size, size, false);
+            renderer.render(scene, camera);
+            canvas.toBlob((blob) => {
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                a.click();
+                renderer.setSize(1024, 1024, false);
+                renderer.render(scene, camera);
+            }, "image/png");
+        }
+
+        // Bake the active preset name into the download filename so it's obvious which design
+        // each PNG corresponds to when juggling both versions.
+        function currentMode() {
+            return document.querySelector('input[name="mode"]:checked').value;
+        }
+        document.getElementById("download").onclick   = () => downloadAt(512,  `cube-${currentMode()}-512.png`);
+        document.getElementById("downloadHi").onclick = () => downloadAt(1024, `cube-${currentMode()}-1024.png`);
+    </script>
+</body>
+</html>

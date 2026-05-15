@@ -142,6 +142,11 @@ describe("isWin (voxel)", () => {
 
 describe("difficulty / level helpers (voxel)", () => {
     test("minesForVoxelLevel scales with N", () => {
+        // N=5 is intentionally softer than the hollow-easy density (~11% vs ~15%) so first-time
+        // voxel players have room to learn the 3D layout. Hard-coded so future density tweaks
+        // are deliberate, not silent.
+        expect(minesForVoxelLevel(5)).toBe(11);   // round(98  * 11/98)
+        expect(minesForVoxelLevel(6)).toBe(17);   // round(152 * 11/98)
         expect(minesForVoxelLevel(7)).toBe(35);   // round(218 * 47/294)
         expect(minesForVoxelLevel(9)).toBe(77);   // round(386 * 97/486)
     });

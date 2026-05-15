@@ -64,14 +64,14 @@ jobs:
         run: pnpm build:shared
 
       - name: Init Android Project
-        # `tauri android init` refuses to run on a partial gen/ tree. Since we only commit
-        # app/build.gradle.kts (with custom signing) and not the rest of gen/android/, fresh
-        # CI checkouts hit that partial state and init bails. Wipe gen/, regenerate from
-        # scratch, then restore our committed build.gradle.kts.
+        # `tauri android init` refuses to run on a partial gen/ tree. Since we only commit a few
+        # hand-edited files (build.gradle.kts for signing, AndroidManifest.xml for ads metadata)
+        # and not the rest of gen/android/, fresh CI checkouts hit that partial state and init
+        # bails. Wipe gen/, regenerate from scratch, then restore our committed files.
         run: |
           rm -rf packages/${{ matrix.package }}/src-tauri/gen
           pnpm --filter ${{ matrix.package }} run tauri:android:init
-          git checkout -- packages/${{ matrix.package }}/src-tauri/gen/android/app/build.gradle.kts
+          git checkout -- $(git ls-files packages/${{ matrix.package }}/src-tauri/gen/)
 
       - name: Build unsigned release AAB
         env:

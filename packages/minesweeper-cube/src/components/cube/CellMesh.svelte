@@ -96,12 +96,14 @@
     function handlePointerDown(event: any) {
         if (!interactive) return;
         const button = event.button ?? event.nativeEvent?.button;
-        // Only the left button drives chord preview; right-click is the flag shortcut.
+        // Only the left button drives press tracking; right-click is the flag shortcut.
         if (button === 2) return;
-        if (cell.isRevealed && cell.adjacentMines > 0) {
-            onChordPressStart(pos);
-            event.stopPropagation?.();
-        }
+        // Fire for any cell — App.svelte uses this as the "is the player pressing something"
+        // signal (drives the O-mouth smiley face, classic minesweeper). Chord preview
+        // highlighting is gated internally in App.svelte's pressedKeys derivation so unrevealed
+        // and non-numbered cells still cause the press signal without showing chord neighbors.
+        onChordPressStart(pos);
+        event.stopPropagation?.();
     }
 
     function handlePointerUp() {
