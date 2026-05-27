@@ -16,16 +16,18 @@
         setMobileMode: (m: MobileMode) => void;
         onShowStats: () => void;
         // Settings sheet visibility is lifted to App.svelte so the Android back-button handler
-        // there can close it before letting the press bubble out to "exit app".
+        // there can close it before letting the press bubble out to "exit app". The ads sheet
+        // is lifted for the same reason.
         showSettings: boolean;
         setShowSettings: (v: boolean) => void;
+        setShowAdRewards: (v: boolean) => void;
         // True while the player's pointer is held down on any cell. Drives the classic
         // minesweeper "O-mouth" face state.
         isPressing: boolean;
     };
     let {
         game, timer, unlocks, ads, isPrimaryTouch, mobileMode,
-        setMobileMode, onShowStats, showSettings, setShowSettings, isPressing,
+        setMobileMode, onShowStats, showSettings, setShowSettings, setShowAdRewards, isPressing,
     }: Props = $props();
 
     // Interstitial trigger disabled for v1 — too intrusive while the rest of the ad UX still
@@ -219,19 +221,36 @@
     {/if}
 </div>
 
-<!-- Stats button: corner-pinned so it never competes for HUD-bar width. Without this, endless
-     runs whose level + timer + mine count grow past the screen width force the main bar to
-     wrap onto two lines. top/right use max(safe-area-inset, 0.75rem) so the button avoids
-     notch/punch-hole/curved-edge regions on devices that report them. -->
-<button
-    type="button"
-    class="pointer-events-auto absolute z-20 rounded-full bg-slate-700/80 px-3 py-1 text-sm text-slate-100 shadow hover:bg-slate-600 top-[max(env(safe-area-inset-top),0.75rem)] right-[max(env(safe-area-inset-right),0.75rem)]"
-    onclick={onShowStats}
-    title="Best times and recent games"
-    aria-label="Show stats"
+<!-- Corner button column: meta/menu actions live here so the main HUD bar stays focused on
+     live gameplay (timer, mines, reset). top/right use max(safe-area-inset, 0.75rem) so the
+     column avoids notch/punch-hole/curved-edge regions on devices that report them. -->
+<div
+    class="pointer-events-auto absolute z-20 flex flex-col gap-2 top-[max(env(safe-area-inset-top),0.75rem)] right-[max(env(safe-area-inset-right),0.75rem)]"
 >
-    📊
-</button>
+    <button
+        type="button"
+        class="rounded-full bg-slate-700/80 px-3 py-1 text-sm text-slate-100 shadow hover:bg-slate-600"
+        onclick={onShowStats}
+        title="Best times and recent games"
+        aria-label="Show stats"
+    >
+        📊
+    </button>
+    {#if ads.available}
+        <!-- Opens AdRewardsSheet (rendered from App.svelte). Kept as a separate sheet from
+             Settings so HUD's mode/difficulty panel stays focused on gameplay decisions and
+             monetization UX lives in its own component. -->
+        <button
+            type="button"
+            class="rounded-full bg-slate-700/80 px-3 py-1 text-sm text-slate-100 shadow hover:bg-slate-600"
+            onclick={() => setShowAdRewards(true)}
+            title="Hide the banner with a short video"
+            aria-label="Ad reward options"
+        >
+            🎁
+        </button>
+    {/if}
+</div>
 
 <div class="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center px-3">
     <div class="max-w-full rounded-full bg-slate-900/50 px-3 py-1 text-center text-xs text-slate-400 backdrop-blur">

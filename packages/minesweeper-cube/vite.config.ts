@@ -14,7 +14,7 @@ const isWeb = platform === "web";
 
 // Pick the ads implementation at build time. AdMob only works on Android, so only the `mobile`
 // platform keeps the real impl — web and desktop both bundle the no-op stub, which drops the
-// entire `tauri-plugin-admob-android-api` JS chain from the output.
+// entire `tauri-plugin-google-admob-api` JS chain from the output.
 const here = path.dirname(fileURLToPath(import.meta.url));
 const hasAds = platform === "mobile";
 const adsImpl = hasAds

@@ -7,6 +7,6 @@
   ],
   "permissions": [
     "core:default",
-    "admob-android:default"
+    "google-admob:default"
   ]
 }

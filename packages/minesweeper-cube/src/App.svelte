@@ -12,6 +12,7 @@
     import Cube3D from "./components/cube/Cube3D.svelte";
     import HUD from "./components/HUD.svelte";
     import StatsModal from "./components/StatsModal.svelte";
+    import AdRewardsSheet from "./components/AdRewardsSheet.svelte";
     import { createTimerState } from "@caiji-games/shared-state";
     import { createGameState } from "./state/game.svelte.ts";
     import { createLeaderboardState } from "./state/leaderboard.svelte.ts";
@@ -33,10 +34,19 @@
     const unlocks = createUnlockState();
     const ads = createAdsState();
 
-    // Init AdMob on mount (Android only — silently no-ops elsewhere). Banner is shown after
-    // init resolves; interstitials trigger from the Win/GameOver transition below.
+    // Init AdMob on mount (Android only — silently no-ops elsewhere). Cold-start sequence:
+    //   1. ads.init() — registers SDK, kicks off all preloads in background
+    //   2. ads.maybeShowAppOpen() — fullscreen ad if preload settled in time AND not first
+    //      launch ever; this blocks until the player dismisses the ad
+    //   3. ads.showBanner() — bottom-pinned banner takes its slot
+    // Interstitials trigger from the Win/GameOver transition (see HUD); rewarded triggers from
+    // the AdRewardsSheet button. We deliberately don't listen for visibilitychange — App Open
+    // is cold-start-only, so a heavy player who backgrounds and returns won't see one mid-game.
     $effect(() => {
-        ads.init().then(() => ads.showBanner());
+        ads.init().then(async () => {
+            await ads.maybeShowAppOpen();
+            await ads.showBanner();
+        });
     });
 
     // Progression unlocks: winning a tier grants the next. Implemented as a leaderboard-driven
@@ -50,8 +60,10 @@
 
     let showStats = $state(false);
     // Lifted out of HUD so the Android back-button handler below can close the sheet without
-    // the press bubbling up to "exit app".
+    // the press bubbling up to "exit app". `showAdRewards` is a separate sheet so the gameplay
+    // settings panel stays focused on mode/difficulty.
     let showSettings = $state(false);
+    let showAdRewards = $state(false);
 
     // Android back-button: by default WebView has 1 history entry → pressing back exits the
     // whole app, which is jarring when a modal is open. We prime the history with a sentinel
@@ -63,8 +75,9 @@
         if (typeof window === "undefined") return;
         window.history.pushState({ sentinel: true }, "");
         const onPop = () => {
-            if (showStats)    { showStats    = false; window.history.pushState({ sentinel: true }, ""); return; }
-            if (showSettings) { showSettings = false; window.history.pushState({ sentinel: true }, ""); return; }
+            if (showStats)      { showStats      = false; window.history.pushState({ sentinel: true }, ""); return; }
+            if (showAdRewards)  { showAdRewards  = false; window.history.pushState({ sentinel: true }, ""); return; }
+            if (showSettings)   { showSettings   = false; window.history.pushState({ sentinel: true }, ""); return; }
             // Nothing to dismiss — let the back press exit the app (don't re-push).
         };
         window.addEventListener("popstate", onPop);
@@ -241,6 +254,7 @@
             onShowStats={() => (showStats = true)}
             {showSettings}
             setShowSettings={(v) => (showSettings = v)}
+            setShowAdRewards={(v) => (showAdRewards = v)}
             {isPressing}
         />
     </main>
@@ -259,4 +273,8 @@
         {endlessHistory}
         onClose={() => (showStats = false)}
     />
+{/if}
+
+{#if showAdRewards}
+    <AdRewardsSheet {ads} onClose={() => (showAdRewards = false)} />
 {/if}

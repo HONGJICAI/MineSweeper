@@ -5,7 +5,7 @@
   "identifier": "dev.caiji.minesweepercube",
   "build": {
     "beforeDevCommand": "pnpm run dev",
-    "devUrl": "http://localhost:5180",
+    "devUrl": "http://localhost:8080",
     "beforeBuildCommand": "pnpm run build",
     "frontendDist": "../dist"
   },

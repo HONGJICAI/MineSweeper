@@ -17,4 +17,4 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2.11", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tauri-plugin-admob-android = "0.1.12"
+tauri-plugin-google-admob = "0.1.1"
