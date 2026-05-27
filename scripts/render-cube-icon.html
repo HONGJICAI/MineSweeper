@@ -1,12 +1,16 @@
 <!doctype html>
 <!--
-    Renders the cube app icon with Three.js (same rendering family as the game itself).
-    Open in any modern browser, see the preview, click Download to save 512x512 PNG.
-    Drop that PNG into packages/minesweeper-cube/public/pwa-512x512.png then run
-    `pnpm --filter minesweeper-cube run tauri:icons` to regenerate all platform sizes.
+    Renders the cube app icon AND the Play Store feature graphic with Three.js (same
+    rendering family as the game itself). Open in any modern browser, see the previews,
+    click Download to save PNGs.
 
-    Tweak the constants at the top of the <script> block to iterate on the design — no
-    build step, just refresh.
+    Outputs:
+    - 512x512 / 1024x1024 PNG → packages/minesweeper-cube/public/pwa-512x512.png, then run
+      `pnpm --filter minesweeper-cube run tauri:icons` to regenerate all platform sizes
+    - 1024x500 feature graphic → upload to Play Console → Main store listing → Feature
+      graphic. Play Store requires this exact size, no alpha, ≤1 MB.
+
+    Tweak the constants at the top of the <script> block to iterate — no build step.
 -->
 <html lang="en">
 <head>
@@ -23,7 +27,9 @@
         }
         h1 { margin: 0; font-size: 18px; font-weight: 500; color: #cbd5e1; }
         .preview { background: #1e293b; padding: 24px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
-        canvas { display: block; width: 256px; height: 256px; image-rendering: -webkit-optimize-contrast; }
+        canvas { display: block; image-rendering: -webkit-optimize-contrast; }
+        canvas#c      { width: 256px; height: 256px; }
+        canvas#banner { width: min(640px, 90vw); height: auto; aspect-ratio: 1024 / 500; }
         .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
         button {
             padding: 10px 20px; font-size: 14px; font-weight: 500;
@@ -67,6 +73,20 @@
         left, sparse number hints on the other two visible faces) — works well at Android-icon
         sizes (192px+). <b>Single glyph</b> is the bolder "mine + two 1s" reading — cleaner at
         web PWA / favicon-adjacent sizes where 3×3 grid lines turn to mush.
+    </p>
+
+    <h1 style="margin-top: 16px;">Play Store feature graphic — 1024×500</h1>
+    <div class="preview">
+        <canvas id="banner" width="1024" height="500"></canvas>
+    </div>
+    <div class="row">
+        <button id="downloadBanner">Download 1024×500 feature graphic</button>
+    </div>
+    <p class="hint">
+        Play Store crops this image differently across surfaces (detail page = full, featured
+        collections ≈ 16:9 center crop). Keep critical elements (title, cube) inside the inner
+        80% horizontally — anything inside ~100px of the left/right edge may get clipped in
+        featured carousels.
     </p>
 
     <script type="importmap">
@@ -117,6 +137,21 @@
         const NUMBER_COLORS = {
             "1": "#2563eb", "2": "#16a34a", "3": "#dc2626", "4": "#7e22ce",
             "5": "#a16207", "6": "#0891b2", "7": "#0f172a", "8": "#64748b",
+        };
+
+        // Play Store feature graphic config. Banner is 1024x500 fixed by Google. Layout:
+        // title block on the left half, cube on the right half. Edit text + colors here.
+        const BANNER = {
+            title1:        "MINESWEEPER",       // first line, biggest
+            title2:        "CUBE",              // second line, accent colored
+            subtitle:      "Sweep all six faces",
+            title1Color:   "#f8fafc",           // slate-50
+            title2Color:   "#fbbf24",           // amber-400 — pops against slate, ties to smiley emoji
+            subtitleColor: "#94a3b8",           // slate-400
+            // Diagonal gradient matching the app's main background.
+            bgStops:       ["#0f172a", "#1e293b", "#334155"],
+            // Soft radial highlight behind the cube to give it a subtle stage glow.
+            cubeGlow:      "rgba(99, 102, 241, 0.18)",   // indigo-500 @ 18%
         };
         // ───────────────────────────────────────────────────────────────────────
 
@@ -266,6 +301,107 @@
         }
         document.getElementById("download").onclick   = () => downloadAt(512,  `cube-${currentMode()}-512.png`);
         document.getElementById("downloadHi").onclick = () => downloadAt(1024, `cube-${currentMode()}-1024.png`);
+
+        // ─── Play Store feature graphic (1024×500) ────────────────────────────
+        // Re-uses the same Three.js scene: temporarily resize the renderer to 500×500,
+        // grab the cube as an image, then composite onto a 1024×500 layout canvas with
+        // the background gradient + title text painted in 2D. Restores the renderer back
+        // to icon mode at the end so the icon preview above keeps working.
+        const bannerCanvas = document.getElementById("banner");
+        const bannerCtx = bannerCanvas.getContext("2d");
+
+        function renderBanner() {
+            const W = 1024, H = 500;
+
+            // Render the cube at 500×500 with a transparent backdrop so we can composite
+            // it cleanly over the banner gradient. We DON'T use the user's "Transparent
+            // backdrop" checkbox here — feature graphic forbids alpha, so the banner
+            // background gradient is always opaque, and the cube layer needs transparency
+            // to let that gradient show through behind the cube edges.
+            const prevW = canvas.width;
+            const prevH = canvas.height;
+            renderer.setSize(H, H, false);
+            renderer.setClearColor(0x000000, 0);
+            renderer.render(scene, camera);
+
+            // Background: diagonal slate gradient identical to the app's main background.
+            const grad = bannerCtx.createLinearGradient(0, 0, W, H);
+            BANNER.bgStops.forEach((stop, i, arr) => grad.addColorStop(i / (arr.length - 1), stop));
+            bannerCtx.fillStyle = grad;
+            bannerCtx.fillRect(0, 0, W, H);
+
+            // Soft radial glow behind where the cube will land — adds depth without
+            // requiring any extra geometry in the 3D scene.
+            const glow = bannerCtx.createRadialGradient(770, H / 2, 0, 770, H / 2, 360);
+            glow.addColorStop(0, BANNER.cubeGlow);
+            glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+            bannerCtx.fillStyle = glow;
+            bannerCtx.fillRect(0, 0, W, H);
+
+            // Composite the cube on the right. Keep it inside the inner ~80% horizontally
+            // so featured-collection center crops don't clip it.
+            const cubeSize = 460;
+            const cubeX = W - cubeSize - 50;       // 50px right padding
+            const cubeY = (H - cubeSize) / 2;
+            bannerCtx.drawImage(canvas, cubeX, cubeY, cubeSize, cubeSize);
+
+            // Title block on the left. Two lines so each can be huge without overrunning
+            // the cube. Baseline 'middle' so the math below is centered around y= line center.
+            bannerCtx.textBaseline = "middle";
+            bannerCtx.textAlign = "left";
+
+            const titleX = 80;
+            bannerCtx.font = `900 92px "Inter", "Segoe UI", system-ui, sans-serif`;
+            bannerCtx.fillStyle = BANNER.title1Color;
+            bannerCtx.fillText(BANNER.title1, titleX, 175);
+            bannerCtx.fillStyle = BANNER.title2Color;
+            bannerCtx.fillText(BANNER.title2, titleX, 275);
+
+            // Subtitle: smaller, muted, sits a comfortable distance below the title block.
+            bannerCtx.fillStyle = BANNER.subtitleColor;
+            bannerCtx.font = `500 34px "Inter", "Segoe UI", system-ui, sans-serif`;
+            bannerCtx.fillText(BANNER.subtitle, titleX, 360);
+
+            // Restore the renderer state so the icon preview above remains correct. Reads
+            // the same color-picker / transparency inputs that buildCube() reads, mirroring
+            // exactly what buildCube would set.
+            renderer.setSize(prevW, prevH, false);
+            const transparent = document.getElementById("transparent").checked;
+            const backdrop = document.getElementById("backdrop").value;
+            renderer.setClearColor(
+                transparent ? 0x000000 : new THREE.Color(backdrop).getHex(),
+                transparent ? 0 : 1,
+            );
+            renderer.render(scene, camera);
+        }
+
+        // Re-render the banner whenever the cube changes (color, preset, etc.) so the two
+        // previews stay in sync. Event listeners fire in registration order: buildCube
+        // (registered earlier) runs first and leaves the icon canvas at 1024×1024 with the
+        // user's chosen colors; renderBanner (registered here) then re-uses the scene to
+        // capture a 500×500 cube and restore state.
+        for (const id of ["mineBg", "revealedBg", "unrevealedBg", "edge", "backdrop"]) {
+            document.getElementById(id).addEventListener("input", renderBanner);
+        }
+        document.getElementById("transparent").addEventListener("change", renderBanner);
+        for (const r of document.querySelectorAll('input[name="mode"]')) {
+            r.addEventListener("change", renderBanner);
+        }
+        renderBanner();
+
+        document.getElementById("downloadBanner").onclick = () => {
+            // Re-render once more right before export in case anything has drifted (e.g.
+            // user changed inputs between renders). PNG is fine — Play Store accepts JPG
+            // or 24-bit PNG, no alpha. Our banner gradient is fully opaque so PNG without
+            // alpha is exactly what comes out.
+            renderBanner();
+            bannerCanvas.toBlob((blob) => {
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = `feature-graphic-1024x500.png`;
+                a.click();
+            }, "image/png");
+        };
     </script>
 </body>
 </html>
