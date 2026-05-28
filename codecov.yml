@@ -1,0 +1,28 @@
+# Codecov configuration. The repo has multiple packages; we only publish a coverage badge for
+# minesweeper-cube-core (pure logic with meaningful unit-test coverage). Other packages either
+# have minimal pure logic (state factories in app packages) or are dominated by 3D/Svelte
+# components that can't be measured without a real browser.
+
+coverage:
+  status:
+    project:
+      default:
+        # Don't gate PRs on coverage delta — we treat coverage as informational, not a quality
+        # gate. Threshold is generous so noise from adding new untested branches doesn't fail
+        # CI.
+        target: auto
+        threshold: 2%
+    patch:
+      default:
+        informational: true
+
+# Per-package flags. Add new ones as we onboard more packages.
+flag_management:
+  individual_flags:
+    - name: minesweeper-cube-core
+      paths:
+        - packages/minesweeper-cube-core/src/
+
+comment:
+  layout: "diff, flags"
+  require_changes: true
