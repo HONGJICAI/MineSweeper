@@ -1,0 +1,407 @@
+<!doctype html>
+<!--
+    Renders the cube app icon AND the Play Store feature graphic with Three.js (same
+    rendering family as the game itself). Open in any modern browser, see the previews,
+    click Download to save PNGs.
+
+    Outputs:
+    - 512x512 / 1024x1024 PNG → packages/minesweeper-cube/public/pwa-512x512.png, then run
+      `pnpm --filter minesweeper-cube run tauri:icons` to regenerate all platform sizes
+    - 1024x500 feature graphic → upload to Play Console → Main store listing → Feature
+      graphic. Play Store requires this exact size, no alpha, ≤1 MB.
+
+    Tweak the constants at the top of the <script> block to iterate — no build step.
+-->
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Cube icon renderer</title>
+    <style>
+        body {
+            margin: 0; padding: 24px;
+            background: linear-gradient(135deg, #0f172a, #334155);
+            color: #f1f5f9;
+            font-family: system-ui, sans-serif;
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+            min-height: 100vh; box-sizing: border-box;
+        }
+        h1 { margin: 0; font-size: 18px; font-weight: 500; color: #cbd5e1; }
+        .preview { background: #1e293b; padding: 24px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+        canvas { display: block; image-rendering: -webkit-optimize-contrast; }
+        canvas#c      { width: 256px; height: 256px; }
+        canvas#banner { width: min(640px, 90vw); height: auto; aspect-ratio: 1024 / 500; }
+        .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        button {
+            padding: 10px 20px; font-size: 14px; font-weight: 500;
+            background: #2563eb; color: white; border: 0; border-radius: 8px; cursor: pointer;
+        }
+        button:hover { background: #1d4ed8; }
+        .hint { color: #94a3b8; font-size: 12px; max-width: 480px; text-align: center; line-height: 1.5; }
+        .swatches { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .swatches label { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #cbd5e1; }
+        .swatches input { width: 40px; height: 32px; padding: 0; border: 1px solid #475569; border-radius: 4px; background: transparent; }
+    </style>
+</head>
+<body>
+    <h1>Minesweeper Cube — icon preview</h1>
+
+    <div class="preview">
+        <canvas id="c" width="1024" height="1024"></canvas>
+    </div>
+
+    <div class="row">
+        <button id="download">Download 512×512 PNG</button>
+        <button id="downloadHi">Download 1024×1024 (Play store)</button>
+    </div>
+
+    <div class="swatches">
+        <label>Mine cell <input type="color" id="mineBg" value="#ef4444"></label>
+        <label>Revealed <input type="color" id="revealedBg" value="#e2e8f0"></label>
+        <label>Unrevealed <input type="color" id="unrevealedBg" value="#475569"></label>
+        <label>Edge <input type="color" id="edge" value="#0f172a"></label>
+        <label>Backdrop <input type="color" id="backdrop" value="#0f172a"></label>
+        <label><input type="checkbox" id="transparent" checked> Transparent backdrop</label>
+    </div>
+
+    <div class="row" style="gap: 24px;">
+        <label><input type="radio" name="mode" value="grid" checked> Hollow normal (3×3 per face) — Android</label>
+        <label><input type="radio" name="mode" value="single"> Mini cube (1 glyph per face) — Web / favicon</label>
+    </div>
+
+    <p class="hint">
+        Two presets: <b>3×3 grid</b> matches the hollow-cube normal-mode look (mine cluster on
+        left, sparse number hints on the other two visible faces) — works well at Android-icon
+        sizes (192px+). <b>Single glyph</b> is the bolder "mine + two 1s" reading — cleaner at
+        web PWA / favicon-adjacent sizes where 3×3 grid lines turn to mush.
+    </p>
+
+    <h1 style="margin-top: 16px;">Play Store feature graphic — 1024×500</h1>
+    <div class="preview">
+        <canvas id="banner" width="1024" height="500"></canvas>
+    </div>
+    <div class="row">
+        <button id="downloadBanner">Download 1024×500 feature graphic</button>
+    </div>
+    <p class="hint">
+        Play Store crops this image differently across surfaces (detail page = full, featured
+        collections ≈ 16:9 center crop). Keep critical elements (title, cube) inside the inner
+        80% horizontally — anything inside ~100px of the left/right edge may get clipped in
+        featured carousels.
+    </p>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.184.0/build/three.module.js" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from "three";
+
+        // ───────────────────────────────────────────────────────────────────────
+        // Edit these to iterate without touching the rendering plumbing.
+        const CONFIG = {
+            cubeSize:    0.78,                   // 1.0 = fills frustum; lower = more icon padding
+            cameraTilt:  [1.6, 1.1, 1.6],        // higher Y reveals more of the top face
+        };
+
+        // Two design presets. Cell format: "?" = unrevealed, "1".."8" = revealed number, "*" = mine.
+        // Visible faces from the chosen camera tilt: top (+Y), left (+Z), right (+X).
+        const PRESETS = {
+            // 3×3 hollow normal-mode aesthetic. Mine cluster on the left, sparse hints on
+            // top/right. Reads as "I just stepped on a mine in the middle of play".
+            grid: {
+                gridN: 3,
+                faces: {
+                    left:  ["1","1","1", "1","*","1", "1","1","1"],
+                    top:   ["?","?","?", "?","2","?", "?","?","?"],
+                    right: ["?","?","?", "?","1","?", "?","?","?"],
+                },
+            },
+            // 1×1 single-glyph variant. Bigger, bolder, no grid lines — survives downscaling to
+            // small sizes (favicon adjacent, web PWA icons). Each visible face is one big stamp.
+            single: {
+                gridN: 1,
+                faces: {
+                    left:  ["*"],
+                    top:   ["1"],
+                    right: ["1"],
+                },
+            },
+        };
+
+        function activePreset() {
+            const sel = document.querySelector('input[name="mode"]:checked');
+            return PRESETS[sel?.value ?? "grid"];
+        }
+
+        // Classic minesweeper number colors — same palette the game uses for revealed digits.
+        const NUMBER_COLORS = {
+            "1": "#2563eb", "2": "#16a34a", "3": "#dc2626", "4": "#7e22ce",
+            "5": "#a16207", "6": "#0891b2", "7": "#0f172a", "8": "#64748b",
+        };
+
+        // Play Store feature graphic config. Banner is 1024x500 fixed by Google. Layout:
+        // title block on the left half, cube on the right half. Edit text + colors here.
+        const BANNER = {
+            title1:        "MINESWEEPER",       // first line, biggest
+            title2:        "CUBE",              // second line, accent colored
+            subtitle:      "Sweep all six faces",
+            title1Color:   "#f8fafc",           // slate-50
+            title2Color:   "#fbbf24",           // amber-400 — pops against slate, ties to smiley emoji
+            subtitleColor: "#94a3b8",           // slate-400
+            // Diagonal gradient matching the app's main background.
+            bgStops:       ["#0f172a", "#1e293b", "#334155"],
+            // Soft radial highlight behind the cube to give it a subtle stage glow.
+            cubeGlow:      "rgba(99, 102, 241, 0.18)",   // indigo-500 @ 18%
+        };
+        // ───────────────────────────────────────────────────────────────────────
+
+        const canvas = document.getElementById("c");
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(1);
+        renderer.setSize(1024, 1024, false);
+        renderer.setClearColor(0x000000, 0);
+
+        const scene = new THREE.Scene();
+
+        const f = 0.7;
+        const camera = new THREE.OrthographicCamera(-f, f, f, -f, 0.1, 100);
+        camera.position.set(...CONFIG.cameraTilt);
+        camera.lookAt(0, 0, 0);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const dir = new THREE.DirectionalLight(0xffffff, 0.6);
+        dir.position.set(5, 8, 5);
+        scene.add(dir);
+
+        let cube = null;
+
+        // Draw one face as a grid of cells. Mirrors the in-game CubeFace look: small gap between
+        // cells, dark edge color, classic number palette on revealed cells. N=1 collapses the
+        // grid into a single stamp — used by the "Mini cube" preset.
+        function makeFaceTexture(cells, palette, N) {
+            const c = document.createElement("canvas");
+            c.width = c.height = 512;
+            const ctx = c.getContext("2d");
+            const padding = 14;
+            const cellGap = 6;
+            const cellArea = (512 - 2 * padding) / N;
+            const cellInner = cellArea - cellGap;
+
+            // Fill whole face with edge color — gaps between cells will show through.
+            ctx.fillStyle = palette.edge;
+            ctx.fillRect(0, 0, 512, 512);
+
+            for (let i = 0; i < N * N; i++) {
+                const row = Math.floor(i / N);
+                const col = i % N;
+                const x = padding + col * cellArea + cellGap / 2;
+                const y = padding + row * cellArea + cellGap / 2;
+                const ch = cells[i];
+
+                // Cell background by state
+                ctx.fillStyle =
+                    ch === "*" ? palette.mineBg :
+                    ch === "?" ? palette.unrevealedBg :
+                                 palette.revealedBg;
+                ctx.fillRect(x, y, cellInner, cellInner);
+
+                // Glyph
+                if (ch === "*") {
+                    ctx.font = `${cellInner * 0.7}px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif`;
+                    ctx.fillStyle = "#0f172a";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("💣", x + cellInner / 2, y + cellInner / 2 + cellInner * 0.05);
+                } else if (ch >= "1" && ch <= "8") {
+                    ctx.font = `900 ${cellInner * 0.7}px system-ui, sans-serif`;
+                    ctx.fillStyle = NUMBER_COLORS[ch] ?? "#0f172a";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(ch, x + cellInner / 2, y + cellInner / 2 + cellInner * 0.06);
+                }
+                // ch === "?" : no glyph, just the dark cell
+            }
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            return tex;
+        }
+
+        function buildCube() {
+            const palette = {
+                mineBg:       document.getElementById("mineBg").value,
+                revealedBg:   document.getElementById("revealedBg").value,
+                unrevealedBg: document.getElementById("unrevealedBg").value,
+                edge:         document.getElementById("edge").value,
+            };
+
+            // Backdrop: tauri's generated adaptive-icon XML hardcodes a white background layer
+            // (values/ic_launcher_background.xml = #fff). If you leave this transparent, that
+            // white shows through on Android 8+. Tick off "Transparent" to bake a backdrop into
+            // the PNG itself — that's the cleanest way to override without forking tauri's icon
+            // pipeline.
+            const transparent = document.getElementById("transparent").checked;
+            const backdrop = document.getElementById("backdrop").value;
+            renderer.setClearColor(
+                transparent ? 0x000000 : new THREE.Color(backdrop).getHex(),
+                transparent ? 0 : 1,
+            );
+
+            // BoxGeometry face order: +X, -X, +Y (top), -Y, +Z (front), -Z.
+            // Camera tilt (+,+,+) → visible faces are +X (right-of-screen), +Y (top), +Z (left-of-screen).
+            // Hidden faces use a dark dummy so any z-fighting / edge artifact stays slate-toned.
+            const hidden = new THREE.MeshStandardMaterial({ color: palette.edge });
+
+            const preset = activePreset();
+            const N = preset.gridN;
+            const materials = [
+                new THREE.MeshStandardMaterial({ map: makeFaceTexture(preset.faces.right, palette, N) }), // +X
+                hidden,
+                new THREE.MeshStandardMaterial({ map: makeFaceTexture(preset.faces.top,   palette, N) }), // +Y
+                hidden,
+                new THREE.MeshStandardMaterial({ map: makeFaceTexture(preset.faces.left,  palette, N) }), // +Z = LEFT in screen
+                hidden,
+            ];
+
+            if (cube) scene.remove(cube);
+            cube = new THREE.Mesh(
+                new THREE.BoxGeometry(CONFIG.cubeSize, CONFIG.cubeSize, CONFIG.cubeSize),
+                materials,
+            );
+            scene.add(cube);
+            renderer.render(scene, camera);
+        }
+
+        buildCube();
+        for (const id of ["mineBg", "revealedBg", "unrevealedBg", "edge", "backdrop"]) {
+            document.getElementById(id).addEventListener("input", buildCube);
+        }
+        document.getElementById("transparent").addEventListener("change", buildCube);
+        for (const r of document.querySelectorAll('input[name="mode"]')) {
+            r.addEventListener("change", buildCube);
+        }
+
+        function downloadAt(size, filename) {
+            renderer.setSize(size, size, false);
+            renderer.render(scene, camera);
+            canvas.toBlob((blob) => {
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                a.click();
+                renderer.setSize(1024, 1024, false);
+                renderer.render(scene, camera);
+            }, "image/png");
+        }
+
+        // Bake the active preset name into the download filename so it's obvious which design
+        // each PNG corresponds to when juggling both versions.
+        function currentMode() {
+            return document.querySelector('input[name="mode"]:checked').value;
+        }
+        document.getElementById("download").onclick   = () => downloadAt(512,  `cube-${currentMode()}-512.png`);
+        document.getElementById("downloadHi").onclick = () => downloadAt(1024, `cube-${currentMode()}-1024.png`);
+
+        // ─── Play Store feature graphic (1024×500) ────────────────────────────
+        // Re-uses the same Three.js scene: temporarily resize the renderer to 500×500,
+        // grab the cube as an image, then composite onto a 1024×500 layout canvas with
+        // the background gradient + title text painted in 2D. Restores the renderer back
+        // to icon mode at the end so the icon preview above keeps working.
+        const bannerCanvas = document.getElementById("banner");
+        const bannerCtx = bannerCanvas.getContext("2d");
+
+        function renderBanner() {
+            const W = 1024, H = 500;
+
+            // Render the cube at 500×500 with a transparent backdrop so we can composite
+            // it cleanly over the banner gradient. We DON'T use the user's "Transparent
+            // backdrop" checkbox here — feature graphic forbids alpha, so the banner
+            // background gradient is always opaque, and the cube layer needs transparency
+            // to let that gradient show through behind the cube edges.
+            const prevW = canvas.width;
+            const prevH = canvas.height;
+            renderer.setSize(H, H, false);
+            renderer.setClearColor(0x000000, 0);
+            renderer.render(scene, camera);
+
+            // Background: diagonal slate gradient identical to the app's main background.
+            const grad = bannerCtx.createLinearGradient(0, 0, W, H);
+            BANNER.bgStops.forEach((stop, i, arr) => grad.addColorStop(i / (arr.length - 1), stop));
+            bannerCtx.fillStyle = grad;
+            bannerCtx.fillRect(0, 0, W, H);
+
+            // Soft radial glow behind where the cube will land — adds depth without
+            // requiring any extra geometry in the 3D scene.
+            const glow = bannerCtx.createRadialGradient(770, H / 2, 0, 770, H / 2, 360);
+            glow.addColorStop(0, BANNER.cubeGlow);
+            glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+            bannerCtx.fillStyle = glow;
+            bannerCtx.fillRect(0, 0, W, H);
+
+            // Composite the cube on the right. Keep it inside the inner ~80% horizontally
+            // so featured-collection center crops don't clip it.
+            const cubeSize = 460;
+            const cubeX = W - cubeSize - 50;       // 50px right padding
+            const cubeY = (H - cubeSize) / 2;
+            bannerCtx.drawImage(canvas, cubeX, cubeY, cubeSize, cubeSize);
+
+            // Title block on the left. Two lines so each can be huge without overrunning
+            // the cube. Baseline 'middle' so the math below is centered around y= line center.
+            bannerCtx.textBaseline = "middle";
+            bannerCtx.textAlign = "left";
+
+            const titleX = 80;
+            bannerCtx.font = `900 92px "Inter", "Segoe UI", system-ui, sans-serif`;
+            bannerCtx.fillStyle = BANNER.title1Color;
+            bannerCtx.fillText(BANNER.title1, titleX, 175);
+            bannerCtx.fillStyle = BANNER.title2Color;
+            bannerCtx.fillText(BANNER.title2, titleX, 275);
+
+            // Subtitle: smaller, muted, sits a comfortable distance below the title block.
+            bannerCtx.fillStyle = BANNER.subtitleColor;
+            bannerCtx.font = `500 34px "Inter", "Segoe UI", system-ui, sans-serif`;
+            bannerCtx.fillText(BANNER.subtitle, titleX, 360);
+
+            // Restore the renderer state so the icon preview above remains correct. Reads
+            // the same color-picker / transparency inputs that buildCube() reads, mirroring
+            // exactly what buildCube would set.
+            renderer.setSize(prevW, prevH, false);
+            const transparent = document.getElementById("transparent").checked;
+            const backdrop = document.getElementById("backdrop").value;
+            renderer.setClearColor(
+                transparent ? 0x000000 : new THREE.Color(backdrop).getHex(),
+                transparent ? 0 : 1,
+            );
+            renderer.render(scene, camera);
+        }
+
+        // Re-render the banner whenever the cube changes (color, preset, etc.) so the two
+        // previews stay in sync. Event listeners fire in registration order: buildCube
+        // (registered earlier) runs first and leaves the icon canvas at 1024×1024 with the
+        // user's chosen colors; renderBanner (registered here) then re-uses the scene to
+        // capture a 500×500 cube and restore state.
+        for (const id of ["mineBg", "revealedBg", "unrevealedBg", "edge", "backdrop"]) {
+            document.getElementById(id).addEventListener("input", renderBanner);
+        }
+        document.getElementById("transparent").addEventListener("change", renderBanner);
+        for (const r of document.querySelectorAll('input[name="mode"]')) {
+            r.addEventListener("change", renderBanner);
+        }
+        renderBanner();
+
+        document.getElementById("downloadBanner").onclick = () => {
+            // Re-render once more right before export in case anything has drifted (e.g.
+            // user changed inputs between renders). PNG is fine — Play Store accepts JPG
+            // or 24-bit PNG, no alpha. Our banner gradient is fully opaque so PNG without
+            // alpha is exactly what comes out.
+            renderBanner();
+            bannerCanvas.toBlob((blob) => {
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = `feature-graphic-1024x500.png`;
+                a.click();
+            }, "image/png");
+        };
+    </script>
+</body>
+</html>

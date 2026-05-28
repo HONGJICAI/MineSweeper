@@ -12,12 +12,14 @@
     import Cube3D from "./components/cube/Cube3D.svelte";
     import HUD from "./components/HUD.svelte";
     import StatsModal from "./components/StatsModal.svelte";
+    import AdRewardsSheet from "./components/AdRewardsSheet.svelte";
     import { createTimerState } from "@caiji-games/shared-state";
     import { createGameState } from "./state/game.svelte.ts";
     import { createLeaderboardState } from "./state/leaderboard.svelte.ts";
     import { createPlayHistoryState } from "./state/playHistory.svelte.ts";
     import { createEndlessHistoryState } from "./state/endlessHistory.svelte.ts";
     import { createUnlockState } from "./state/unlocks.svelte.ts";
+    import { createAdsState } from "$ads";
     import { celebrate } from "./lib/celebrate.ts";
     import type { MobileMode } from "./state/mobileMode.ts";
 
@@ -30,6 +32,22 @@
         voxel:  createEndlessHistoryState("voxel"),
     };
     const unlocks = createUnlockState();
+    const ads = createAdsState();
+
+    // Init AdMob on mount (Android only — silently no-ops elsewhere). Cold-start sequence:
+    //   1. ads.init() — registers SDK, kicks off all preloads in background
+    //   2. ads.maybeShowAppOpen() — fullscreen ad if preload settled in time AND not first
+    //      launch ever; this blocks until the player dismisses the ad
+    //   3. ads.showBanner() — bottom-pinned banner takes its slot
+    // Interstitials trigger from the Win/GameOver transition (see HUD); rewarded triggers from
+    // the AdRewardsSheet button. We deliberately don't listen for visibilitychange — App Open
+    // is cold-start-only, so a heavy player who backgrounds and returns won't see one mid-game.
+    $effect(() => {
+        ads.init().then(async () => {
+            await ads.maybeShowAppOpen();
+            await ads.showBanner();
+        });
+    });
 
     // Progression unlocks: winning a tier grants the next. Implemented as a leaderboard-driven
     // effect so it covers both live wins (leaderboard.add re-triggers this) and migration for
@@ -41,6 +59,30 @@
     });
 
     let showStats = $state(false);
+    // Lifted out of HUD so the Android back-button handler below can close the sheet without
+    // the press bubbling up to "exit app". `showAdRewards` is a separate sheet so the gameplay
+    // settings panel stays focused on mode/difficulty.
+    let showSettings = $state(false);
+    let showAdRewards = $state(false);
+
+    // Android back-button: by default WebView has 1 history entry → pressing back exits the
+    // whole app, which is jarring when a modal is open. We prime the history with a sentinel
+    // on mount, then on each `popstate` decide what the back press should dismiss. After
+    // dismissing we re-prime, so the *next* back press has somewhere to "go back to".
+    // No router needed — straight history API, works on Android WebView, iOS WKWebView, and
+    // desktop browsers.
+    $effect(() => {
+        if (typeof window === "undefined") return;
+        window.history.pushState({ sentinel: true }, "");
+        const onPop = () => {
+            if (showStats)      { showStats      = false; window.history.pushState({ sentinel: true }, ""); return; }
+            if (showAdRewards)  { showAdRewards  = false; window.history.pushState({ sentinel: true }, ""); return; }
+            if (showSettings)   { showSettings   = false; window.history.pushState({ sentinel: true }, ""); return; }
+            // Nothing to dismiss — let the back press exit the app (don't re-push).
+        };
+        window.addEventListener("popstate", onPop);
+        return () => window.removeEventListener("popstate", onPop);
+    });
 
     // Touch-primary detection: phones/tablets get a Reveal/Flag mode toggle since they have
     // no right-click. Updates if the user docks/undocks a hybrid device mid-session.
@@ -56,10 +98,12 @@
         return () => mq.removeEventListener("change", handler);
     });
 
-    // Chord-press preview: while pointer is held on a revealed numbered cell, lighten the
-    // unrevealed neighbors that the chord *would* reveal. Works for both modes — the key format
-    // matches what the renderer (CubeFace / VoxelGrid) builds when looking up cells.
+    // chordCenter does double duty: drives the chord-preview highlight (next derivation) AND
+    // serves as the "is the player pressing any cell" signal for the HUD smiley face's O-mouth
+    // state. CellMesh fires the press for every cell now; the highlight just self-gates to
+    // revealed-numbered ones.
     let chordCenter = $state<CubePosition | VoxelPos | null>(null);
+    const isPressing = $derived(chordCenter !== null);
     const pressedKeys = $derived.by((): Set<string> => {
         if (!chordCenter) return new Set();
         if (game.cubeKind === "voxel") {
@@ -136,6 +180,9 @@
                     date: new Date().toISOString(),
                 });
             }
+            // Note: interstitial is NOT triggered here. AdMob policy requires user-initiated
+            // ad surfaces — we fire it from HUD's restart button instead so the ad is a clear
+            // consequence of the player's tap, not the loss/win moment.
         }
 
         prevStatus = s;
@@ -178,26 +225,56 @@
 
 <svelte:window oncontextmenu={preventCtx} />
 
-<main class="relative h-dvh w-dvw bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
-    <Canvas>
-        <Cube3D
+<!--
+    Layout: WebView fills the activity edge-to-edge; the AdMob banner is a native Android view
+    layered ON TOP of the WebView at screen bottom (Activity.addContentView + Gravity.BOTTOM).
+    To keep the banner from covering game pixels, we reserve a sibling spacer at the bottom of
+    the page that matches the banner footprint (50dp standard banner + safe-area-inset-bottom).
+    The flex column makes <main> shrink to fill the remaining height; threlte's Canvas auto-fits.
+-->
+<!-- vh/vw fallback for browsers < Chrome 108 (notably old Android WebViews), with inline dvh
+     progressive enhancement for modern browsers. dvh matters in the PWA build because mobile
+     Chrome / Safari hide the address bar on scroll — without dvh the bottom of the page can
+     sit under the collapsed bar. In Tauri builds there's no browser chrome, so vh = dvh and
+     it doesn't matter; we keep dvh present anyway for a single source of truth. Old WebViews
+     silently discard the invalid `100dvh` inline value and fall back to the Tailwind class. -->
+<div
+    class="flex h-screen w-screen flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800"
+    style:height="100dvh"
+    style:width="100dvw"
+>
+    <main class="relative min-h-0 flex-1">
+        <Canvas>
+            <Cube3D
+                {game}
+                forceFlag={isPrimaryTouch && mobileMode === "flag" && game.status === GameStatus.Gaming}
+                {pressedKeys}
+                onChordPressStart={(p: CubePosition | VoxelPos) => (chordCenter = p)}
+                onChordPressEnd={() => (chordCenter = null)}
+            />
+        </Canvas>
+        <HUD
             {game}
-            forceFlag={isPrimaryTouch && mobileMode === "flag" && game.status === GameStatus.Gaming}
-            {pressedKeys}
-            onChordPressStart={(p: CubePosition | VoxelPos) => (chordCenter = p)}
-            onChordPressEnd={() => (chordCenter = null)}
+            {timer}
+            {unlocks}
+            {ads}
+            {isPrimaryTouch}
+            {mobileMode}
+            setMobileMode={(m) => (mobileMode = m)}
+            onShowStats={() => (showStats = true)}
+            {showSettings}
+            setShowSettings={(v) => (showSettings = v)}
+            setShowAdRewards={(v) => (showAdRewards = v)}
+            {isPressing}
         />
-    </Canvas>
-    <HUD
-        {game}
-        {timer}
-        {unlocks}
-        {isPrimaryTouch}
-        {mobileMode}
-        setMobileMode={(m) => (mobileMode = m)}
-        onShowStats={() => (showStats = true)}
-    />
-</main>
+    </main>
+    {#if ads.bannerShown}
+        <!-- Reserved area for the AdMob banner overlay. 50px matches AdSize.BANNER on phones;
+             the safe-area-inset-bottom term adds room for gesture-nav strip on full-screen
+             devices so the banner doesn't sit on top of it. -->
+        <div class="shrink-0" style:height="calc(50px + env(safe-area-inset-bottom))"></div>
+    {/if}
+</div>
 
 {#if showStats}
     <StatsModal
@@ -206,4 +283,8 @@
         {endlessHistory}
         onClose={() => (showStats = false)}
     />
+{/if}
+
+{#if showAdRewards}
+    <AdRewardsSheet {ads} onClose={() => (showAdRewards = false)} />
 {/if}

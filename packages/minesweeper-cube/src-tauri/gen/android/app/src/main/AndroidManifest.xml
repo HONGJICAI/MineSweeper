@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- AdMob: ACCESS_NETWORK_STATE for "is online" check; AD_ID is the advertising identifier
+         on Android 13+ (apps targeting API 33+ that show ads MUST declare it or the SDK breaks). -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+
+    <!-- AndroidTV support -->
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+
+    <!-- hapticFeedbackEnabled=false suppresses Android's automatic long-press buzz on every
+         WebView interaction. We re-add a manual buzz from JS only on flag toggle (see game.svelte.ts)
+         so chord previews and accidental long-presses on HUD elements stay silent. -->
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.minesweeper_cube"
+        android:usesCleartextTraffic="${usesCleartextTraffic}"
+        android:hapticFeedbackEnabled="false">
+        <!-- AdMob App ID is filled in by gradle's manifestPlaceholder; default is Google's
+             universal TEST App ID, real value comes from the ADMOB_APP_ID env var (CI secret).
+             See app/build.gradle.kts. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+            android:launchMode="singleTask"
+            android:label="@string/main_activity_title"
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <!-- AndroidTV support -->
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+          android:name="androidx.core.content.FileProvider"
+          android:authorities="${applicationId}.fileprovider"
+          android:exported="false"
+          android:grantUriPermissions="true">
+          <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>

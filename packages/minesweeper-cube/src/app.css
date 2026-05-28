@@ -1,6 +1,23 @@
 @import "tailwindcss";
 @source "../../shared-ui/src/";
 
+/*
+ * Known compatibility limit: Tailwind 4 emits oklch() colors and color-mix() opacity
+ * modifiers, both requiring Chrome/WebView 111+ (March 2023). On WebView 103 (and
+ * below) the declarations are invalid and dropped, leaving panels/HUD pills/modal
+ * backdrops without background. App is still functional (text + buttons visible),
+ * just visually broken — translucent backdrops and missing panel fills.
+ *
+ * Affects an estimated 3-5% of Android users (those with WebView < 111). Decision:
+ * not worth ~50 lines of @supports fallback CSS for that minority. If we ever want
+ * to reverse this, add fallbacks here for the classes inventoried in 2026-05 ad-
+ * integration work (bg-slate-800/70, bg-slate-900, bg-black/60, ring-amber-300/50,
+ * etc. — `grep -hoE 'bg-(slate|...)-...' src/**\/*.svelte`).
+ *
+ * Test device: Android 13 with WebView 103 (a phone whose Play Store auto-update
+ * was disabled). On any phone with auto-updated WebView the issue doesn't appear.
+ */
+
 :root {
   --background: #0f172a;
   --foreground: #f1f5f9;

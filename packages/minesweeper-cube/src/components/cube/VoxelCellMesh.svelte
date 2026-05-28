@@ -86,10 +86,10 @@
         if (!interactive) return;
         const button = event.button ?? event.nativeEvent?.button;
         if (button === 2) return;
-        if (cell.isRevealed && cell.adjacentMines > 0) {
-            onChordPressStart(pos);
-            event.stopPropagation?.();
-        }
+        // See CellMesh.svelte for rationale — fire for any cell so the smiley face can flip to
+        // the O-mouth pressed state. Chord preview itself is still gated upstream.
+        onChordPressStart(pos);
+        event.stopPropagation?.();
     }
 
     function handlePointerUp() {

@@ -15,6 +15,7 @@ import {
     type VoxelPos,
     type VoxelSweeper,
 } from "@caiji-games/minesweeper-cube-core";
+import { buzz } from "../lib/haptics.ts";
 
 export type GameStateOptions = {
     // Fired at the start of an endless level-bump (synchronous with the shrink animation start).
@@ -189,6 +190,8 @@ export function createGameState(initial: Difficulty = "easy", opts: GameStateOpt
             activeRevealAllMines();
             lastStep = pos;
             status = GameStatus.GameOver;
+            // "You died" pattern: long-short-long, more emphatic than the flag tap.
+            buzz([120, 60, 120]);
             return;
         }
         activeRevealCell(pos);
@@ -203,6 +206,8 @@ export function createGameState(initial: Difficulty = "easy", opts: GameStateOpt
         const before = cell.isFlagged;
         if (activeToggleFlag(pos)) {
             flagsPlaced += before ? -1 : 1;
+            // Short buzz on successful flag/unflag. The platform gate lives inside buzz().
+            buzz(30);
         }
     }
 
@@ -216,6 +221,7 @@ export function createGameState(initial: Difficulty = "easy", opts: GameStateOpt
         if (result.minePos) {
             lastStep = result.minePos;
             status = GameStatus.GameOver;
+            buzz([120, 60, 120]);
         } else if (activeIsWin()) {
             onWin();
         }

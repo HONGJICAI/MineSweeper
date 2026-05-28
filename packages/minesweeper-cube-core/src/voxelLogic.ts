@@ -200,10 +200,15 @@ export type VoxelSweeper = ReturnType<typeof voxelCubeMineSweeper>;
 
 // Density helpers — same step function as scaling endless, but applied over the SURFACE voxel
 // count instead of 6N². This keeps gameplay difficulty roughly comparable across modes.
+//   N=5 → 98 surface, ~11% → 11 mines (voxel intro, intentionally softer than hollow easy)
 //   N=7 → 218 surface, ~16% → 35 mines (vs scaling endless N=7's 47 mines on 294 cells)
 //   N=9 → 386 surface, ~20% → 77 mines
+//
+// N=5/6 is the voxel intro band. Hollow easy density (~14.7%) is too punishing while players
+// are still learning to parse the 3D structure — corners vs edges vs face-centers — so we
+// undercut it. By N=7 the spatial parse becomes habitual and we ramp into hollow-medium density.
 function densityForVoxelLevel(N: number): number {
-    if (N <= 6) return 22 / 150;       // easy density (~14.67%)
+    if (N <= 6) return 11 / 98;        // voxel intro (~11.22%)
     if (N <= 8) return 47 / 294;       // medium density (~15.99%)
     return 97 / 486;                    // hard density (~19.96%)
 }

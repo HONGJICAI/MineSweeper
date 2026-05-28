@@ -17,7 +17,10 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "paths": {
+      "$ads": ["./src/state/ads.svelte.ts"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.svelte"],
   "exclude": ["dist", "node_modules"]
