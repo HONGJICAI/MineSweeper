@@ -232,7 +232,17 @@
     the page that matches the banner footprint (50dp standard banner + safe-area-inset-bottom).
     The flex column makes <main> shrink to fill the remaining height; threlte's Canvas auto-fits.
 -->
-<div class="flex h-dvh w-dvw flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
+<!-- vh/vw fallback for browsers < Chrome 108 (notably old Android WebViews), with inline dvh
+     progressive enhancement for modern browsers. dvh matters in the PWA build because mobile
+     Chrome / Safari hide the address bar on scroll — without dvh the bottom of the page can
+     sit under the collapsed bar. In Tauri builds there's no browser chrome, so vh = dvh and
+     it doesn't matter; we keep dvh present anyway for a single source of truth. Old WebViews
+     silently discard the invalid `100dvh` inline value and fall back to the Tailwind class. -->
+<div
+    class="flex h-screen w-screen flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800"
+    style:height="100dvh"
+    style:width="100dvw"
+>
     <main class="relative min-h-0 flex-1">
         <Canvas>
             <Cube3D
