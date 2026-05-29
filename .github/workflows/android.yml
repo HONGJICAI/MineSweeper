@@ -63,6 +63,13 @@ jobs:
       - name: Build shared packages
         run: pnpm build:shared
 
+      - name: Generate app icons
+        # icons/ is gitignored so a fresh checkout has no src-tauri/icons/. tauri android init
+        # reads icons/icon.png to create mipmap resources; missing → default Tauri logo.
+        # postinstall may have already run this, but we repeat it here to be certain it happens
+        # before init. || true so packages without tauri:icons don't fail the step.
+        run: pnpm --filter ${{ matrix.package }} run tauri:icons || true
+
       - name: Init Android Project
         # `tauri android init` refuses to run on a partial gen/ tree. Since we only commit a few
         # hand-edited files (build.gradle.kts for signing, AndroidManifest.xml for ads metadata)

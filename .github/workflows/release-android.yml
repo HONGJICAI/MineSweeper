@@ -73,6 +73,9 @@ jobs:
       - name: Build shared packages
         run: pnpm build:shared
 
+      - name: Generate app icons
+        run: pnpm --filter ${{ inputs.package }} run tauri:icons || true
+
       - name: Init Android Project
         # Same partial-state dance as the smoke workflow — wipe gen/, regenerate, restore every
         # file under gen/ that we hand-edit and commit (build.gradle.kts, AndroidManifest.xml,
