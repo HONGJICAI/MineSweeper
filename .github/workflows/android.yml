@@ -63,6 +63,11 @@ jobs:
       - name: Build shared packages
         run: pnpm build:shared
 
+      - name: Generate app icons
+        # icons/ is gitignored; generate it here so tauri android init picks up the
+        # custom icon instead of falling back to the default Tauri logo.
+        run: pnpm --filter ${{ matrix.package }} run tauri:icons --if-present
+
       - name: Init Android Project
         # `tauri android init` refuses to run on a partial gen/ tree. Since we only commit a few
         # hand-edited files (build.gradle.kts for signing, AndroidManifest.xml for ads metadata)

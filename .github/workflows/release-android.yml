@@ -73,6 +73,13 @@ jobs:
       - name: Build shared packages
         run: pnpm build:shared
 
+      - name: Generate app icons
+        # Produce src-tauri/icons/ from the package's source PNG before Android init runs.
+        # tauri android init reads icons/icon.png to create the mipmap resources; if the
+        # directory is missing (it's gitignored) Tauri falls back to its default logo.
+        # The --if-present flag silently skips packages that don't define tauri:icons.
+        run: pnpm --filter ${{ inputs.package }} run tauri:icons --if-present
+
       - name: Init Android Project
         # Same partial-state dance as the smoke workflow — wipe gen/, regenerate, restore every
         # file under gen/ that we hand-edit and commit (build.gradle.kts, AndroidManifest.xml,
