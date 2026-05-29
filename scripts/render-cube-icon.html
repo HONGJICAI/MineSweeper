@@ -5,12 +5,8 @@
     click Download to save PNGs.
 
     Outputs:
-    - 512x512 / 1024x1024 PNG → save as BOTH:
-        packages/minesweeper-cube/public/pwa-512x512.png  (web PWA icon)
-        packages/minesweeper-cube/public/tauri-source-512.png  (native app icon source)
-      then run `pnpm --filter minesweeper-cube run tauri:icons` to regenerate all platform
-      sizes (icons/ dir, including the Android mipmap resources used for the APK launcher icon).
-      Keeping both files identical ensures the web PWA and the Android APK show the same icon.
+    - 512x512 / 1024x1024 PNG → packages/minesweeper-cube/public/pwa-512x512.png, then run
+      `pnpm --filter minesweeper-cube run tauri:icons` to regenerate all platform sizes
     - 1024x500 feature graphic → upload to Play Console → Main store listing → Feature
       graphic. Play Store requires this exact size, no alpha, ≤1 MB.
 
