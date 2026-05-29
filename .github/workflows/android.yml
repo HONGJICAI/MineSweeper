@@ -78,8 +78,16 @@ jobs:
           pnpm --filter ${{ matrix.package }} run tauri:android:init
           git checkout -- $(git ls-files packages/${{ matrix.package }}/src-tauri/gen/)
 
-      - name: Build unsigned release AAB
+      - name: Build debug APK
         env:
           GRADLE_OPTS: "-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
           _JAVA_OPTIONS: "-Xmx6g"
-        run: pnpm --filter ${{ matrix.package }} run build:android
+        run: pnpm --filter ${{ matrix.package }} run build:android:debug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}-debug-apk
+          path: packages/${{ matrix.package }}/src-tauri/gen/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 7
+          if-no-files-found: error
