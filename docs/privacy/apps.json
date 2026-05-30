@@ -1,0 +1,27 @@
+{
+  "_comment": "Per-app privacy policy data. Source of truth for what gets rendered into each app's privacy policy. To add a new SDK to an app, add its key to that app's `sdks` array — the generator will conditionally include the relevant section. Supported SDK keys: 'admob'. Adding a brand-new SDK = update template.md (with a {{#if has_<key>}} block) AND add the key here.",
+  "common": {
+    "controller_name": "Cai Ji",
+    "contact_email": "support@caiji.dev",
+    "effective_date": "2026-05-28",
+    "excluded_regions_list": "the European Economic Area (EEA), the United Kingdom, and Switzerland",
+    "policy_url_base": "https://skitter-message-307.notion.site/"
+  },
+  "apps": {
+    "minesweeper-cube": {
+      "name": "Minesweeper Cube",
+      "package_id": "dev.caiji.minesweepercube",
+      "sdks": ["admob"]
+    },
+    "minesweeper": {
+      "name": "MineSweeper",
+      "package_id": "dev.caiji.minesweeper",
+      "sdks": []
+    },
+    "sliding-puzzle": {
+      "name": "Sliding Puzzle",
+      "package_id": "dev.caiji.slidingpuzzle",
+      "sdks": []
+    }
+  }
+}
