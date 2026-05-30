@@ -18,7 +18,7 @@
     "tauri:android:dev": "npx tauri android dev",
     "build:android": "cross-env VITE_PLATFORM=mobile vite build && npx tauri android build --aab",
     "build:android:apk": "cross-env VITE_PLATFORM=mobile vite build && npx tauri android build --apk",
-    "build:android:debug": "cross-env VITE_PLATFORM=mobile npx tauri android build --apk --debug",
+    "build:android:debug": "cross-env VITE_PLATFORM=mobile npx tauri android build --apk",
     "postinstall": "pnpm run tauri:icons"
   },
   "dependencies": {

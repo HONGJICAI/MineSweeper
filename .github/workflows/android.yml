@@ -80,16 +80,18 @@ jobs:
           pnpm --filter ${{ matrix.package }} run tauri:android:init
           git checkout -- $(git ls-files packages/${{ matrix.package }}/src-tauri/gen/)
 
-      - name: Build debug APK
+      - name: Build APK
+        # Builds a release APK. No keystore.properties in CI → Gradle falls back to the debug
+        # keystore, so the APK is signed and can be sideloaded for testing.
         env:
           GRADLE_OPTS: "-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
           _JAVA_OPTIONS: "-Xmx6g"
         run: pnpm --filter ${{ matrix.package }} run build:android:debug
 
-      - name: Upload debug APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.package }}-debug-apk
-          path: packages/${{ matrix.package }}/src-tauri/gen/android/app/build/outputs/apk/debug/*.apk
+          name: ${{ matrix.package }}-apk
+          path: packages/${{ matrix.package }}/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
           retention-days: 7
           if-no-files-found: error
