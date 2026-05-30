@@ -30,7 +30,7 @@
     // OrbitControls / interactivity self-invalidate on user input, but our tween-driven scale
     // changes don't — without an explicit invalidate() per tick, the scale animation looks
     // stutter-y because the renderer is asleep between user inputs.
-    const { invalidate } = useThrelte();
+    const { invalidate, renderer } = useThrelte();
 
     // Level-bump scale animation. svelte/motion's tweened handles the rAF loop + interruption
     // semantics for us — each .set() smoothly retargets from the current value, so back-to-back
@@ -53,6 +53,37 @@
         if (phase === "shrinking") scaleTween.set(0);
         else if (phase === "growing") scaleTween.set(1);
         // idle: leave whatever the last animation produced (should be 1).
+    });
+
+    // WebGL context recovery. On some Android devices a resident native ad surface (or any spike in
+    // GPU shared-image demand) can exhaust the GPU's pool and force the WebView to drop our WebGL
+    // context — the cube goes blank (the "white screen" players reported on win). This is the
+    // safety net; the main confetti trigger was removed by moving the burst in-scene (Confetti3D).
+    // The browser auto-restores the context ~1s later (THREE handles the contextlost preventDefault
+    // and re-uploads textures/buffers lazily on the next render), but because we render on-demand
+    // nothing repaints after the restore, leaving a stale/garbled frame. Forcing invalidate() on
+    // `webglcontextrestored` draws a fresh frame and clears the glitch. We also redraw when the tab
+    // becomes visible again so returning from a backgrounded / ad-covered state always repaints.
+    $effect(() => {
+        const canvas = renderer?.domElement;
+        if (!canvas || typeof document === "undefined") return;
+        // A single invalidate() can land before THREE has finished rebuilding its GL resources on
+        // restore, leaving the frame still garbled. Nudge the on-demand loop across several frames
+        // so at least one render happens after the context is fully back.
+        const redrawSustained = () => {
+            let n = 0;
+            const tick = () => {
+                invalidate();
+                if (++n < 12) requestAnimationFrame(tick);
+            };
+            tick();
+        };
+        canvas.addEventListener("webglcontextrestored", redrawSustained);
+        document.addEventListener("visibilitychange", redrawSustained);
+        return () => {
+            canvas.removeEventListener("webglcontextrestored", redrawSustained);
+            document.removeEventListener("visibilitychange", redrawSustained);
+        };
     });
 </script>
 

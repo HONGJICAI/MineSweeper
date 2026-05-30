@@ -20,10 +20,14 @@
     import { createEndlessHistoryState } from "./state/endlessHistory.svelte.ts";
     import { createUnlockState } from "./state/unlocks.svelte.ts";
     import { createAdsState } from "$ads";
-    import { celebrate } from "./lib/celebrate.ts";
+    import Confetti3D from "./components/cube/Confetti3D.svelte";
     import type { MobileMode } from "./state/mobileMode.ts";
 
-    const game = createGameState("easy", { onEndlessClear: () => celebrate() });
+    // Bumped on every win to fire the in-scene confetti burst (Confetti3D watches it). Replaces
+    // the old canvas-confetti celebrate() — see Confetti3D for why an in-scene burst avoids the
+    // GPU shared-image allocation that was dropping the WebGL context on win.
+    let celebrateNonce = $state(0);
+    const game = createGameState("easy", { onEndlessClear: () => celebrateNonce++ });
     const timer = createTimerState();
     const leaderboard = createLeaderboardState();
     const history = createPlayHistoryState();
@@ -86,6 +90,14 @@
 
     // Touch-primary detection: phones/tablets get a Reveal/Flag mode toggle since they have
     // no right-click. Updates if the user docks/undocks a hybrid device mid-session.
+    // Cap renderer DPR to curb GPU memory pressure. High-DPI phones report devicePixelRatio up to
+    // ~3, which scales the WebGL framebuffer (and the shared-image allocations the compositor needs)
+    // quadratically. On a fully-revealed board that working set, plus celebrate()'s fullscreen
+    // confetti canvas, can exhaust the GPU's shared-image pool and drop the WebGL context — the
+    // post-win white screen. Capping at 2 roughly halves the peak on 3x screens with no visible
+    // quality loss at the cube's on-screen size.
+    const maxDpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 2) : 2;
+
     const initialTouch = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
     let isPrimaryTouch = $state<boolean>(initialTouch);
     let mobileMode = $state<MobileMode>("reveal");
@@ -160,17 +172,21 @@
         // records classic completions and any-mode losses.
         if (prevStatus !== s && (s === GameStatus.Win || s === GameStatus.GameOver)) {
             if (game.mode === "classic") {
-                const entry = {
-                    result: s === GameStatus.Win ? ("Win" as const) : ("Loss" as const),
-                    time: timer.seconds,
-                    date: new Date().toISOString(),
-                };
-                if (s === GameStatus.Win) {
-                    leaderboard.add(game.difficulty, entry);
-                    // Unlock progression is handled by the leaderboard-driven effect above.
-                    celebrate();
+                // Confetti fires on every win, including the cheat-win. Leaderboard/history
+                // recording is skipped for cheated runs so the fake win doesn't pollute records.
+                if (s === GameStatus.Win) celebrateNonce++;
+                if (!game.runCheated) {
+                    const entry = {
+                        result: s === GameStatus.Win ? ("Win" as const) : ("Loss" as const),
+                        time: timer.seconds,
+                        date: new Date().toISOString(),
+                    };
+                    if (s === GameStatus.Win) {
+                        leaderboard.add(game.difficulty, entry);
+                        // Unlock progression is handled by the leaderboard-driven effect above.
+                    }
+                    history.addEntry(game.difficulty, entry);
                 }
-                history.addEntry(game.difficulty, entry);
             } else if (s === GameStatus.GameOver && !game.runCheated) {
                 // Endless run ended on a mine. Sub-mode picks which leaderboard to record into;
                 // cheated runs (Konami code) are excluded.
@@ -212,7 +228,10 @@
                 konamiProgress++;
                 if (konamiProgress === KONAMI.length) {
                     konamiProgress = 0;
-                    game.cheatAdvanceLevel();
+                    // Endless jumps a level; classic instantly wins. Both mark the run cheated so
+                    // the result is excluded from the leaderboard/history.
+                    if (game.mode === "classic") game.cheatWin();
+                    else game.cheatAdvanceLevel();
                 }
             } else {
                 konamiProgress = key === KONAMI[0] ? 1 : 0;
@@ -244,7 +263,7 @@
     style:width="100dvw"
 >
     <main class="relative min-h-0 flex-1">
-        <Canvas>
+        <Canvas dpr={maxDpr}>
             <Cube3D
                 {game}
                 forceFlag={isPrimaryTouch && mobileMode === "flag" && game.status === GameStatus.Gaming}
@@ -252,6 +271,7 @@
                 onChordPressStart={(p: CubePosition | VoxelPos) => (chordCenter = p)}
                 onChordPressEnd={() => (chordCenter = null)}
             />
+            <Confetti3D trigger={celebrateNonce} />
         </Canvas>
         <HUD
             {game}
