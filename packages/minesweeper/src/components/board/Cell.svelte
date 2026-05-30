@@ -11,6 +11,7 @@
         lastStepOnMine = false,
         onMouseDown,
         onMouseUp,
+        onMouseEnter,
         onTouchStart,
         onTouchEnd,
     }: {
@@ -23,6 +24,7 @@
         lastStepOnMine?: boolean;
         onMouseDown: (e: MouseEvent, r: number, c: number) => void;
         onMouseUp: (e: MouseEvent, r: number, c: number) => void;
+        onMouseEnter: (e: MouseEvent, r: number, c: number) => void;
         onTouchStart: (e: TouchEvent, r: number, c: number) => void;
         onTouchEnd: (e: TouchEvent, r: number, c: number) => void;
     } = $props();
@@ -39,6 +41,24 @@
         }
         return "";
     }
+
+    // Classic Minesweeper number palette. Dark-mode variants are lightened so
+    // they stay readable on the revealed cell's dark background.
+    const NUMBER_COLORS: Record<number, string> = {
+        1: "text-blue-600 dark:text-blue-400",
+        2: "text-green-700 dark:text-green-400",
+        3: "text-red-600 dark:text-red-400",
+        4: "text-indigo-800 dark:text-indigo-300",
+        5: "text-rose-800 dark:text-rose-400",
+        6: "text-teal-600 dark:text-teal-300",
+        7: "text-gray-900 dark:text-gray-200",
+        8: "text-gray-500 dark:text-gray-400",
+    };
+    const numberColor = $derived(
+        cell.isRevealed && !cell.isMine && cell.adjacentMines > 0
+            ? NUMBER_COLORS[cell.adjacentMines] ?? ""
+            : ""
+    );
 </script>
 
 <button
@@ -46,9 +66,10 @@
     id="cell-{r}-{c}"
     onmousedown={(e) => onMouseDown(e, r, c)}
     onmouseup={(e) => onMouseUp(e, r, c)}
+    onmouseenter={(e) => onMouseEnter(e, r, c)}
     ontouchstart={(e) => onTouchStart(e, r, c)}
     ontouchend={(e) => onTouchEnd(e, r, c)}
-    class="size-8 flex items-center justify-center border border-gray-400 dark:border-gray-600 text-lg font-mono select-none touch-manipulation text-gray-900 dark:text-gray-100"
+    class="size-8 flex items-center justify-center border border-gray-400 dark:border-gray-600 text-lg font-mono font-bold select-none touch-manipulation {numberColor || 'text-gray-900 dark:text-gray-100'}"
     class:bg-gray-100={cell.isRevealed && !lastStepOnMine}
     class:dark:bg-gray-800={cell.isRevealed && !lastStepOnMine}
     class:bg-gray-200={!cell.isRevealed && isPressed}

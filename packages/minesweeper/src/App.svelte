@@ -74,6 +74,7 @@
         onReveal: (r, c) => performAction("reveal", r, c),
         onFlag: (r, c) => performAction("flag", r, c),
         onChord: (r, c) => performAction("chord", r, c),
+        getBoard: () => game.board,
         isInteractive: () => game.isInteractive,
     });
 
@@ -186,7 +187,9 @@
             ? "😵"
             : game.gameStatus === GameStatus.Win
                 ? "😎"
-                : "😊"
+                : (mouse.isPressing || touch.isPressing)
+                    ? "😮"
+                    : "😊"
     );
 
     let minWidthClass = $derived(

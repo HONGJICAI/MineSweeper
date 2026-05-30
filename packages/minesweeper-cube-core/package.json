@@ -23,6 +23,7 @@
     "test:run": "vitest run"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.7",
     "rimraf": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

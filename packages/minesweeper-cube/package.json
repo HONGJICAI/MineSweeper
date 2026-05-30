@@ -38,6 +38,7 @@
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/three": "^0.184.0",
+    "@vitest/coverage-v8": "^4.1.7",
     "cross-env": "catalog:",
     "happy-dom": "^15.11.7",
     "svelte": "catalog:",

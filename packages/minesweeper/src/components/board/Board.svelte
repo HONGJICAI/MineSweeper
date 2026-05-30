@@ -78,6 +78,7 @@
                 lastStepOnMine={game.revealedMinePos?.r === r && game.revealedMinePos?.c === c}
                 onMouseDown={mouse.onMouseDown}
                 onMouseUp={mouse.onMouseUp}
+                onMouseEnter={mouse.onMouseEnter}
                 onTouchStart={touch.onTouchStart}
                 onTouchEnd={touch.onTouchEnd}
             />
