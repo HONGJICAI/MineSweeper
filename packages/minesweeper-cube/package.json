@@ -27,7 +27,6 @@
     "@tauri-apps/api": "catalog:",
     "@threlte/core": "^8.0.0",
     "@threlte/extras": "^9.0.0",
-    "canvas-confetti": "^1.9.3",
     "tauri-plugin-google-admob-api": "^0.1.1",
     "three": "^0.184.0"
   },
@@ -35,7 +34,6 @@
     "@sveltejs/vite-plugin-svelte": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@tauri-apps/cli": "catalog:",
-    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
     "@types/three": "^0.184.0",
     "@vitest/coverage-v8": "^4.1.7",

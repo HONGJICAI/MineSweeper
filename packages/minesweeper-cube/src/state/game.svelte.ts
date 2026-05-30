@@ -175,6 +175,16 @@ export function createGameState(initial: Difficulty = "easy", opts: GameStateOpt
         advanceEndlessLevel();
     }
 
+    // Classic-mode counterpart to cheatAdvanceLevel: instantly win the current game so the
+    // post-win path (confetti + the WebGL-context-loss repro) can be exercised without solving
+    // the board. Marks the run cheated so App.svelte excludes it from leaderboard/history.
+    function cheatWin() {
+        if (mode !== "classic") return;
+        if (status === GameStatus.GameOver || status === GameStatus.Win) return;
+        runCheated = true;
+        status = GameStatus.Win;
+    }
+
     // --- player actions -----------------------------------------------------------------------
     function reveal(pos: AnyPos): void {
         if (transitionPhase !== "idle") return;
@@ -256,6 +266,7 @@ export function createGameState(initial: Difficulty = "easy", opts: GameStateOpt
         toggleFlag,
         chord,
         cheatAdvanceLevel,
+        cheatWin,
     };
 }
 
