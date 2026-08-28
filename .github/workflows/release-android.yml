@@ -132,15 +132,28 @@ jobs:
         run: pnpm --filter ${{ inputs.package }} run build:android:apk
 
       - name: Verify the AAB is actually signed
-        # `apksigner` reads AABs too; if signing didn't take we want to know now, not after Play
-        # Console rejects the upload. Exits non-zero if not signed.
+        # Catch an unsigned bundle here rather than after Play Console rejects the upload.
+        #
+        # Two traps this avoids. First, apksigner cannot read an AAB at all: an AAB keeps its
+        # manifest at base/manifest/AndroidManifest.xml, so apksigner fails with "Missing
+        # AndroidManifest.xml" regardless of signing state. jarsigner is the right tool.
+        #
+        # Second, `jarsigner -verify` exits 0 whether the archive is signed or not -- it reports
+        # the verdict on stdout only. The previous version of this step piped that into
+        # `grep -E "jar verified|jar is unsigned"`, which matched *both* verdicts and so passed an
+        # unsigned bundle. It also depended on jarsigner's locale (a non-English runner prints a
+        # translated verdict and the grep silently stops matching either way).
+        #
+        # So: assert structurally on the signature block (language-independent), then let
+        # jarsigner confirm the payload digests actually verify.
         run: |
-          BUILD_TOOLS="$ANDROID_SDK_ROOT/build-tools/34.0.0"
           AAB=$(find packages/${{ inputs.package }}/src-tauri/gen/android/app/build/outputs/bundle -name "*.aab" | head -1)
           test -n "$AAB" || { echo "No AAB found"; exit 1; }
           echo "Found AAB: $AAB"
-          # jarsigner is the right tool for AAB (apksigner is APK-only).
-          jarsigner -verify -verbose "$AAB" | grep -E "jar verified|jar is unsigned" | head -3
+          unzip -l "$AAB" | grep -qE 'META-INF/.*\.(RSA|DSA|EC)$' || {
+            echo "FAIL: no signature block in META-INF - the bundle is unsigned"; exit 1; }
+          jarsigner -verify "$AAB"
+          echo "Signature block present and jarsigner verified the digests."
 
       - name: Upload signed artifacts
         uses: actions/upload-artifact@v4
