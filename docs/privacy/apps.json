@@ -3,15 +3,16 @@
   "common": {
     "controller_name": "Cai Ji",
     "contact_email": "support@caiji.dev",
-    "effective_date": "2026-05-28",
-    "excluded_regions_list": "the European Economic Area (EEA), the United Kingdom, and Switzerland",
+    "effective_date": "2026-08-29",
     "policy_url_base": "https://skitter-message-307.notion.site/"
   },
   "apps": {
     "minesweeper-cube": {
       "name": "Minesweeper Cube",
       "package_id": "dev.caiji.minesweepercube",
-      "sdks": ["admob"]
+      "sdks": [
+        "admob"
+      ]
     },
     "minesweeper": {
       "name": "MineSweeper",
