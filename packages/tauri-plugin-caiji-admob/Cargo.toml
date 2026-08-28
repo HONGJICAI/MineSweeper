@@ -1,0 +1,34 @@
+[package]
+# Vendored fork of tauri-plugin-google-admob 0.1.1 (MIT OR Apache-2.0), from
+# https://github.com/VMASPAD/tauri-plugin-google-admob. Renamed so it can never be confused with
+# the upstream crate; not published anywhere — consumed via `path` from packages/*/src-tauri.
+#
+# Why we forked: upstream is unmaintained (3 commits, all on 2026-02-04) and ships no UMP/GDPR
+# consent flow, which we need before re-enabling EU/EEA distribution. See README.md.
+# The `tauri-plugin-` prefix is load-bearing, not cosmetic: Tauri derives the ACL permission
+# namespace by stripping it, giving `caiji-admob` — which MUST equal the identifier passed to
+# Builder::new() in src/lib.rs and the `plugin:caiji-admob|*` invoke prefixes in guest-js. Get
+# them out of sync and every command fails at *runtime* with "not allowed. Plugin not found",
+# while the build stays perfectly green.
+name = "tauri-plugin-caiji-admob"
+version = "0.1.1"
+authors = ["caiji"]
+description = "AdMob plugin for Tauri (vendored fork) — banner, interstitial, rewarded, app open"
+edition = "2021"
+rust-version = "1.77.2"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+# Never publish this to crates.io — it exists only as a path dependency inside this monorepo.
+publish = false
+# `links` must be unique across the whole cargo build graph. Renamed along with the package so a
+# stray upstream dependency somewhere can't collide with us.
+links = "tauri-plugin-caiji-admob"
+
+[dependencies]
+# Kept in lockstep with the tauri version the games use (see packages/*/src-tauri/Cargo.toml).
+tauri = { version = "2.11" }
+serde = "1.0"
+thiserror = "2"
+
+[build-dependencies]
+tauri-plugin = { version = "2.5.3", features = ["build"] }

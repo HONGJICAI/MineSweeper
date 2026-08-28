@@ -39,6 +39,19 @@
         }
     }
 
+    // Consent re-entry. Only rendered where UMP says it's required (EEA/UK/CH) — everywhere else
+    // there is no form to open, so an always-visible button would just dead-end.
+    let openingPrivacy = $state(false);
+    async function openPrivacyOptions() {
+        if (openingPrivacy) return;
+        openingPrivacy = true;
+        try {
+            await ads.openPrivacyOptions();
+        } finally {
+            openingPrivacy = false;
+        }
+    }
+
     function handleBackdrop(e: MouseEvent) {
         if (e.target === e.currentTarget) onClose();
     }
@@ -54,7 +67,14 @@
     onclick={handleBackdrop}
     role="presentation"
 >
-    <div class="flex w-full max-w-md flex-col gap-4 rounded-t-2xl bg-slate-900 p-5 shadow-2xl ring-1 ring-slate-700 sm:rounded-2xl">
+    <!--
+        Extra bottom padding while the banner is live: the banner is a native AdView attached to
+        the activity's content view, so it always paints on top of the WebView — no z-index can
+        beat it. Without this the sheet's last line of text sits underneath it. Only needed on the
+        phone layout, where the sheet is bottom-aligned; from `sm` up it's centred and clears the
+        banner on its own.
+    -->
+    <div class="flex w-full max-w-md flex-col gap-4 rounded-t-2xl bg-slate-900 p-5 shadow-2xl ring-1 ring-slate-700 sm:rounded-2xl {ads.bannerShown ? 'pb-20 sm:pb-5' : ''}">
         <header class="flex items-center justify-between">
             <h2 class="text-base font-semibold text-slate-100">Ad-free reward</h2>
             <button
@@ -92,5 +112,20 @@
                 <p class="text-xs text-slate-500">Watch a short video and we'll hide the banner for the next 24 hours.</p>
             {/if}
         </section>
+
+        {#if ads.privacyOptionsRequired}
+            <section class="flex flex-col gap-2 border-t border-slate-800 pt-3">
+                <button
+                    type="button"
+                    class="flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-sm text-slate-200 transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:text-slate-500"
+                    disabled={openingPrivacy}
+                    onclick={openPrivacyOptions}
+                >
+                    <span aria-hidden="true">🔒</span>
+                    <span>{openingPrivacy ? "Opening…" : "Ad privacy settings"}</span>
+                </button>
+                <p class="text-xs text-slate-500">Change what data is used to personalise your ads. Takes effect next time you open the app.</p>
+            </section>
+        {/if}
     </div>
 </div>

@@ -1,5 +1,7 @@
 import {
     initialize,
+    requestConsent,
+    showPrivacyOptionsForm,
     showBanner as showBannerCmd,
     hideBanner as hideBannerCmd,
     prepareInterstitial,
@@ -8,7 +10,7 @@ import {
     showRewarded,
     prepareAppOpen,
     showAppOpen,
-} from "tauri-plugin-google-admob-api";
+} from "@caiji-games/tauri-plugin-admob-api";
 import { persistedState } from "./persisted.ts";
 
 // Google's universal test ad units. They never charge advertisers and never pay you, but always
@@ -34,6 +36,25 @@ const BANNER_AD_UNIT       = import.meta.env.VITE_ADMOB_BANNER       || TEST_BAN
 const INTERSTITIAL_AD_UNIT = import.meta.env.VITE_ADMOB_INTERSTITIAL || TEST_INTERSTITIAL;
 const REWARDED_AD_UNIT     = import.meta.env.VITE_ADMOB_REWARDED     || TEST_REWARDED;
 const APP_OPEN_AD_UNIT     = import.meta.env.VITE_ADMOB_APP_OPEN     || TEST_APP_OPEN;
+
+// Consent-testing knobs. The UMP consent form only appears for users in the EEA/UK/CH, so from
+// anywhere else the only way to see it is to tell the SDK to pretend. Both must be set together —
+// the geography override is ignored unless the device is registered as a test device.
+//
+//   VITE_ADMOB_DEBUG_GEOGRAPHY  1 = EEA, 2 = not EEA
+//   VITE_ADMOB_TEST_DEVICE_ID   hashed device id, comma-separated for several
+//   VITE_ADMOB_RESET_CONSENT    "1" to wipe the stored answer so the form shows again
+//
+// To get the hashed id: run once with only VITE_ADMOB_DEBUG_GEOGRAPHY set and read logcat — the
+// UMP SDK prints "addTestDeviceHashedId("…")" telling you what to register. Leave all three
+// unset in release builds; the release workflow never sets them.
+const DEBUG_GEOGRAPHY = import.meta.env.VITE_ADMOB_DEBUG_GEOGRAPHY;
+const TEST_DEVICE_IDS = import.meta.env.VITE_ADMOB_TEST_DEVICE_ID;
+const CONSENT_DEBUG = {
+    ...(DEBUG_GEOGRAPHY ? { debugGeography: Number(DEBUG_GEOGRAPHY) } : {}),
+    ...(TEST_DEVICE_IDS ? { testDeviceHashedIds: String(TEST_DEVICE_IDS).split(",") } : {}),
+    ...(import.meta.env.VITE_ADMOB_RESET_CONSENT === "1" ? { resetConsent: true } : {}),
+};
 
 // Show an interstitial every Nth completed game (Win or GameOver). Tuned conservatively — too
 // frequent kills retention; too rare leaves money on the table. Revisit once we have install
@@ -62,14 +83,20 @@ const APP_OPEN_WAIT_MS = 4000;
 
 export function createAdsState() {
     // `available` flips to true only after a successful initialize() call. The plugin only ships
-    // an Android implementation, so on desktop / web / iOS the init throws and the rest of this
-    // module becomes inert no-ops. Avoids `if (isAndroid)` sprinkled everywhere in callers.
+    // an Android implementation, so everywhere else init throws and the rest of this module
+    // becomes inert no-ops. Avoids `if (isAndroid)` sprinkled everywhere in callers.
     //
-    // Note: tauri-plugin-google-admob has no UMP/GDPR consent flow. We deliberately don't ship
-    // one — the app's Play Store country distribution excludes the EU/EEA, so users who would
-    // need consent never reach the binary. If you ever re-enable EU distribution, you must add
-    // a UMP integration before launch (see Google's UserMessagingPlatform SDK).
+    // Each non-Android platform throws for its own reason: web has no Tauri `invoke` at all,
+    // desktop hits the plugin's desktop stub which returns Err(UnsupportedPlatform) by design,
+    // and iOS doesn't link (no Swift implementation). Note this file shouldn't even be loaded
+    // off Android — vite aliases `$ads` to ads-noop.svelte.ts unless VITE_PLATFORM is "mobile"
+    // — so a throw here means that aliasing didn't happen, which is worth noticing.
+    //
     let available = $state(false);
+    // Whether this user must be offered a way to revisit their consent choice. False for the
+    // vast majority of players — the UMP SDK only sets it in regions that legally require it
+    // (EEA/UK/CH), so any UI hanging off it has to be conditionally rendered, not always-on.
+    let privacyOptionsRequired = $state(false);
     let bannerShown = $state(false);
     let rewardedReady = $state(false);
     let interstitialReady = false;
@@ -86,6 +113,30 @@ export function createAdsState() {
     const hasLaunchedBefore = persistedState<boolean>("ads:hasLaunchedBefore", false);
 
     async function init() {
+        // UMP consent first — the ads SDK must come up already knowing the consent state, so
+        // this ordering is a hard requirement, not a preference.
+        //
+        // What this does and doesn't do: outside the EEA/UK/CH the SDK reports notRequired and no
+        // form is ever shown, so this costs one fast no-op call. Inside those regions the form
+        // appears on first launch. Either way `canRequestAds` is what decides whether we serve
+        // ads — a user who declines personalization still gets (non-personalized) ads, so the
+        // only case that turns ads off entirely is consent genuinely outstanding.
+        try {
+            const consent = await requestConsent(CONSENT_DEBUG);
+            privacyOptionsRequired = consent.privacyOptionsRequired;
+            console.log("[ads] consent:", consent);
+            if (!consent.canRequestAds) {
+                // Consent outstanding — no SDK init, no ad calls, and every method below stays a
+                // no-op because `available` is false. Next cold start asks again.
+                available = false;
+                console.log("[ads] consent not granted — ads disabled for this session");
+                return;
+            }
+        } catch (e) {
+            // Plugin missing (non-Android) or the command threw. Fall through to initialize(),
+            // which will fail the same way and flip us into the inert path below.
+            console.warn("[ads] requestConsent() failed:", e);
+        }
         try {
             await initialize({});
             available = true;
@@ -256,12 +307,34 @@ export function createAdsState() {
         return granted;
     }
 
+    // Re-open the consent form so the user can change their mind. GDPR requires this entry point
+    // to exist wherever consent was gathered. Returns false if there was nothing to show.
+    async function openPrivacyOptions(): Promise<boolean> {
+        if (!privacyOptionsRequired) {
+            console.log("[ads] privacy options skip: not required in this region");
+            return false;
+        }
+        try {
+            const r = await showPrivacyOptionsForm();
+            console.log("[ads] showPrivacyOptionsForm result:", r);
+            // The user may have just withdrawn consent, which takes effect on the next cold
+            // start (the SDK is already initialized for this session).
+            privacyOptionsRequired = r.privacyOptionsRequired;
+            return r.shown;
+        } catch (e) {
+            console.warn("[ads] showPrivacyOptionsForm failed:", e);
+            return false;
+        }
+    }
+
     return {
         get available() { return available; },
         get bannerShown() { return bannerShown; },
         get rewardedReady() { return rewardedReady; },
         get noBannerUntil() { return noBannerUntil.value; },
+        get privacyOptionsRequired() { return privacyOptionsRequired; },
         init,
+        openPrivacyOptions,
         showBanner,
         maybeShowInterstitial,
         maybeShowAppOpen,

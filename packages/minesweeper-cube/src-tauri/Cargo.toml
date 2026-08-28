@@ -17,4 +17,6 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2.11", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tauri-plugin-google-admob = "0.1.1"
+# Vendored fork — see packages/tauri-plugin-caiji-admob/README.md. Tauri resolves the plugin's
+# android/ directory from wherever the crate lives on disk, so a path dep needs no publishing.
+tauri-plugin-caiji-admob = { path = "../../tauri-plugin-caiji-admob" }

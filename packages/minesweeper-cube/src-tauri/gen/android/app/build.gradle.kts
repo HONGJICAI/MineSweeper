@@ -14,9 +14,11 @@ val tauriProperties = Properties().apply {
 }
 
 // Release signing. keystore.properties is gitignored — see keystore.properties.example for the
-// expected fields. If the file is missing the release variant falls back to the debug keystore so
-// dev iteration on a fresh checkout still works (the Play upload variant is the one that needs
-// real signing).
+// expected fields. If the file is missing, the release variant is simply left unsigned: gradle
+// still succeeds but emits app-universal-release-unsigned.apk, which cannot be installed or
+// uploaded until someone signs it. That keeps `tauri android build` working on a fresh checkout
+// (and lets you verify the minified build) without pretending an unsigned artifact is shippable.
+// CI writes this file from ANDROID_KEYSTORE_BASE64 — see .github/workflows/release-android.yml.
 val keystoreProperties = Properties().apply {
     val propFile = rootProject.file("keystore.properties")
     if (propFile.exists()) {

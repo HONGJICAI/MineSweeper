@@ -7,6 +7,6 @@
   ],
   "permissions": [
     "core:default",
-    "google-admob:default"
+    "caiji-admob:default"
   ]
 }

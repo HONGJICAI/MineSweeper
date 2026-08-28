@@ -4,8 +4,10 @@ import { flushSync } from "svelte";
 // All plugin entry points are mocked. Each test rewrites the implementations via
 // vi.mocked(...).mockImplementation / mockResolvedValue / mockRejectedValue to drive the
 // success / failure / not-loaded paths.
-vi.mock("tauri-plugin-google-admob-api", () => ({
+vi.mock("@caiji-games/tauri-plugin-admob-api", () => ({
     initialize: vi.fn(),
+    requestConsent: vi.fn(),
+    showPrivacyOptionsForm: vi.fn(),
     showBanner: vi.fn(),
     hideBanner: vi.fn(),
     prepareInterstitial: vi.fn(),
@@ -18,6 +20,8 @@ vi.mock("tauri-plugin-google-admob-api", () => ({
 
 import {
     initialize,
+    requestConsent,
+    showPrivacyOptionsForm,
     showBanner as showBannerCmd,
     hideBanner as hideBannerCmd,
     prepareInterstitial,
@@ -26,7 +30,7 @@ import {
     showRewarded,
     prepareAppOpen,
     showAppOpen,
-} from "tauri-plugin-google-admob-api";
+} from "@caiji-games/tauri-plugin-admob-api";
 import { createAdsState, type AdsState } from "./ads.svelte.ts";
 
 // Mirrors of the constants in ads.svelte.ts. Kept in sync by hand — change them there, change
@@ -35,8 +39,20 @@ const INTERSTITIAL_FREQUENCY = 3;
 const NO_BANNER_DURATION_MS = 24 * 60 * 60 * 1000;
 const APP_OPEN_WAIT_MS = 4000;
 
+// Consent state every non-consent test runs under: nothing to ask, ads allowed. This is what a
+// player outside the EEA/UK/CH gets, i.e. the overwhelmingly common case. The consent-specific
+// describe below overrides it per test.
+const CONSENT_OK = {
+    status: "notRequired" as const,
+    canRequestAds: true,
+    privacyOptionsRequired: false,
+};
+
 function resetPluginMocks() {
     vi.mocked(initialize).mockReset();
+    vi.mocked(requestConsent).mockReset();
+    vi.mocked(requestConsent).mockResolvedValue(CONSENT_OK);
+    vi.mocked(showPrivacyOptionsForm).mockReset();
     vi.mocked(showBannerCmd).mockReset();
     vi.mocked(hideBannerCmd).mockReset();
     vi.mocked(prepareInterstitial).mockReset();
@@ -75,6 +91,150 @@ describe("createAdsState — initial state", () => {
         expect(ads.bannerShown).toBe(false);
         expect(ads.rewardedReady).toBe(false);
         expect(ads.noBannerUntil).toBe(0);
+        cleanup();
+    });
+});
+
+describe("consent (UMP / GDPR)", () => {
+    beforeEach(() => {
+        localStorage.clear();
+        resetPluginMocks();
+    });
+
+    test("consent runs before the SDK init — ordering is a hard requirement", async () => {
+        const calls: string[] = [];
+        vi.mocked(requestConsent).mockImplementation(async () => {
+            calls.push("consent");
+            return CONSENT_OK;
+        });
+        vi.mocked(initialize).mockImplementation(async () => {
+            calls.push("initialize");
+            return undefined as never;
+        });
+
+        const { ads, cleanup } = createInRoot();
+        await ads.init();
+        await flushMicrotasks();
+
+        expect(calls).toEqual(["consent", "initialize"]);
+        cleanup();
+    });
+
+    test("canRequestAds=false: SDK never initializes and everything stays inert", async () => {
+        vi.mocked(requestConsent).mockResolvedValue({
+            status: "required",
+            canRequestAds: false,
+            privacyOptionsRequired: true,
+        });
+
+        const { ads, cleanup } = createInRoot();
+        await ads.init();
+        await flushMicrotasks();
+        flushSync();
+
+        expect(initialize).not.toHaveBeenCalled();
+        expect(ads.available).toBe(false);
+        expect(prepareInterstitial).not.toHaveBeenCalled();
+        expect(prepareRewarded).not.toHaveBeenCalled();
+        expect(prepareAppOpen).not.toHaveBeenCalled();
+        // Still surfaced, so the settings entry point renders even with ads switched off.
+        expect(ads.privacyOptionsRequired).toBe(true);
+        cleanup();
+    });
+
+    test("declining personalization still serves ads (canRequestAds stays true)", async () => {
+        // The case people get wrong: "obtained" with personalization refused is still a green
+        // light — the user gets non-personalized ads, not zero ads.
+        vi.mocked(requestConsent).mockResolvedValue({
+            status: "obtained",
+            canRequestAds: true,
+            privacyOptionsRequired: true,
+        });
+        vi.mocked(initialize).mockResolvedValue(undefined as never);
+
+        const { ads, cleanup } = createInRoot();
+        await ads.init();
+        await flushMicrotasks();
+        flushSync();
+
+        expect(ads.available).toBe(true);
+        expect(ads.privacyOptionsRequired).toBe(true);
+        cleanup();
+    });
+
+    test("consent call throwing doesn't block init (plugin missing / non-Android)", async () => {
+        vi.mocked(requestConsent).mockRejectedValue(new Error("not implemented"));
+        vi.mocked(initialize).mockResolvedValue(undefined as never);
+
+        const { ads, cleanup } = createInRoot();
+        await ads.init();
+        await flushMicrotasks();
+        flushSync();
+
+        expect(initialize).toHaveBeenCalledTimes(1);
+        expect(ads.available).toBe(true);
+        cleanup();
+    });
+
+    test("openPrivacyOptions is a no-op where the region doesn't require it", async () => {
+        vi.mocked(initialize).mockResolvedValue(undefined as never);
+
+        const { ads, cleanup } = createInRoot();
+        await ads.init();
+        await flushMicrotasks();
+        flushSync();
+
+        expect(ads.privacyOptionsRequired).toBe(false);
+        await expect(ads.openPrivacyOptions()).resolves.toBe(false);
+        expect(showPrivacyOptionsForm).not.toHaveBeenCalled();
+        cleanup();
+    });
+
+    test("openPrivacyOptions shows the form and picks up a withdrawn requirement", async () => {
+        vi.mocked(requestConsent).mockResolvedValue({
+            status: "obtained",
+            canRequestAds: true,
+            privacyOptionsRequired: true,
+        });
+        vi.mocked(initialize).mockResolvedValue(undefined as never);
+        vi.mocked(showPrivacyOptionsForm).mockResolvedValue({
+            shown: true,
+            status: "required",
+            canRequestAds: false,
+            privacyOptionsRequired: false,
+        });
+
+        const { ads, cleanup } = createInRoot();
+        await ads.init();
+        await flushMicrotasks();
+        flushSync();
+
+        await expect(ads.openPrivacyOptions()).resolves.toBe(true);
+        flushSync();
+        expect(showPrivacyOptionsForm).toHaveBeenCalledTimes(1);
+        expect(ads.privacyOptionsRequired).toBe(false);
+        // Withdrawal only takes effect next cold start — this session keeps its live SDK.
+        expect(ads.available).toBe(true);
+        cleanup();
+    });
+
+    test("openPrivacyOptions swallows a form failure", async () => {
+        vi.mocked(requestConsent).mockResolvedValue({
+            status: "obtained",
+            canRequestAds: true,
+            privacyOptionsRequired: true,
+        });
+        vi.mocked(initialize).mockResolvedValue(undefined as never);
+        vi.mocked(showPrivacyOptionsForm).mockRejectedValue(new Error("form unavailable"));
+
+        const { ads, cleanup } = createInRoot();
+        await ads.init();
+        await flushMicrotasks();
+        flushSync();
+
+        await expect(ads.openPrivacyOptions()).resolves.toBe(false);
+        // Requirement unchanged, so the button stays available for a retry.
+        expect(ads.privacyOptionsRequired).toBe(true);
         cleanup();
     });
 });

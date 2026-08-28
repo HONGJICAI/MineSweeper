@@ -1,0 +1,23 @@
+{
+  "name": "@caiji-games/tauri-plugin-admob-api",
+  "version": "0.1.1",
+  "private": true,
+  "description": "JS bindings for tauri-plugin-caiji-admob (vendored fork of tauri-plugin-google-admob)",
+  "type": "module",
+  "types": "./guest-js/index.ts",
+  "exports": {
+    ".": {
+      "types": "./guest-js/index.ts",
+      "default": "./guest-js/index.ts"
+    }
+  },
+  "files": [
+    "guest-js"
+  ],
+  "dependencies": {
+    "@tauri-apps/api": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

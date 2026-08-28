@@ -24,10 +24,10 @@
     "@caiji-games/minesweeper-cube-core": "workspace:*",
     "@caiji-games/shared-state": "workspace:*",
     "@caiji-games/shared-ui": "workspace:*",
+    "@caiji-games/tauri-plugin-admob-api": "workspace:*",
     "@tauri-apps/api": "catalog:",
     "@threlte/core": "^8.0.0",
     "@threlte/extras": "^9.0.0",
-    "tauri-plugin-google-admob-api": "^0.1.1",
     "three": "^0.184.0"
   },
   "devDependencies": {

@@ -1740,7 +1740,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
- "tauri-plugin-google-admob",
+ "tauri-plugin-caiji-admob",
 ]
 
 [[package]]
@@ -3166,10 +3166,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-google-admob"
+name = "tauri-plugin-caiji-admob"
 version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57c883ccd2ba091b68d72a01d1ce2b9bd0638cae78c100987ad2dba6d5d13e2a"
 dependencies = [
  "serde",
  "tauri",
