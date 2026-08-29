@@ -249,6 +249,7 @@
         history={history.map}
         onPick={pickDifficulty}
         onShowStats={() => (showStats = true)}
+        {ads}
     />
 {:else}
     <main class="flex h-dvh w-dvw max-w-dvw max-h-dvh justify-center items-start lg:gap-8 gap-4 p-2 md:p-4 bg-white dark:bg-gray-900">

@@ -12,12 +12,16 @@
       "package_id": "dev.caiji.minesweepercube",
       "sdks": [
         "admob"
-      ]
+      ],
+      "privacy_options_location": "open the rewards panel (the gift icon in the top-right corner)"
     },
     "minesweeper": {
       "name": "MineSweeper",
       "package_id": "dev.caiji.minesweeper",
-      "sdks": []
+      "sdks": [
+        "admob"
+      ],
+      "privacy_options_location": "open the difficulty menu shown when the Application starts"
     },
     "sliding-puzzle": {
       "name": "Sliding Puzzle",

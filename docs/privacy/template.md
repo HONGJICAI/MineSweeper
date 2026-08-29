@@ -63,7 +63,7 @@ If you decline consent for personalised advertising, the Application continues t
 
 **Withdrawing or Changing Your Consent**
 
-You can review or change your advertising choices at any time from inside the Application: open the rewards panel (the gift icon in the top-right corner) and select **Ad privacy settings**. This reopens the consent form. Changes take effect the next time the Application is started.
+You can review or change your advertising choices at any time from inside the Application: {{privacy_options_location}} and select **Ad privacy settings**. This reopens the consent form. Changes take effect the next time the Application is started.
 
 This control is shown only to users in regions where consent-based or opt-out advertising rules apply; elsewhere there is no consent to manage.
 
@@ -111,7 +111,7 @@ If you are a resident of a U.S. state with a comprehensive consumer privacy law 
 
 The Service Provider does not sell personal information for monetary value. However, serving personalised advertisements involves disclosing your Advertising Identifier to Google for cross-context behavioural advertising, which several state laws (including the CPRA) classify as "sharing" or as "targeted advertising".
 
-To opt out, open the rewards panel (the gift icon in the top-right corner) in the Application and select **Ad privacy settings**, or use the device-level control at Android Settings, Privacy, Ads, Opt out of Ads Personalisation. You may also contact {{contact_email}}.
+To opt out, {{privacy_options_location}} in the Application and select **Ad privacy settings**, or use the device-level control at Android Settings, Privacy, Ads, Opt out of Ads Personalisation. You may also contact {{contact_email}}.
 
 The Service Provider does not process sensitive personal information for the purpose of inferring characteristics about you, and does not knowingly sell or share the personal information of consumers under 16 years of age.
 {{/if}}
@@ -134,7 +134,7 @@ The Service Provider may disclose information:
 {{#if has_admob}}
 You can limit data collection in the following ways:
 
-- **Ad privacy settings (in the Application)**: open the rewards panel (the gift icon in the top-right corner) and select "Ad privacy settings" to review or change your advertising consent. Shown only where consent or opt-out rules apply.
+- **Ad privacy settings (in the Application)**: {{privacy_options_location}} and select "Ad privacy settings" to review or change your advertising consent. Shown only where consent or opt-out rules apply.
 - **Reset Advertising ID**: Android Settings → Privacy → Ads → Reset advertising ID
 - **Opt out of ad personalization**: Android Settings → Privacy → Ads → Opt out of Ads Personalization
 - **Stop all data collection**: Uninstall the Application. Locally stored game data is removed. Information previously transmitted to AdMob is handled according to Google's retention policies.

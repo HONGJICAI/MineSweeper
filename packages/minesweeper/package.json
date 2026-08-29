@@ -8,6 +8,8 @@
     "build": "svelte-check --tsconfig ./tsconfig.json && vite build",
     "preview": "vite preview --port 5174",
     "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest",
+    "test:run": "vitest run",
     "build:web": "cross-env VITE_PLATFORM=web vite build",
     "build:desktop": "cross-env VITE_PLATFORM=desktop vite build",
     "tauri": "cross-env VITE_PLATFORM=desktop tauri",
@@ -34,11 +36,13 @@
     "archiver": "^7.0.1",
     "cross-env": "catalog:",
     "fs-extra": "^11.3.1",
+    "happy-dom": "^15.11.7",
     "svelte": "catalog:",
     "svelte-check": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vite-plugin-pwa": "catalog:"
+    "vite-plugin-pwa": "catalog:",
+    "vitest": "catalog:"
   }
 }

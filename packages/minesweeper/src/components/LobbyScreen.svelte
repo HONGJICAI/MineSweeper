@@ -3,18 +3,37 @@
     import type { Leaderboards } from "../state/leaderboard.svelte";
     import type { PlayHistoryMap } from "../state/playHistory.svelte";
     import { Button } from "@caiji-games/shared-ui";
+    import type { AdsState } from "$ads";
 
     let {
         leaderboards,
         history,
         onPick,
         onShowStats,
+        ads,
     }: {
         leaderboards: Leaderboards;
         history: PlayHistoryMap;
         onPick: (d: Difficulty) => void;
         onShowStats: () => void;
+        ads: AdsState;
     } = $props();
+
+    // Consent re-entry point. GDPR requires a way to change an advertising choice after the fact,
+    // and some US state laws require an opt-out path; the UMP SDK reports whether this user is in
+    // such a region. Rendered only when it says so -- everywhere else there is no form to open and
+    // the button would dead-end. The lobby is the only sensible home for it: this app has no
+    // settings screen, and it must not sit over a running game.
+    let openingPrivacy = $state(false);
+    async function openPrivacyOptions() {
+        if (openingPrivacy) return;
+        openingPrivacy = true;
+        try {
+            await ads.openPrivacyOptions();
+        } finally {
+            openingPrivacy = false;
+        }
+    }
 
     type Card = {
         d: Difficulty;
@@ -67,4 +86,10 @@
     </div>
 
     <Button variant="ghost" onclick={onShowStats}>📊 Statistics</Button>
+
+    {#if ads.privacyOptionsRequired}
+        <Button variant="ghost" disabled={openingPrivacy} onclick={openPrivacyOptions}>
+            🔒 {openingPrivacy ? "Opening…" : "Ad privacy settings"}
+        </Button>
+    {/if}
 </main>
