@@ -22,6 +22,7 @@
     import { createPlayHistoryState } from "./state/playHistory.svelte";
     import { createTimerState } from "@caiji-games/shared-state";
     import { createReplayState } from "./state/replay.svelte";
+    import { createAdsState } from "$ads";
 
     const game = createGameState("easy");
     const userActions = createUserActionsState();
@@ -53,6 +54,25 @@
     // Desktop never sees lobby; if input switches to fine while in lobby, advance to game.
     $effect(() => {
         if (!isPrimaryTouch && view === "lobby") view = "game";
+    });
+
+    // Android only — on every other platform this is the no-op stub (see vite.config.ts) and the
+    // AdMob plugin is not even compiled in (src-tauri/Cargo.toml scopes it to the android target).
+    const ads = createAdsState();
+
+    // Cold start: consent, then SDK init, then the App Open ad. maybeShowAppOpen() blocks until
+    // the player dismisses the ad, which is fine — the lobby behind it is a menu, not gameplay.
+    $effect(() => {
+        ads.init().then(() => ads.maybeShowAppOpen());
+    });
+
+    // The banner belongs to the lobby and nowhere else: a banner pinned below a minesweeper grid
+    // invites mis-taps, and a mis-tap on a live ad is invalid traffic that counts against the
+    // AdMob account. Driving it from `view` means it also disappears the moment a game starts and
+    // comes back when the player returns, without either call site having to remember.
+    $effect(() => {
+        if (isPrimaryTouch && view === "lobby") void ads.showBanner();
+        else void ads.hideBanner();
     });
 
     // Wraps a game action so the result is recorded as a user action.

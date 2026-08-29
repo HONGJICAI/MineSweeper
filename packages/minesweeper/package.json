@@ -10,20 +10,21 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "build:web": "cross-env VITE_PLATFORM=web vite build",
     "build:desktop": "cross-env VITE_PLATFORM=desktop vite build",
-    "tauri": "tauri",
+    "tauri": "cross-env VITE_PLATFORM=desktop tauri",
     "tauri:icons": "tauri icon public/128x128@2x.png",
     "tauri:steam": "pnpm tauri build --config src-tauri/tauri.steam.conf.json && node packSteam.cjs",
-    "tauri:ms": "npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
+    "tauri:ms": "cross-env VITE_PLATFORM=desktop npx tauri build -- --no-bundle && npx tauri bundle -- --config src-tauri/tauri.microsoftstore.conf.json",
     "tauri:android:init": "npx tauri android init",
-    "tauri:android:dev": "npx tauri android dev",
-    "build:android": "cross-env VITE_PLATFORM=mobile vite build && npx tauri android build --aab",
-    "build:android:apk": "cross-env VITE_PLATFORM=mobile vite build && npx tauri android build --apk",
+    "tauri:android:dev": "cross-env VITE_PLATFORM=mobile npx tauri android dev",
+    "build:android": "cross-env VITE_PLATFORM=mobile npx tauri android build --aab",
+    "build:android:apk": "cross-env VITE_PLATFORM=mobile npx tauri android build --apk",
     "postinstall": "pnpm run tauri:icons"
   },
   "dependencies": {
     "@caiji-games/minesweeper-core": "workspace:*",
     "@caiji-games/shared-state": "workspace:*",
     "@caiji-games/shared-ui": "workspace:*",
+    "@caiji-games/tauri-plugin-admob-api": "workspace:*",
     "@tauri-apps/api": "catalog:"
   },
   "devDependencies": {

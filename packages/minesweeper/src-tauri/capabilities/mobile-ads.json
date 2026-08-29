@@ -1,0 +1,10 @@
+{
+  "$schema": "../gen/schemas/mobile-schema.json",
+  "identifier": "mobile-ads",
+  "description": "AdMob plugin commands. Android only -- the plugin is not compiled into desktop builds (see Cargo.toml), so this capability must stay platform-scoped or those builds fail to resolve the permission.",
+  "platforms": ["android"],
+  "windows": ["main"],
+  "permissions": [
+    "caiji-admob:default"
+  ]
+}

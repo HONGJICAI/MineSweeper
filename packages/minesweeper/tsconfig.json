@@ -17,7 +17,15 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+
+    // `$ads` is a vite alias (see vite.config.ts) that swaps in the no-op stub for every
+    // non-Android build. Type-checking has no notion of the alias, so point it at the real
+    // implementation -- the two modules export the same shape, so checking against the richer one
+    // catches call-site mistakes for both.
+    "paths": {
+      "$ads": ["./src/state/ads.svelte.ts"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.svelte"],
   "exclude": ["dist", "node_modules"]

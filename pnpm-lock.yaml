@@ -61,6 +61,9 @@ importers:
       '@caiji-games/shared-ui':
         specifier: workspace:*
         version: link:../shared-ui
+      '@caiji-games/tauri-plugin-admob-api':
+        specifier: workspace:*
+        version: link:../tauri-plugin-caiji-admob
       '@tauri-apps/api':
         specifier: 'catalog:'
         version: 2.11.0

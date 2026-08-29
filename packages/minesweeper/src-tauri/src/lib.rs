@@ -10,7 +10,15 @@ use std::sync::Arc;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  tauri::Builder::default()
+  #[allow(unused_mut)]
+  let mut builder = tauri::Builder::default();
+  // Android only -- the crate is not a dependency on other targets (see Cargo.toml), so this
+  // whole line disappears from Steam / Microsoft Store builds.
+  #[cfg(target_os = "android")]
+  {
+    builder = builder.plugin(tauri_plugin_caiji_admob::init());
+  }
+  builder
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(

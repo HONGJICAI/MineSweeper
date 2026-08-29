@@ -29,3 +29,10 @@ log = "0.4"
 tauri = { version = "2.11", features = [] }
 tauri-plugin-log = "2.0.0-rc"
 steamworks = { version = "0.12.2", optional = true }
+
+# Android-only. This app also ships to Steam and the Microsoft Store, and those builds have no
+# business carrying an ads plugin at all -- not even the desktop stub. Scoping the dependency to
+# the android target keeps the desktop binaries free of it entirely; the matching capability is
+# likewise limited to android (see capabilities/mobile-ads.json).
+[target.'cfg(target_os = "android")'.dependencies]
+tauri-plugin-caiji-admob = { path = "../../tauri-plugin-caiji-admob" }

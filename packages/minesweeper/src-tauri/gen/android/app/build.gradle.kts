@@ -29,6 +29,15 @@ android {
     namespace = "dev.caiji.minesweeper"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
+        // AdMob App ID — read from the ADMOB_APP_ID env at build time, falling back to Google's
+        // universal test App ID. The release workflow supplies the real value from a secret; local
+        // and PR-smoke builds keep the test ID so we never fingerprint our own devices against the
+        // real app. Note this is the App ID ('~' separator), not an ad unit id ('/') — the unit
+        // ids are injected separately into the JS bundle via VITE_ADMOB_* (see ads.svelte.ts).
+        // The SDK crashes on startup if this placeholder is missing or malformed, hence a fallback
+        // rather than an empty string.
+        manifestPlaceholders["admobAppId"] = (System.getenv("ADMOB_APP_ID")
+            ?: "ca-app-pub-3940256099942544~3347511713")
         applicationId = "dev.caiji.minesweeper"
         minSdk = 24
         targetSdk = 36

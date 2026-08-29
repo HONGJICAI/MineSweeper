@@ -13,6 +13,7 @@ dependencies = [
  "steamworks",
  "tauri",
  "tauri-build",
+ "tauri-plugin-caiji-admob",
  "tauri-plugin-log",
 ]
 
@@ -3487,6 +3488,16 @@ dependencies = [
  "serde_json",
  "tauri-utils",
  "walkdir",
+]
+
+[[package]]
+name = "tauri-plugin-caiji-admob"
+version = "0.1.1"
+dependencies = [
+ "serde",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
