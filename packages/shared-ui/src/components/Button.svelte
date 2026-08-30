@@ -56,8 +56,12 @@
         ariaLabel?: string;
     } = $props();
 
+    // touch-manipulation opts out of the double-tap-to-zoom gesture, so a tap dispatches click
+    // immediately instead of after the browser's wait-and-see delay. Without it buttons feel
+    // sluggish or "need two taps" in an Android WebView. Cell.svelte already did this for the
+    // board; buttons were missing it.
     const baseClass =
-        "rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500";
+        "rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation";
 
     let sizing = $derived(variant === "icon" ? iconSizeClasses[size] : sizeClasses[size]);
     let styling = $derived(active ? variantClasses.primary : variantClasses[variant]);

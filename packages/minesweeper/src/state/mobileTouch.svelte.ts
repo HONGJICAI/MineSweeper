@@ -72,8 +72,38 @@ export function createMobileTouchState(opts: Options) {
         start = null;
     }
 
+    // A revealed number is a chord source: releasing on it tries to open its neighbours. Mirrors
+    // the same-named helper in desktopMouse so both inputs preview identically. Zero-adjacency
+    // cells are excluded because their neighbours are already revealed by the flood fill, so
+    // there would be nothing to press anyway.
+    function isChordSource(r: number, c: number): boolean {
+        const cell = opts.getBoard()[r]?.[c];
+        return !!cell && cell.isRevealed && !cell.isMine && cell.adjacentMines > 0;
+    }
+
+    /**
+     * Visual "pressed" state for a cell, the touch counterpart of desktopMouse.isPressed. True when:
+     * - this is the cell being touched, or
+     * - the touch is on a neighbouring revealed number and we are in reveal mode, i.e. releasing
+     *   would chord and open this cell.
+     *
+     * Deliberately false in flag mode: releasing there places a flag on the touched cell and never
+     * touches its neighbours, so previewing them would promise something that will not happen.
+     * Also false once the touch has been dragged past the cancel threshold, which is what makes
+     * "press, slide off, release" back out of an action visibly rather than silently.
+     */
+    function isPressed(r: number, c: number, cellCanPress: boolean): boolean {
+        if (!cellCanPress) return false;
+        if (!start || start.cancelled) return false;
+        if (start.r === r && start.c === c) return true;
+        if (opts.getMode() !== "reveal") return false;
+        if (Math.abs(start.r - r) > 1 || Math.abs(start.c - c) > 1) return false;
+        return isChordSource(start.r, start.c);
+    }
+
     return {
         get isPressing() { return start !== null && !start.cancelled; },
+        isPressed,
         onTouchStart,
         onTouchMove,
         onTouchEnd,

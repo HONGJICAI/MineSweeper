@@ -68,12 +68,15 @@
 >
     {#each game.board as row, r (r)}
         {#each row as cell, c (c)}
+            <!-- Both inputs are consulted: a device can have a mouse and a touchscreen, and only
+                 one of them can be mid-press at any moment, so OR-ing them is safe. -->
+            {@const pressable = canPress(r, c)}
             <Cell
                 {cell}
                 {r}
                 {c}
                 gameStatus={game.gameStatus}
-                isPressed={mouse.isPressed(r, c, canPress(r, c))}
+                isPressed={mouse.isPressed(r, c, pressable) || touch.isPressed(r, c, pressable)}
                 isHighlighted={highlightedCell?.r === r && highlightedCell?.c === c}
                 lastStepOnMine={game.revealedMinePos?.r === r && game.revealedMinePos?.c === c}
                 onMouseDown={mouse.onMouseDown}

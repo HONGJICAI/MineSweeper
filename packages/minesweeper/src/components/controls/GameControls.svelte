@@ -49,10 +49,16 @@
     <Button onclick={onShowStats}>📊</Button>
 </div>
 
-<!-- Touch-only: mode toggle for tap-to-flag (right-click isn't available on touch) -->
+<!-- Touch-only: mode toggle for tap-to-flag (right-click isn't available on touch).
+     px-2 py-2 matches the face/reset button below, deliberately: these three are the header
+     controls and should read as one set. The default md padding (py-1) rendered the mode
+     buttons at ~32dp, small enough that taps land outside the hit box even when they look
+     centred on the emoji. Matching the face lands at ~40dp. Note the bigger win for tap
+     reliability is touch-manipulation on Button itself -- without it the WebView waits to see
+     if a tap is a double-tap-to-zoom, which is what made these feel unresponsive. -->
 <div class="hidden any-pointer-coarse:flex mb-2 gap-2 justify-center">
-    <Button onclick={() => setMobileMode("reveal")} active={mobileMode === "reveal"}>⛏️</Button>
-    <Button onclick={() => setMobileMode("flag")} active={mobileMode === "flag"}>🚩</Button>
+    <Button class="px-2 py-2" onclick={() => setMobileMode("reveal")} active={mobileMode === "reveal"}>⛏️</Button>
+    <Button class="px-2 py-2" onclick={() => setMobileMode("flag")} active={mobileMode === "flag"}>🚩</Button>
 </div>
 
 <!-- Timer / face / mines: emojis anchor near the face button, numbers expand outward
