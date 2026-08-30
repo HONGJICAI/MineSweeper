@@ -23,16 +23,21 @@ type Deps = {
 export function createReplayState(deps: Deps) {
     let queue = $state<ReplayQueue | null>(null);
     let autoPlaying = $state(false);
+    let paused = $state(false);
     let showOverlay = $state(false);
     let lastPlayedStep: number | null = null;
     let speed = DEFAULT_SPEED_MS;
 
-    const title = $derived(
-        queue ? `Replaying ${queue.current + 1}/${queue.actions.length}` : undefined
+    const progress = $derived(
+        queue ? { current: queue.current + 1, total: queue.actions.length } : null
     );
 
+    // Drives the replay one action per pass. Re-runs whenever `queue.current` advances, and also
+    // when `paused` flips — that is what makes pause/resume work without tracking elapsed time:
+    // pausing tears the effect down (clearing the pending timer via the cleanup below), resuming
+    // re-runs it, which skips re-applying the already-played action and just re-arms the timer.
     $effect(() => {
-        if (!autoPlaying || !queue) return;
+        if (!autoPlaying || paused || !queue) return;
         const status = deps.getGameStatus();
         if (status !== GameStatus.Init && status !== GameStatus.Gaming) return;
 
@@ -45,42 +50,56 @@ export function createReplayState(deps: Deps) {
             return;
         }
 
-        if (lastPlayedStep === queue.current) return;
-
         const action = queue.actions[queue.current];
-        const step = action.position;
-        if (action.type === "reveal") {
-            deps.reveal(step.r, step.c, queue.seed, true);
-        } else if (action.type === "flag") {
-            deps.toggleFlag(step.r, step.c);
-        } else if (action.type === "chord") {
-            deps.chord(step.r, step.c);
-        }
-        deps.setHighlightedCell(step);
-        deps.addUserAction(action);
-        lastPlayedStep = queue.current;
 
+        // Guarded so a resume (or any unrelated re-run) does not replay the same move twice.
+        if (lastPlayedStep !== queue.current) {
+            const step = action.position;
+            if (action.type === "reveal") {
+                deps.reveal(step.r, step.c, queue.seed, true);
+            } else if (action.type === "flag") {
+                deps.toggleFlag(step.r, step.c);
+            } else if (action.type === "chord") {
+                deps.chord(step.r, step.c);
+            }
+            deps.setHighlightedCell(step);
+            deps.addUserAction(action);
+            lastPlayedStep = queue.current;
+        }
+
+        // Resuming restarts the full delay for the current step rather than the remainder. Simpler
+        // than tracking elapsed time, and imperceptible: the step has already been applied, this
+        // only decides when the *next* one lands.
         const delay = speed === REAL_TIME_SPEED ? action.time : speed;
-        setTimeout(() => {
+        const timer = setTimeout(() => {
             if (queue) queue = { ...queue, current: queue.current + 1 };
         }, delay);
+        return () => clearTimeout(timer);
     });
 
     function open(seed: string, actions: UserActionDetail[]) {
         deps.reset();
         showOverlay = true;
+        paused = false;
         queue = { seed, actions, current: 0 };
     }
 
     function start(s: number) {
         speed = s;
         deps.onReplayStart?.();
+        paused = false;
         autoPlaying = true;
+    }
+
+    function togglePause() {
+        if (!autoPlaying) return;
+        paused = !paused;
     }
 
     function cancel() {
         showOverlay = false;
         autoPlaying = false;
+        paused = false;
         queue = null;
         lastPlayedStep = null;
         deps.setHighlightedCell(undefined);
@@ -88,11 +107,13 @@ export function createReplayState(deps: Deps) {
     }
 
     return {
-        get title() { return title; },
+        get progress() { return progress; },
         get showOverlay() { return showOverlay; },
         get autoPlaying() { return autoPlaying; },
+        get paused() { return paused; },
         open,
         start,
+        togglePause,
         cancel,
     };
 }

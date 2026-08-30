@@ -11,7 +11,7 @@
     import GameControls from "./components/controls/GameControls.svelte";
     import GameSidebar from "./components/sidebar/GameSidebar.svelte";
     import StatisticsModal from "./components/dialogs/StatisticsModal.svelte";
-    import AutoGamingOverlay from "./components/dialogs/AutoGamingOverlay.svelte";
+    import ReplayFrame from "./components/dialogs/ReplayFrame.svelte";
     import LobbyScreen from "./components/LobbyScreen.svelte";
     import { Button, DarkModeToggle } from "@caiji-games/shared-ui";
     import { createGameState } from "./state/game.svelte";
@@ -135,9 +135,11 @@
         onReplayStart: () => { skipHistory = true; },
     });
 
-    // Timer follows game status: start when entering Gaming, stop on win/lose/init.
+    // Timer follows game status: start when entering Gaming, stop on win/lose/init. A paused
+    // replay counts as stopped too -- the clock is showing the replayed game's elapsed time, and
+    // letting it run while the board is frozen makes the two disagree.
     $effect(() => {
-        if (game.gameStatus === GameStatus.Gaming) timer.start();
+        if (game.gameStatus === GameStatus.Gaming && !replay.paused) timer.start();
         else timer.stop();
     });
 
@@ -269,8 +271,35 @@
                 onShowStats={() => (showStats = true)}
             />
 
-            <div class="flex-1 min-h-0 max-w-full w-fit overflow-auto">
-                <Board {game} {mouse} {touch} {highlightedCell} />
+            <!-- Replay scrim: dims the whole screen, with the board lifted above it (z-50 below)
+                 so it alone stays legible. Doing it this way instead of a cut-out because the
+                 board sits in an overflow-auto container, which would clip any box-shadow trick
+                 to the scroll box. The board gets an explicit background so the 2px grid gaps do
+                 not let the scrim show through as dark lines. -->
+            {#if replay.showOverlay}
+                <!-- z-[55] deliberately beats the back and sidebar buttons, which are fixed z-50:
+                     they would otherwise float above the scrim, undimmed and still clickable, and
+                     opening the sidebar mid-replay is not something to invite. pointer-events-auto
+                     so the scrim also swallows taps aimed at them; the board sits above it and
+                     stays scrollable, and the control strip is higher still. -->
+                <div class="fixed inset-0 z-[55] bg-slate-900/60"></div>
+            {/if}
+
+            <div class="flex-1 min-h-0 max-w-full w-fit overflow-auto {replay.showOverlay ? 'relative z-[60]' : ''}">
+                <!-- w-fit h-fit so this hugs the board exactly: the frame brackets anchor to it. -->
+                <div class="relative w-fit h-fit {replay.showOverlay ? 'bg-white dark:bg-gray-900' : ''}">
+                    <Board {game} {mouse} {touch} {highlightedCell} />
+                {#if replay.showOverlay}
+                    <ReplayFrame
+                        isAutoPlaying={replay.autoPlaying}
+                        paused={replay.paused}
+                        progress={replay.progress}
+                        onCancel={replay.cancel}
+                        onStart={replay.start}
+                        onTogglePause={replay.togglePause}
+                    />
+                {/if}
+                </div>
             </div>
         </div>
 
@@ -296,11 +325,4 @@
     />
 {/if}
 
-{#if replay.showOverlay}
-    <AutoGamingOverlay
-        isAutoPlaying={replay.autoPlaying}
-        title={replay.title}
-        onCancel={replay.cancel}
-        onStart={replay.start}
-    />
-{/if}
+
