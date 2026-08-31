@@ -79,7 +79,7 @@
             <h2 class="text-base font-semibold text-slate-100">Ad-free reward</h2>
             <button
                 type="button"
-                class="rounded-full p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+                class="touch-manipulation rounded-full p-2 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
                 onclick={onClose}
                 aria-label="Close"
             >
@@ -102,7 +102,7 @@
             {:else}
                 <button
                     type="button"
-                    class="flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm transition-colors {ads.rewardedReady && !watching ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'cursor-not-allowed bg-slate-800/60 text-slate-500'}"
+                    class="flex touch-manipulation items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm transition-colors {ads.rewardedReady && !watching ? 'bg-emerald-600 text-white hover:bg-emerald-500' : 'cursor-not-allowed bg-slate-800/60 text-slate-500'}"
                     disabled={!ads.rewardedReady || watching}
                     onclick={watchRewarded}
                 >
@@ -117,7 +117,7 @@
             <section class="flex flex-col gap-2 border-t border-slate-800 pt-3">
                 <button
                     type="button"
-                    class="flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-sm text-slate-200 transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:text-slate-500"
+                    class="flex touch-manipulation items-center justify-center gap-2 rounded-lg bg-slate-800 px-3 py-2.5 text-sm text-slate-200 transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:text-slate-500"
                     disabled={openingPrivacy}
                     onclick={openPrivacyOptions}
                 >

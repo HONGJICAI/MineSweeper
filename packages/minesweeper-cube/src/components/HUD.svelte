@@ -181,7 +181,7 @@
     <div class="pointer-events-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full bg-slate-800/70 px-2 py-1 backdrop-blur-md">
         <button
             type="button"
-            class="flex items-center gap-1 rounded-full bg-slate-700/80 px-3 py-1 text-sm text-slate-100 hover:bg-slate-600"
+            class="flex touch-manipulation items-center gap-1 rounded-full bg-slate-700/80 px-3 py-2 text-sm text-slate-100 hover:bg-slate-600"
             onclick={() => setShowSettings(true)}
             title="Mode / difficulty"
             aria-label="Open settings"
@@ -205,7 +205,7 @@
 
         <button
             type="button"
-            class="rounded-full bg-slate-700/80 px-2 py-0.5 text-lg leading-none text-slate-100 hover:bg-slate-600"
+            class="touch-manipulation rounded-full bg-slate-700/80 px-3 py-2 text-lg leading-none text-slate-100 hover:bg-slate-600"
             onclick={handleReset}
             title="Restart"
             aria-label="Restart"
@@ -229,7 +229,7 @@
 >
     <button
         type="button"
-        class="rounded-full bg-slate-700/80 px-3 py-1 text-sm text-slate-100 shadow hover:bg-slate-600"
+        class="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full bg-slate-700/80 text-base text-slate-100 shadow hover:bg-slate-600"
         onclick={onShowStats}
         title="Best times and recent games"
         aria-label="Show stats"
@@ -242,7 +242,7 @@
              monetization UX lives in its own component. -->
         <button
             type="button"
-            class="rounded-full bg-slate-700/80 px-3 py-1 text-sm text-slate-100 shadow hover:bg-slate-600"
+            class="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full bg-slate-700/80 text-base text-slate-100 shadow hover:bg-slate-600"
             onclick={() => setShowAdRewards(true)}
             title="Hide the banner with a short video"
             aria-label="Ad reward options"
@@ -270,7 +270,7 @@
                 <h2 class="text-base font-semibold text-slate-100">Settings</h2>
                 <button
                     type="button"
-                    class="rounded-full p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+                    class="touch-manipulation rounded-full p-2 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
                     onclick={() => setShowSettings(false)}
                     aria-label="Close"
                 >
@@ -287,7 +287,7 @@
                         {@const locked = m.key === "endless" && !unlocks.endless}
                         <button
                             type="button"
-                            class="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors {locked ? 'cursor-not-allowed bg-slate-800/60 text-slate-500' : game.mode === m.key ? 'bg-violet-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}"
+                            class="flex touch-manipulation items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors {locked ? 'cursor-not-allowed bg-slate-800/60 text-slate-500' : game.mode === m.key ? 'bg-violet-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}"
                             disabled={locked}
                             title={locked ? UNLOCK_HINT.endless : ""}
                             onclick={() => handleModeClick(m.key)}
@@ -310,7 +310,7 @@
                             {@const locked = !unlocks.isUnlocked(d.key)}
                             <button
                                 type="button"
-                                class="flex flex-col items-center gap-1 rounded-lg px-3 py-2.5 text-sm transition-colors {locked ? 'cursor-not-allowed bg-slate-800/60 text-slate-500' : game.difficulty === d.key ? 'bg-sky-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}"
+                                class="flex touch-manipulation flex-col items-center gap-1 rounded-lg px-3 py-2.5 text-sm transition-colors {locked ? 'cursor-not-allowed bg-slate-800/60 text-slate-500' : game.difficulty === d.key ? 'bg-sky-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}"
                                 disabled={locked}
                                 title={locked ? UNLOCK_HINT[d.key] : d.spec}
                                 onclick={() => pickDifficulty(d.key)}
@@ -329,7 +329,7 @@
                         {#each ENDLESS_SUBMODES as sm}
                             <button
                                 type="button"
-                                class="flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors {game.endlessMode === sm.key ? 'bg-sky-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}"
+                                class="flex touch-manipulation items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors {game.endlessMode === sm.key ? 'bg-sky-500 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'}"
                                 title={sm.title}
                                 onclick={() => pickEndlessMode(sm.key)}
                             >
@@ -354,7 +354,7 @@
 {#if isPrimaryTouch}
     <button
         type="button"
-        class="pointer-events-auto absolute bottom-16 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-xl ring-2 transition-colors {mobileMode === 'reveal' ? 'bg-sky-500 ring-sky-300/50 text-white' : 'bg-amber-500 ring-amber-300/50 text-white'}"
+        class="pointer-events-auto absolute bottom-16 right-4 z-20 flex h-14 w-14 touch-manipulation items-center justify-center rounded-full text-2xl shadow-xl ring-2 transition-colors {mobileMode === 'reveal' ? 'bg-sky-500 ring-sky-300/50 text-white' : 'bg-amber-500 ring-amber-300/50 text-white'}"
         onclick={toggleTapMode}
         title={mobileMode === "reveal" ? "Tap mode: Reveal — switch to Flag" : "Tap mode: Flag — switch to Reveal"}
         aria-label={mobileMode === "reveal" ? "Switch to flag mode" : "Switch to reveal mode"}

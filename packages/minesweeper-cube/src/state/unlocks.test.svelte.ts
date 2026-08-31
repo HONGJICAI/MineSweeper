@@ -81,6 +81,41 @@ describe("createUnlockState persistence", () => {
         cleanup2();
     });
 
+    test("VITE_UNLOCK_ALL is off in the test environment, so gates apply normally", () => {
+        // The flag is a build-time debug escape hatch. If it ever leaked into a normal build the
+        // whole progression system would silently vanish, and every other test in this file would
+        // still pass because they only assert on the unlocked side. This one fails loudly instead.
+        const cleanup = $effect.root(() => {
+            const u = createUnlockState();
+            expect(u.easy).toBe(true);
+            expect(u.medium).toBe(false);
+            expect(u.hard).toBe(false);
+            expect(u.endless).toBe(false);
+            expect(u.isUnlocked("hard")).toBe(false);
+        });
+        cleanup();
+    });
+
+    test("reading a gate never persists an unlock", () => {
+        // The override applies on read only. A build with VITE_UNLOCK_ALL set, followed by one
+        // without, has to drop back to the player's real progress -- if reading ever wrote the
+        // unlocked value through, they would stay unlocked forever.
+        //
+        // Note persistedState writes its initial value on construction, so the assertion is that
+        // the *stored flags* are still false, not that nothing was written at all.
+        const cleanup = $effect.root(() => {
+            const u = createUnlockState();
+            void u.hard;
+            void u.endless;
+            void u.isUnlocked("medium");
+        });
+        flushSync();
+        const stored = JSON.parse(localStorage.getItem("minesweeper-cube:unlocks") ?? "{}");
+        expect(stored.medium).toBe(false);
+        expect(stored.hard).toBe(false);
+        cleanup();
+    });
+
     test("uses the minesweeper-cube: namespace prefix", () => {
         const cleanup = $effect.root(() => {
             const u = createUnlockState();

@@ -10,6 +10,19 @@ import { persistedState } from "./persisted.ts";
 //   curve starts at medium-tier density and would frustrate a beginner.
 //
 // Stored separately from the leaderboard so clearing the leaderboard doesn't re-lock content.
+//
+// VITE_UNLOCK_ALL=1 unlocks everything for the duration of a build. It exists because testing
+// anything gated behind progression otherwise means winning a real Easy game, then a real Medium
+// one, before Hard or endless can even be opened.
+//
+// Two deliberate properties:
+//   - It overrides on *read* and never writes to storage, so a build without the flag drops
+//     straight back to the player's real progress instead of leaving them permanently unlocked.
+//   - Vite inlines the comparison at build time, so a release build (where the variable is unset)
+//     folds this to `false || …` and the branch disappears entirely. The release workflow never
+//     sets it; see scripts/admob-env.local.sh for the same pattern applied to the ads debug knobs.
+const UNLOCK_ALL = import.meta.env.VITE_UNLOCK_ALL === "1";
+
 export type UnlockedFlags = {
     easy: boolean;
     medium: boolean;
@@ -29,15 +42,15 @@ export function createUnlockState() {
     }
 
     function isUnlocked(d: Difficulty): boolean {
-        return persisted.value[d];
+        return UNLOCK_ALL || persisted.value[d];
     }
 
     return {
-        get easy()    { return persisted.value.easy; },
-        get medium()  { return persisted.value.medium; },
-        get hard()    { return persisted.value.hard; },
+        get easy()    { return UNLOCK_ALL || persisted.value.easy; },
+        get medium()  { return UNLOCK_ALL || persisted.value.medium; },
+        get hard()    { return UNLOCK_ALL || persisted.value.hard; },
         // Endless shares the gate with Hard: requires beating Medium first.
-        get endless() { return persisted.value.hard; },
+        get endless() { return UNLOCK_ALL || persisted.value.hard; },
         unlock,
         isUnlocked,
     };

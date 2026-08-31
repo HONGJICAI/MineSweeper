@@ -75,7 +75,7 @@
             <h2 class="text-base font-semibold text-slate-100">Stats</h2>
             <button
                 type="button"
-                class="rounded-full p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+                class="touch-manipulation rounded-full p-2 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
                 onclick={onClose}
                 aria-label="Close"
             >
@@ -90,7 +90,7 @@
             {#each MODE_TABS as t}
                 <button
                     type="button"
-                    class="flex flex-1 items-center justify-center gap-1.5 rounded-t-lg px-3 py-1.5 text-sm transition-colors {activeMode === t.key ? 'bg-slate-800 text-slate-100' : 'text-slate-400 hover:text-slate-200'}"
+                    class="flex flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-t-lg px-3 py-2.5 text-sm transition-colors {activeMode === t.key ? 'bg-slate-800 text-slate-100' : 'text-slate-400 hover:text-slate-200'}"
                     onclick={() => (activeMode = t.key)}
                     aria-pressed={activeMode === t.key}
                 >
@@ -107,7 +107,7 @@
                     {#each DIFFICULTY_TABS as d}
                         <button
                             type="button"
-                            class="flex items-center gap-1 rounded-full px-3 py-1 text-xs transition-colors {activeDifficulty === d.key ? 'bg-sky-500 text-white' : 'text-slate-300 hover:text-slate-100'}"
+                            class="flex touch-manipulation items-center gap-1 rounded-full px-3 py-2 text-xs transition-colors {activeDifficulty === d.key ? 'bg-sky-500 text-white' : 'text-slate-300 hover:text-slate-100'}"
                             onclick={() => (activeDifficulty = d.key)}
                             aria-pressed={activeDifficulty === d.key}
                         >
@@ -161,7 +161,7 @@
                     {#each ENDLESS_TABS as sm}
                         <button
                             type="button"
-                            class="flex items-center gap-1 rounded-full px-3 py-1 text-xs transition-colors {activeEndless === sm.key ? 'bg-violet-500 text-white' : 'text-slate-300 hover:text-slate-100'}"
+                            class="flex touch-manipulation items-center gap-1 rounded-full px-3 py-2 text-xs transition-colors {activeEndless === sm.key ? 'bg-violet-500 text-white' : 'text-slate-300 hover:text-slate-100'}"
                             onclick={() => (activeEndless = sm.key)}
                             aria-pressed={activeEndless === sm.key}
                         >
@@ -216,14 +216,14 @@
             {#if activeMode === "classic"}
                 <button
                     type="button"
-                    class="rounded bg-slate-800 px-3 py-1 text-xs text-slate-300 hover:bg-slate-700"
+                    class="touch-manipulation rounded bg-slate-800 px-3 py-2 text-xs text-slate-300 hover:bg-slate-700"
                     onclick={() => confirmClear("leaderboard", leaderboard.clear)}
                 >
                     Clear leaderboard
                 </button>
                 <button
                     type="button"
-                    class="rounded bg-slate-800 px-3 py-1 text-xs text-slate-300 hover:bg-slate-700"
+                    class="touch-manipulation rounded bg-slate-800 px-3 py-2 text-xs text-slate-300 hover:bg-slate-700"
                     onclick={() => confirmClear("recent history", history.clear)}
                 >
                     Clear history
@@ -231,7 +231,7 @@
             {:else}
                 <button
                     type="button"
-                    class="rounded bg-slate-800 px-3 py-1 text-xs text-slate-300 hover:bg-slate-700"
+                    class="touch-manipulation rounded bg-slate-800 px-3 py-2 text-xs text-slate-300 hover:bg-slate-700"
                     onclick={() => confirmClear(`${activeEndless} endless runs`, activeEndlessStore.clear)}
                 >
                     Clear {activeEndless} runs

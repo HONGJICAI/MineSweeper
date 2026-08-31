@@ -1,0 +1,217 @@
+<!doctype html>
+<!--
+    Renders the Play Store feature graphic for the MineSweeper app on a 2D canvas — same visual
+    language as the game itself (the cube app uses Three.js for the same reason: its graphic should
+    look like its game). Open in any modern browser, see the preview, click Download to save a PNG.
+
+    Output:
+    - 1024x500 feature graphic → Play Console → Main store listing → Feature graphic.
+      Play requires exactly 1024x500, no alpha, ≤15 MB (this lands around 60 KB).
+
+    The board drawn here is a real, solvable position: the numbers match the mines actually placed
+    in BOARD below, so nothing in the artwork contradicts how the game works. Edit BOARD and the
+    constants at the top of the script to iterate — no build step.
+
+    Cell colours are copied from src/components/board/Cell.svelte (light theme). If the game's
+    palette changes, change them here too or the graphic stops matching the screenshots beside it.
+-->
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>MineSweeper banner renderer</title>
+    <style>
+        body {
+            margin: 0; padding: 24px;
+            background: linear-gradient(135deg, #0f172a, #334155);
+            color: #f1f5f9;
+            font-family: system-ui, sans-serif;
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+            min-height: 100vh; box-sizing: border-box;
+        }
+        h1 { margin: 0; font-size: 18px; font-weight: 500; color: #cbd5e1; }
+        .preview { background: #1e293b; padding: 16px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,.5); }
+        canvas { display: block; width: min(880px, 92vw); height: auto; aspect-ratio: 1024 / 500; }
+        .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        button {
+            padding: 10px 20px; font-size: 14px; font-weight: 500;
+            background: #2563eb; color: #fff; border: 0; border-radius: 8px; cursor: pointer;
+        }
+        button:hover { background: #1d4ed8; }
+        button.alt { background: #475569; }
+        button.alt:hover { background: #64748b; }
+        .hint { color: #94a3b8; font-size: 12px; max-width: 620px; text-align: center; line-height: 1.6; }
+        code { color: #cbd5e1; }
+    </style>
+</head>
+<body>
+    <h1>MineSweeper — Play Store feature graphic</h1>
+    <div class="preview"><canvas id="banner" width="1024" height="500"></canvas></div>
+    <div class="row">
+        <button id="dl">Download 1024×500 PNG</button>
+        <button id="theme" class="alt">Toggle light / dark</button>
+    </div>
+    <p class="hint">
+        Play crops this differently across surfaces, so everything that matters is kept inside the
+        middle band — the board bleeds off the right edge on purpose and carries no information.
+        Upload at <code>Main store listing → Graphics → Feature graphic</code>.
+    </p>
+
+<script>
+// ---- tunables -------------------------------------------------------------------------------
+const W = 1024, H = 500;
+const CELL = 58;          // board cell size in px
+const GAP = 3;            // grid gap, matches the game's 2px at a larger cell size
+// 8 columns * 61px = 488, so starting at 600 puts the right edge past 1024 and the board bleeds
+// off-canvas. 600 also clears the title: "MineSweeper" at 74px runs to roughly x=545.
+const BOARD_X = 600;
+const BOARD_Y = 6;        // (500 - 488) / 2, vertically centred
+
+// Cell colours lifted from Cell.svelte (light theme).
+const NUMBER_COLORS = {
+    1: "#2563eb", 2: "#15803d", 3: "#dc2626", 4: "#3730a3",
+    5: "#9f1239", 6: "#0d9488", 7: "#111827", 8: "#6b7280",
+};
+
+// A real, self-consistent position, generated and verified rather than eyeballed: every digit
+// equals the number of mines among that cell's eight neighbours, and all four flags sit on actual
+// mines. Minesweeper players read these graphics; a board with contradictory numbers looks fake.
+// '#' = unrevealed, 'F' = flagged. Only numbered cells are revealed (blank zero-cells would leave
+// large empty patches), which is exactly what a board looks like when opened square by square.
+const BOARD = [
+    "1F1##111",
+    "111##1#1",
+    "#1221111",
+    "#2#F2111",
+    "#2#5#22F",
+    "1234#22F",
+    "1#2#2111",
+    "11211###",
+];
+
+let dark = false;
+
+// ---- drawing --------------------------------------------------------------------------------
+function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+}
+
+function drawBoard(ctx) {
+    const unrevealed = dark ? "#4b5563" : "#9ca3af";
+    const revealed   = dark ? "#1f2937" : "#f3f4f6";
+    const flagRed    = "#ef4444";
+
+    for (let r = 0; r < BOARD.length; r++) {
+        for (let c = 0; c < BOARD[r].length; c++) {
+            const ch = BOARD[r][c];
+            const x = BOARD_X + c * (CELL + GAP);
+            const y = BOARD_Y + r * (CELL + GAP);
+            if (x > W) continue;
+
+            const isOpen = ch !== "#" && ch !== "F";
+            ctx.fillStyle = isOpen ? revealed : unrevealed;
+            roundRect(ctx, x, y, CELL, CELL, 4);
+            ctx.fill();
+
+            if (ch >= "1" && ch <= "8") {
+                ctx.fillStyle = dark ? lighten(NUMBER_COLORS[+ch]) : NUMBER_COLORS[+ch];
+                ctx.font = "700 26px ui-monospace, SFMono-Regular, Menlo, monospace";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(ch, x + CELL / 2, y + CELL / 2 + 1);
+            } else if (ch === "F") {
+                // Flag: pole plus pennant, drawn rather than an emoji so it renders identically
+                // on every machine that opens this file.
+                ctx.strokeStyle = dark ? "#e5e7eb" : "#374151";
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(x + CELL * 0.42, y + CELL * 0.24);
+                ctx.lineTo(x + CELL * 0.42, y + CELL * 0.76);
+                ctx.stroke();
+                ctx.fillStyle = flagRed;
+                ctx.beginPath();
+                ctx.moveTo(x + CELL * 0.42, y + CELL * 0.24);
+                ctx.lineTo(x + CELL * 0.74, y + CELL * 0.38);
+                ctx.lineTo(x + CELL * 0.42, y + CELL * 0.52);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+    }
+}
+
+function lighten(hex) {
+    // Dark-theme numbers in the game are the lighter Tailwind shades; approximate by blending
+    // toward white so the palette still reads as the same colours.
+    const n = parseInt(hex.slice(1), 16);
+    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    const mix = (v) => Math.round(v + (255 - v) * 0.45);
+    return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
+}
+
+function draw() {
+    const ctx = document.getElementById("banner").getContext("2d");
+
+    // Background. No alpha anywhere: Play rejects feature graphics with transparency.
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    if (dark) { bg.addColorStop(0, "#0f172a"); bg.addColorStop(1, "#1e293b"); }
+    else      { bg.addColorStop(0, "#ffffff"); bg.addColorStop(1, "#e8edf5"); }
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    drawBoard(ctx);
+
+    // Fade the board into the background on its left edge so the title never fights it for
+    // contrast, however Play crops the image.
+    const fade = ctx.createLinearGradient(BOARD_X - 90, 0, BOARD_X + 170, 0);
+    const base = dark ? "15,23,42" : "255,255,255";
+    fade.addColorStop(0, `rgba(${base},1)`);
+    fade.addColorStop(1, `rgba(${base},0)`);
+    ctx.fillStyle = fade;
+    ctx.fillRect(0, 0, BOARD_X + 170, H);
+
+    // Title block, kept inside the middle band that survives Play's crops.
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+
+    ctx.fillStyle = dark ? "#f8fafc" : "#0f172a";
+    ctx.font = "800 74px system-ui, -apple-system, Segoe UI, sans-serif";
+    ctx.fillText("MineSweeper", 72, 232);
+
+    ctx.fillStyle = dark ? "#94a3b8" : "#475569";
+    ctx.font = "400 28px system-ui, -apple-system, Segoe UI, sans-serif";
+    ctx.fillText("Classic mine clearing —", 74, 288);
+    ctx.fillText("replay every game you play.", 74, 328);
+
+    // Three difficulty pills: concrete, checkable claims rather than marketing adjectives.
+    const pills = ["9×9", "16×16", "16×30"];
+    let px = 74;
+    ctx.font = "600 20px ui-monospace, SFMono-Regular, Menlo, monospace";
+    for (const label of pills) {
+        const w = ctx.measureText(label).width + 32;
+        ctx.fillStyle = dark ? "#1e293b" : "#dbe3ef";
+        roundRect(ctx, px, 372, w, 40, 20);
+        ctx.fill();
+        ctx.fillStyle = dark ? "#cbd5e1" : "#334155";
+        ctx.fillText(label, px + 16, 398);
+        px += w + 12;
+    }
+}
+
+document.getElementById("theme").onclick = () => { dark = !dark; draw(); };
+document.getElementById("dl").onclick = () => {
+    const a = document.createElement("a");
+    a.download = `minesweeper-feature-graphic-${dark ? "dark" : "light"}-1024x500.png`;
+    a.href = document.getElementById("banner").toDataURL("image/png");
+    a.click();
+};
+
+draw();
+</script>
+</body>
+</html>
